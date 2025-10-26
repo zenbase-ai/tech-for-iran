@@ -7,8 +7,8 @@ This plan covers **backend-only** implementation based on SPEC.md. Frontend UI i
 - ✅ **Phase 1: Foundation & Configuration** - COMPLETED
 - ✅ **Phase 2: Database Schema & Migrations** - COMPLETED
 - ✅ **Phase 3: Utility Functions & Helpers** - COMPLETED
-- ⏳ **Phase 4: API Routes** - IN PROGRESS
-- 🔜 **Phase 5: Workflow Implementation** - TODO
+- ✅ **Phase 4: API Routes** - COMPLETED
+- ⏳ **Phase 5: Workflow Implementation** - IN PROGRESS
 - 🔜 **Phase 6: Testing & Validation Utilities** - TODO
 - 🔜 **Phase 7: Security & Finalization** - TODO
 - 🔜 **Phase 8: Documentation & Deployment Prep** - TODO
@@ -17,17 +17,19 @@ This plan covers **backend-only** implementation based on SPEC.md. Frontend UI i
 - Environment setup with all required packages
 - Supabase client utilities (server, client, auth)
 - Database schema with 5 tables + RLS policies
-- 7 migrations applied to remote database
-- Comprehensive query utilities for all tables
+- 8 migrations applied to remote database (including RPC functions)
+- Comprehensive query utilities with efficient SQL (GROUP BY + random selection)
 - Unipile API client integration
 - LinkedIn post URN extraction utilities
 - Engagement logic helpers (randomization, filtering, daily limits)
+- **3 API routes:** LinkedIn connect, Unipile webhook, Engagement submission
+- Complete API documentation (with client-side auth pattern)
 
-### 🎯 Next Up: Phase 4 - API Routes
-- Authentication endpoints
-- LinkedIn connection flow
-- Post engagement submission
-- Unipile webhook handling
+### 🎯 Next Up: Phase 5 - Workflow Implementation
+- Configure Workflow DevKit (re-enable withWorkflow wrapper)
+- Create main engagement workflow function
+- Implement reaction step function
+- Test end-to-end workflow with delays and error handling
 
 ---
 
@@ -269,48 +271,50 @@ CREATE INDEX idx_posts_url ON posts(post_url);
 
 ---
 
-## Phase 4: API Routes
+## Phase 4: API Routes ✅ COMPLETED
 
 ### TODO: Authentication & LinkedIn Connection Routes
 
 #### GET /api/auth/user
-- [ ] Create `src/app/api/auth/user/route.ts`
-- [ ] Get current authenticated user from Supabase session
-- [ ] Return user profile data (including LinkedIn connection status)
+❌ **Removed** - Redundant. Clients can query their own profile directly via Supabase with RLS policies.
+Use `supabase.auth.getUser()` and `supabase.from('profiles').select('*')` instead.
 
 #### POST /api/auth/linkedin/connect
-- [ ] Create `src/app/api/auth/linkedin/connect/route.ts`
-- [ ] Get authenticated user from session
-- [ ] Generate Unipile hosted auth link using `generateHostedAuthLink(userId)`
-- [ ] Set `notify_url` to `{APP_URL}/api/unipile/callback`
-- [ ] Set `success_redirect_url` to `{APP_URL}/onboarding/success`
-- [ ] Set `failure_redirect_url` to `{APP_URL}/onboarding/error`
-- [ ] Return `{ url: hostedAuthUrl }`
+✅ **Created:** `src/app/api/auth/linkedin/connect/route.ts`
+- [x] Get authenticated user from session
+- [x] Generate Unipile hosted auth link using `generateHostedAuthLink(userId)`
+- [x] Set `notify_url` to `{APP_URL}/api/unipile/callback`
+- [x] Set `success_redirect_url` to `{APP_URL}/onboarding/success`
+- [x] Set `failure_redirect_url` to `{APP_URL}/onboarding/error`
+- [x] Return `{ url: hostedAuthUrl }`
 
 #### POST /api/unipile/callback
-- [ ] Create `src/app/api/unipile/callback/route.ts`
-- [ ] This is the webhook endpoint for Unipile auth results
-- [ ] Validate incoming webhook payload (check `status`, `account_id`, `name`)
-- [ ] Parse `name` to get user ID (we passed userId as name in hosted auth)
-- [ ] Update user profile: set `unipile_account_id`, `linkedin_connected = true`
-- [ ] Return 200 OK to Unipile
+✅ **Created:** `src/app/api/unipile/callback/route.ts`
+- [x] This is the webhook endpoint for Unipile auth results
+- [x] Validate incoming webhook payload (check `status`, `account_id`, `name`)
+- [x] Parse `name` to get user ID (we passed userId as name in hosted auth)
+- [x] Update user profile: set `unipile_account_id`, `linkedin_connected = true`
+- [x] Return 200 OK to Unipile
+- [x] Added Zod schema validation for webhook payload
 
 ### TODO: Engagement Submission Route
 
 #### POST /api/engagements
-- [ ] Create `src/app/api/engagements/route.ts`
-- [ ] Get authenticated user from session
-- [ ] Parse request body: `{ postUrl, reactionTypes }` (array of reaction types)
-- [ ] Validate inputs (Zod schema):
+✅ **Created:** `src/app/api/engagements/route.ts`
+- [x] Get authenticated user from session
+- [x] Parse request body: `{ postUrl, reactionTypes, squadInviteCode? }`
+- [x] Validate inputs (Zod schema):
   - `postUrl` is valid LinkedIn URL
   - `reactionTypes` is non-empty array of valid types (LIKE, CELEBRATE, SUPPORT, LOVE, INSIGHTFUL, FUNNY)
-- [ ] Get user's squad (for now, default "YC Alumni" squad)
-- [ ] Check for duplicate post submission (`getPostByUrl`)
-- [ ] If duplicate, return error or skip
-- [ ] Extract post URN from URL (`extractPostURNFromUrl` or fallback to Unipile)
-- [ ] Create post record in database (`createPost`)
-- [ ] Start engagement workflow: `await start(handlePostEngagement, { userId, postId, postUrl, postUrn, reactionTypes, squadId })`
-- [ ] Return `{ status: 'scheduled', postId }`
+- [x] Get user's squad (defaults to "YC Alumni" squad via invite code)
+- [x] Check for duplicate post submission (`getPostByUrl`)
+- [x] If duplicate, return `{ status: 'duplicate', postId }`
+- [x] Extract post URN from URL (`getPostURN` with automatic fallback)
+- [x] Create post record in database (`createPost`)
+- [ ] **TODO (Phase 5):** Start engagement workflow: `await start(handlePostEngagement, { ... })`
+- [x] Return `{ status: 'scheduled', postId, reactionTypes }`
+
+✅ **Documentation:** Created `docs/API_ROUTES.md` with complete API documentation
 
 ---
 

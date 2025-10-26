@@ -8,7 +8,8 @@ This is a LinkedIn Squad Engagement Automation tool - a Next.js application that
 
 **Key Tech Stack:**
 - Next.js 13+ (App Router, React 19, React Compiler enabled)
-- Supabase (Auth + PostgreSQL database)
+- Clerk (Authentication and user management)
+- Supabase (PostgreSQL database only)
 - Unipile API (LinkedIn integration for reactions/actions)
 - Vercel Workflow DevKit (durable background jobs for scheduled reactions)
 - Tailwind CSS 4 + Biome for linting/formatting
@@ -62,38 +63,43 @@ src/
     └── utils.ts      # Shared utilities (cn, linkProps, css helper, etc.)
 ```
 
-**Core Features (Per SPEC.md):**
-1. **User Onboarding:** Passwordless email auth (Supabase magic link/OTP) → Connect LinkedIn via Unipile Hosted Auth Wizard
+**Core Features:**
+1. **User Onboarding:** Clerk authentication (email/password, OAuth, magic links) → Connect LinkedIn via Unipile Hosted Auth Wizard
 2. **Post Engagement Workflow:** User submits LinkedIn post URL + reaction types → System schedules ~40 reactions from squad members over ~5 minutes with random delays (jitter)
 3. **Squad Management:** Initially single global "YC Alumni" squad, backend designed for multi-squad support
-4. **Daily Limits:** Each user configures max engagements/day (default 40) to avoid LinkedIn anti-abuse triggers
+4. **Daily Limits:** Each user configures max engagements/day (default 40, stored in Clerk metadata) to avoid LinkedIn anti-abuse triggers
 5. **Future: AI Auto-commenting** (not yet implemented but architecture accommodates)
 
 **Key Architectural Patterns:**
+- **Authentication:** Clerk handles all user authentication. User data (email, LinkedIn connections, settings) stored in Clerk metadata. Clerk webhooks sync user creation/deletion to Supabase for relational integrity.
 - **Durable Workflows:** Use Vercel Workflow DevKit (`"use workflow"` directive) for scheduling delayed reactions. Workflows are fault-tolerant and resume across restarts.
 - **External API Integration:** All Unipile API calls happen server-side (Next.js API routes or workflow steps) - API keys never exposed client-side.
-- **Supabase DB Schema:** Tables for `profiles` (users + LinkedIn account), `squads`, `squad_members` (join table), `posts` (submitted for engagement), `engagements_log` (optional tracking).
+- **Database Schema:** Supabase stores minimal `profiles` table (Clerk user IDs only), `squads`, `squad_members` (join table), `posts` (submitted for engagement), `engagements_log` (tracking). All user metadata (email, LinkedIn, settings) lives in Clerk.
 - **Randomization & Deduplication:** Random member selection, random reaction types, random delays (5-15s jitter). Ensure no duplicate engagements per user per post.
 
-**Workflow Example (from SPEC.md):**
+**Workflow Example:**
 ```typescript
 // workflows/handlePostEngagement.ts
 export async function handlePostEngagement(userId, postUrl, reactions) {
   "use workflow";
   const postURN = await getPostURNFromUrl(postUrl);
-  const members = await db.getMembers(squadId).filter(/* exclude author, check daily limits */);
+  // Get squad members from Supabase, check LinkedIn connection via Clerk metadata
+  const members = await getAvailableSquadMembers(squadId, userId);
   const chosen = pickRandom(members, 40);
   for (const member of chosen) {
-    await sendReaction(member.unipileAccountId, postURN, randomChoice(reactions));
+    const linkedInData = await getLinkedInData(member.user_id);
+    await sendReaction(linkedInData.unipile_account_id, postURN, randomChoice(reactions));
     await sleep(`${randomIntBetween(5, 15)}s`);
   }
 }
 ```
 
 **Important Security Notes:**
+- Clerk handles all authentication and session management
+- Clerk webhooks verified using Svix signature validation
 - Unipile API key stored in environment variable (server-side only)
-- Use Supabase service role key for server operations (or configure RLS for client queries)
-- Hosted Auth Wizard: Generate one-time links server-side, handle webhooks to capture `account_id`
+- Use Supabase service role key for database operations (auth bypassed, queries via Clerk user IDs)
+- Hosted Auth Wizard: Generate one-time links server-side, handle webhooks to capture `account_id` and store in Clerk metadata
 
 **Next.js Configuration (next.config.ts):**
 - Typed routes enabled (`typedRoutes: true`)
@@ -114,7 +120,9 @@ export async function handlePostEngagement(userId, postUrl, reactions) {
 - Motion library (motion) for animations
 
 **External Dependencies Highlights:**
-- `@t3-oss/env-nextjs`: Environment variable validation (likely with Zod)
+- `@clerk/nextjs`: Clerk authentication SDK
+- `svix`: Webhook signature verification for Clerk webhooks
+- `@t3-oss/env-nextjs`: Environment variable validation with Zod
 - `zod`: Schema validation (used for env vars and data validation)
 - `es-toolkit`: Modern lodash alternative for utilities
 - `class-variance-authority`: For component variants (cva pattern)
@@ -128,10 +136,16 @@ export async function handlePostEngagement(userId, postUrl, reactions) {
 
 ## Key Files to Know
 
-- `SPEC.md`: Complete technical specification (~5000 lines) covering user flows, API integration, database schema, workflow logic
+- `docs/MIGRATION_STEPS.md`: Step-by-step guide for completing Clerk migration
+- `docs/clerk-migration.sql`: SQL migration for Supabase database schema
+- `src/lib/clerk/auth.ts`: Clerk authentication helpers (getCurrentUser, requireUser)
+- `src/lib/clerk/metadata.ts`: Clerk metadata management (LinkedIn data, user settings)
+- `src/lib/supabase/queries.ts`: Database query functions (now integrated with Clerk)
+- `src/middleware.ts`: Clerk route protection middleware
+- `src/app/api/webhooks/clerk/route.ts`: Clerk webhook handler for user sync
 - `src/lib/utils.ts`: Shared utility functions (cn, linkProps, css, cast)
 - `src/app/layout.tsx`: Root layout with providers, fonts, and container
-- `src/components/providers/index.tsx`: Wraps ThemeProvider and TooltipProvider
+- `src/components/providers/index.tsx`: Wraps ClerkProvider, ThemeProvider, TooltipProvider
 - `next.config.ts`: Next.js configuration (React Compiler, typed routes, bundle analyzer)
 - `biome.json`: Linting and formatting rules
 

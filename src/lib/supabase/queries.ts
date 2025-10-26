@@ -1,19 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { clerkClient } from "@clerk/nextjs/server"
 import { createAdminSupabaseClient } from "./server"
-
-/**
- * Get user profile by ID
- */
-export async function getProfile(userId: string, supabase?: SupabaseClient) {
-  const client = supabase ?? createAdminSupabaseClient()
-  const { data, error } = await client.from("profiles").select("*").eq("id", userId).single()
-
-  if (error) throw error
-  return data
-}
+import { getLinkedInData, getUserDailyMaxEngagements } from "../clerk/metadata"
 
 /**
  * Get all members of a squad
+ * Returns basic squad membership data (user IDs and join dates)
  */
 export async function getSquadMembers(squadId: string, supabase?: SupabaseClient) {
   const client = supabase ?? createAdminSupabaseClient()
@@ -22,14 +14,7 @@ export async function getSquadMembers(squadId: string, supabase?: SupabaseClient
     .select(
       `
       user_id,
-      joined_at,
-      profiles:user_id (
-        id,
-        email,
-        unipile_account_id,
-        linkedin_connected,
-        daily_max_engagements
-      )
+      joined_at
     `,
     )
     .eq("squad_id", squadId)
@@ -40,35 +25,38 @@ export async function getSquadMembers(squadId: string, supabase?: SupabaseClient
 
 /**
  * Get squad members with LinkedIn connected
+ * Fetches squad members and checks Clerk metadata for LinkedIn connection
  */
 export async function getSquadMembersWithLinkedIn(squadId: string, supabase?: SupabaseClient) {
   const client = supabase ?? createAdminSupabaseClient()
-  const { data, error } = await client
+
+  // Get all squad members
+  const { data: members, error } = await client
     .from("squad_members")
-    .select(
-      `
-      user_id,
-      joined_at,
-      profiles:user_id (
-        id,
-        email,
-        unipile_account_id,
-        linkedin_connected,
-        daily_max_engagements
-      )
-    `,
-    )
+    .select("user_id, joined_at")
     .eq("squad_id", squadId)
-    .eq("profiles.linkedin_connected", true)
-    .not("profiles.unipile_account_id", "is", null)
 
   if (error) throw error
-  return data
+
+  // Filter members with LinkedIn connected using Clerk metadata
+  const membersWithLinkedIn = await Promise.all(
+    members.map(async (member) => {
+      const linkedInData = await getLinkedInData(member.user_id)
+      return {
+        ...member,
+        has_linkedin: linkedInData?.linkedin_connected ?? false,
+        unipile_account_id: linkedInData?.unipile_account_id ?? null,
+      }
+    }),
+  )
+
+  // Filter to only return members with LinkedIn connected
+  return membersWithLinkedIn.filter((m) => m.has_linkedin && m.unipile_account_id)
 }
 
 /**
- * Get available squad members (who haven't hit daily limit) using efficient SQL
- * This does everything in a single query with LEFT JOIN + GROUP BY
+ * Get available squad members (who haven't hit daily limit)
+ * Fetches from Supabase and filters using Clerk metadata + engagement counts
  *
  * @param squadId - Squad ID to query
  * @param excludeUserId - Optional user ID to exclude (e.g., post author)
@@ -81,30 +69,36 @@ export async function getAvailableSquadMembers(
 ) {
   const client = supabase ?? createAdminSupabaseClient()
 
-  // Get start of today for filtering engagements
-  const startOfToday = new Date()
-  startOfToday.setHours(0, 0, 0, 0)
+  // Get all squad members with LinkedIn connected
+  const membersWithLinkedIn = await getSquadMembersWithLinkedIn(squadId, client)
 
-  // Use raw SQL for optimal performance with LEFT JOIN, GROUP BY, and HAVING
-  const { data, error } = await client.rpc("get_available_squad_members", {
-    p_squad_id: squadId,
-    p_exclude_user_id: excludeUserId || null,
-    p_start_of_today: startOfToday.toISOString(),
-  })
+  // Filter out excluded user
+  const filteredMembers = excludeUserId
+    ? membersWithLinkedIn.filter((m) => m.user_id !== excludeUserId)
+    : membersWithLinkedIn
 
-  if (error) {
-    // If the RPC function doesn't exist yet, fall back to manual filtering
-    // (This will be slower but works until we create the function)
-    console.warn("RPC function not found, using fallback query")
-    return await getSquadMembersWithLinkedIn(squadId, client)
-  }
+  // Check daily engagement counts and limits
+  const availableMembers = await Promise.all(
+    filteredMembers.map(async (member) => {
+      const todayCount = await getUserEngagementCountToday(member.user_id, client)
+      const dailyMax = await getUserDailyMaxEngagements(member.user_id)
 
-  return data
+      return {
+        ...member,
+        today_count: todayCount,
+        daily_max: dailyMax,
+        is_available: todayCount < dailyMax,
+      }
+    }),
+  )
+
+  // Return only available members
+  return availableMembers.filter((m) => m.is_available)
 }
 
 /**
- * Get random available squad members efficiently using SQL
- * Single query with ORDER BY random() and LIMIT
+ * Get random available squad members
+ * Fetches available members and returns a random subset
  *
  * @param squadId - Squad ID to query
  * @param count - Number of random members to select
@@ -117,75 +111,11 @@ export async function getRandomAvailableMembers(
   excludeUserId?: string,
   supabase?: SupabaseClient,
 ) {
-  const client = supabase ?? createAdminSupabaseClient()
+  const availableMembers = await getAvailableSquadMembers(squadId, excludeUserId, supabase)
 
-  // Get start of today for filtering engagements
-  const startOfToday = new Date()
-  startOfToday.setHours(0, 0, 0, 0)
-
-  // Use raw SQL for optimal performance
-  const { data, error } = await client.rpc("get_random_available_members", {
-    p_squad_id: squadId,
-    p_count: count,
-    p_exclude_user_id: excludeUserId || null,
-    p_start_of_today: startOfToday.toISOString(),
-  })
-
-  if (error) {
-    console.warn("RPC function not found, using fallback approach")
-    // Fallback: get all available members and pick randomly in memory
-    const members = await getSquadMembersWithLinkedIn(squadId, client)
-    // Simple random shuffle and slice
-    const shuffled = [...members].sort(() => Math.random() - 0.5)
-    return shuffled.slice(0, count)
-  }
-
-  return data
-}
-
-/**
- * Create new profile on signup
- */
-export async function createProfile(userId: string, email: string, supabase?: SupabaseClient) {
-  const client = supabase ?? createAdminSupabaseClient()
-  const { data, error } = await client
-    .from("profiles")
-    .insert({
-      id: userId,
-      email,
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
-}
-
-/**
- * Update profile fields
- */
-export async function updateProfile(
-  userId: string,
-  updates: {
-    unipile_account_id?: string
-    linkedin_connected?: boolean
-    daily_max_engagements?: number
-  },
-  supabase?: SupabaseClient,
-) {
-  const client = supabase ?? createAdminSupabaseClient()
-  const { data, error } = await client
-    .from("profiles")
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", userId)
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
+  // Shuffle and take random subset
+  const shuffled = [...availableMembers].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, count)
 }
 
 /**

@@ -14,7 +14,7 @@ gemini *args:
   bunx @google/gemini-cli@latest {{args}}
 
 dev *args:
-  bun --bun next dev {{args}}
+  bun run dev.ts {{args}}
 
 build:
   bun --bun next build

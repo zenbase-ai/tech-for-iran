@@ -1,5 +1,7 @@
 import createBundleAnalyzer from "@next/bundle-analyzer"
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
+
+// import { withWorkflow } from "workflow/next"
 
 let config: NextConfig = {
   typedRoutes: true,
@@ -10,10 +12,13 @@ let config: NextConfig = {
   experimental: {
     turbopackFileSystemCacheForDev: true,
   },
-};
+}
 
 config = createBundleAnalyzer({
   enabled: Boolean(process.env.ANALYZE),
 })(config)
 
-export default config;
+// TODO: Re-enable once workflow package native binding issue is resolved
+// config = withWorkflow(config)
+
+export default config

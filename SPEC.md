@@ -12,13 +12,13 @@ Key Objectives:
 	•	Future Extensibility: Design with future features in mind, notably an AI-powered auto-commenting feature (where the system would generate and post context-relevant comments via AI on behalf of squad members). This will not be implemented now, but the architecture should allow adding it later (likely as an additional workflow step per engagement).
 
 Tech Stack and Components
-	•	Next.js 13+: Serves the web UI and API routes. We will use the App Router with React for pages and Next’s built-in API routes for server-side logic (particularly to start workflows and handle webhooks).
-	•	Supabase: Provides authentication (passwordless email) and a PostgreSQL databLinkedIn Squad Engagement Automation – Technical Spec
+	•	Next.js 16: Serves the web UI and API routes. We will use the App Router with React for pages and Next’s built-in API routes for server-side logic (particularly to start workflows and handle webhooks).
+	•	Supabase: Provides authentication (passwordless email) and a PostgreSQL database
+
+LinkedIn Squad Engagement Automation – Technical Spec
 Overview and Goals
 
-This project is an engagement automation tool for LinkedIn, targeted at groups (squads) of users such as YC (Y Combinator) alumni. The core idea is that when one member posts on LinkedIn, a selection of other members in the squad will automatically react (e.g. “Like”, “Insightful”, “Celebrate”, etc.) to that post. This boosts engagement by having squad members upvote and potentially comment on each other’s posts. We will build a Next.js web application with Supabase for authentication and database, and leverage Unipile (a third-party LinkedIn integration API) to perform LinkedIn actions on behalf of users. Background tasks (scheduling delayed reactions) will be handled using Vercel’s Workflow DevKit (the use workflow library) for durable, reliable asynchronous jobs
-useworkflow.dev
-.
+This project is an engagement automation tool for LinkedIn, targeted at groups (squads) of users such as YC (Y Combinator) alumni. The core idea is that when one member posts on LinkedIn, a selection of other members in the squad will automatically react (e.g. “Like”, “Insightful”, “Celebrate”, etc.) to that post. This boosts engagement by having squad members upvote and potentially comment on each other’s posts. We will build a Next.js web application with Supabase for authentication and database, and leverage Unipile (a third-party LinkedIn integration API) to perform LinkedIn actions on behalf of users. Background tasks (scheduling delayed reactions) will be handled using Vercel’s Workflow DevKit (the use workflow library) for durable, reliable asynchronous jobs useworkflow.dev.
 
 Key Objectives:
 
@@ -170,6 +170,42 @@ developer.unipile.com
 . We have a couple of ways to get this:
 
 Parse the URL: Many LinkedIn post URLs contain the activity ID. For example: https://www.linkedin.com/posts/username_activity-7332661864792854528-abcdef – in this URL, 7332661864792854528 is the post’s internal ID. We could attempt to parse it out (this might be brittle if URL formats vary).
+
+Use Unipile's Node SDK to handle things:
+```
+List Users' and Companies' LinkedIn Posts
+await client.users.getAllPosts({
+  account_id: 't5XY4yQzR9WVrlNFyzPMhw',
+  identifier: 'user/company provider id',
+});
+Retrieve a LinkedIn post
+await client.users.getPost({
+  account_id: 't5XY4yQzR9WVrlNFyzPMhw',
+  post_id: '7222176104768270337',
+});
+Create a LinkedIn Post
+await client.users.createPost({
+  account_id: 't5XY4yQzR9WVrlNFyzPMhw',
+  text: 'post content',
+});
+Send Comments on LinkedIn Post
+await client.users.sendPostComment({
+  account_id: 't5XY4yQzR9WVrlNFyzPMhw',
+  post_id: '7222176104768270337',
+  text: 'comment',
+});
+List LinkedIn Post Comments
+await client.users.getAllPostComments({
+  account_id: 't5XY4yQzR9WVrlNFyzPMhw',
+  post_id: '7222176104768270337',
+});
+Add reaction to a LinkedIn post
+await client.users.sendPostReaction({
+  account_id: 't5XY4yQzR9WVrlNFyzPMhw',
+  post_id: '7222176104768270337',
+  reaction_type: 'funny',
+});
+```
 
 Use Unipile’s API to retrieve the post object: Unipile provides an endpoint GET /posts/{post_id} which can take a numeric ID (or share URL) plus an account_id to retrieve post data
 developer.unipile.com

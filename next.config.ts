@@ -1,8 +1,19 @@
+import createBundleAnalyzer from "@next/bundle-analyzer"
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+let config: NextConfig = {
+  typedRoutes: true,
   reactCompiler: true,
+  images: {
+    qualities: [60, 75, 95],
+  },
+  experimental: {
+    turbopackFileSystemCacheForDev: true,
+  },
 };
 
-export default nextConfig;
+config = createBundleAnalyzer({
+  enabled: Boolean(process.env.ANALYZE),
+})(config)
+
+export default config;

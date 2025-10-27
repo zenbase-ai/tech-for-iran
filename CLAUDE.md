@@ -128,7 +128,6 @@ export async function handlePostEngagement(userId, postUrl, reactions) {
 
 **External Dependencies Highlights:**
 - `@clerk/nextjs`: Clerk authentication SDK
-- `svix`: Webhook signature verification for Clerk webhooks
 - `@t3-oss/env-nextjs`: Environment variable validation with Zod
 - `zod`: Schema validation (used for env vars and data validation)
 - `es-toolkit`: Modern lodash alternative for utilities

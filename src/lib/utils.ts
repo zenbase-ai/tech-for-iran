@@ -2,8 +2,6 @@ import { type ClassValue, clsx } from "clsx"
 import type { LinkProps } from "next/link"
 import { twMerge } from "tailwind-merge"
 
-export const cast = <A, B>(a: A): B => a as unknown as B
-
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
 
 export const isInternalLink = (href: string) => href.startsWith("/") || href.startsWith("#")

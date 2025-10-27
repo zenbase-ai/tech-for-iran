@@ -1,5 +1,8 @@
 import { v } from "convex/values"
-import { mutation } from "./_generated/server"
+import type { Id } from "./_generated/dataModel"
+import type { MutationCtx } from "./_generated/server"
+import { internalMutation, mutation } from "./_generated/server"
+import { LinkedInStatus } from "./helpers"
 
 export const upsertUserProfile = mutation({
   args: {
@@ -51,6 +54,7 @@ export const updateLinkedInConnection = mutation({
     unipileAccountId: v.string(),
     linkedinConnected: v.boolean(),
     linkedinConnectedAt: v.optional(v.number()),
+    linkedinStatus: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const profile = await ctx.db
@@ -62,12 +66,73 @@ export const updateLinkedInConnection = mutation({
       throw new Error("Profile not found")
     }
 
-    await ctx.db.patch(profile._id, {
+    const now = Date.now()
+    const updateData: Record<string, unknown> = {
       unipileAccountId: args.unipileAccountId,
       linkedinConnected: args.linkedinConnected,
-      linkedinConnectedAt: args.linkedinConnectedAt ?? Date.now(),
-      updatedAt: Date.now(),
-    })
+      linkedinConnectedAt: args.linkedinConnectedAt ?? now,
+      updatedAt: now,
+    }
+
+    // Set initial status if provided
+    if (args.linkedinStatus) {
+      updateData.linkedinStatus = args.linkedinStatus
+      updateData.linkedinStatusUpdatedAt = now
+    }
+
+    await ctx.db.patch(profile._id, updateData)
+
+    return profile._id
+  },
+})
+
+export const updateLinkedInStatus = mutation({
+  args: {
+    unipileAccountId: v.string(),
+    status: v.string(),
+    statusMessage: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("byUnipileAccountId", (q) => q.eq("unipileAccountId", args.unipileAccountId))
+      .first()
+
+    if (!profile) {
+      throw new Error(`Profile not found for Unipile account ${args.unipileAccountId}`)
+    }
+
+    const now = Date.now()
+    const updateData: Record<string, unknown> = {
+      linkedinStatus: args.status,
+      linkedinStatusMessage: args.statusMessage,
+      linkedinStatusUpdatedAt: now,
+      updatedAt: now,
+    }
+
+    // Update connection status based on account status
+    switch (args.status) {
+      case LinkedInStatus.OK:
+      case LinkedInStatus.SYNC_SUCCESS:
+      case LinkedInStatus.RECONNECTED:
+      case LinkedInStatus.CREATION_SUCCESS:
+        updateData.linkedinConnected = true
+        break
+      case LinkedInStatus.DELETED:
+        updateData.linkedinConnected = false
+        updateData.unipileAccountId = undefined // Clear the account ID
+        break
+      case LinkedInStatus.CREDENTIALS:
+      case LinkedInStatus.ERROR:
+      case LinkedInStatus.STOPPED:
+        updateData.linkedinConnected = false // Needs reconnection
+        break
+      case LinkedInStatus.CONNECTING:
+        // Keep current connection status during connecting phase
+        break
+    }
+
+    await ctx.db.patch(profile._id, updateData)
 
     return profile._id
   },
@@ -175,7 +240,7 @@ export const createPost = mutation({
       postUrl: args.postUrl,
       postUrn: args.postUrn,
       submittedAt: Date.now(),
-      status: "pending",
+      // Status is computed dynamically, not stored
     })
 
     return postId
@@ -191,10 +256,49 @@ export const updatePostStatus = mutation({
     await ctx.db.patch(args.postId, {
       status: args.status,
     })
-
     return args.postId
   },
 })
+
+export const updatePostStatusInternal = internalMutation({
+  args: {
+    postId: v.id("posts"),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.postId, {
+      status: args.status,
+    })
+    return args.postId
+  },
+})
+
+// Shared handler for createEngagement
+async function createEngagementHandler(
+  ctx: MutationCtx,
+  args: { postId: Id<"posts">; reactorId: Id<"profiles">; reactionType: string },
+) {
+  // Check for duplicate engagement
+  const existing = await ctx.db
+    .query("engagementsLog")
+    .withIndex("byPostAndReactor", (q) =>
+      q.eq("postId", args.postId).eq("reactorUserId", args.reactorId),
+    )
+    .first()
+
+  if (existing) {
+    return null // Already reacted
+  }
+
+  const engagementId = await ctx.db.insert("engagementsLog", {
+    postId: args.postId,
+    reactorUserId: args.reactorId,
+    reactionType: args.reactionType,
+    createdAt: Date.now(),
+  })
+
+  return engagementId
+}
 
 export const createEngagement = mutation({
   args: {
@@ -202,26 +306,14 @@ export const createEngagement = mutation({
     reactorId: v.id("profiles"),
     reactionType: v.string(),
   },
-  handler: async (ctx, args) => {
-    // Check for duplicate engagement
-    const existing = await ctx.db
-      .query("engagementsLog")
-      .withIndex("byPostAndReactor", (q) =>
-        q.eq("postId", args.postId).eq("reactorUserId", args.reactorId),
-      )
-      .first()
+  handler: createEngagementHandler,
+})
 
-    if (existing) {
-      return null // Already reacted
-    }
-
-    const engagementId = await ctx.db.insert("engagementsLog", {
-      postId: args.postId,
-      reactorUserId: args.reactorId,
-      reactionType: args.reactionType,
-      createdAt: Date.now(),
-    })
-
-    return engagementId
+export const createEngagementInternal = internalMutation({
+  args: {
+    postId: v.id("posts"),
+    reactorId: v.id("profiles"),
+    reactionType: v.string(),
   },
+  handler: createEngagementHandler,
 })

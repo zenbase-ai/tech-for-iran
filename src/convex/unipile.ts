@@ -92,12 +92,18 @@ export const getPostAction = internalAction({
 export const generateHostedAuthLinkAction = internalAction({
   args: {
     userId: v.string(),
+    inviteCode: v.optional(v.string()),
   },
   handler: async (_ctx, args) => {
     const expiresOn = new Date()
     expiresOn.setHours(expiresOn.getHours() + 24) // Link expires in 24 hours
 
     const url = `${env.UNIPILE_API_URL}/api/v1/hosted/accounts/link`
+
+    // Build success redirect URL - include invite code if present, redirect directly to dashboard
+    const successRedirectUrl = args.inviteCode
+      ? `${env.APP_URL}/dashboard?invite=${args.inviteCode}&linkedin_connected=true`
+      : `${env.APP_URL}/dashboard?linkedin_connected=true`
 
     const response = await fetch(url, {
       method: "POST",
@@ -111,7 +117,7 @@ export const generateHostedAuthLinkAction = internalAction({
         name: args.userId,
         providers: ["LINKEDIN"],
         expiresOn: expiresOn.toISOString(),
-        success_redirect_url: `${env.APP_URL}/onboarding/success`,
+        success_redirect_url: successRedirectUrl,
         failure_redirect_url: `${env.APP_URL}/onboarding/error`,
         notify_url: `${env.APP_URL}/webhooks/unipile`,
       }),
@@ -165,22 +171,22 @@ export const getPostURNViaUnipileAction = internalAction({
     url: v.string(),
     accountId: v.string(),
   },
-  handler: async (ctx, args) => {
-    const post = await ctx.runAction(internal.unipile.getPostAction, {
+  handler: async (ctx, args): Promise<string> => {
+    const post = (await ctx.runAction(internal.unipile.getPostAction, {
       postId: args.url,
       accountId: args.accountId,
-    })
+    })) as { social_id: string; id: string }
 
     // Unipile should return the post with a social_id
     if (post.social_id) {
-      return post.social_id as string
+      return post.social_id
     }
 
     // Fallback to id if social_id is not available
     if (post.id) {
       // If the ID is already a URN, return it
       if (post.id.startsWith("urn:li:activity:")) {
-        return post.id as string
+        return post.id
       }
       // Otherwise, construct the URN
       return `urn:li:activity:${post.id}`

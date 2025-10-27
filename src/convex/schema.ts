@@ -11,6 +11,9 @@ const schema = defineSchema({
     unipileAccountId: v.optional(v.string()), // Unipile API account ID for LinkedIn
     linkedinConnected: v.boolean(), // Whether LinkedIn is connected
     linkedinConnectedAt: v.optional(v.number()), // Timestamp when LinkedIn was connected
+    linkedinStatus: v.optional(v.string()), // Unipile account status: OK, ERROR, CREDENTIALS, CONNECTING, DELETED, CREATION_SUCCESS, RECONNECTED, SYNC_SUCCESS
+    linkedinStatusMessage: v.optional(v.string()), // Status message from Unipile
+    linkedinStatusUpdatedAt: v.optional(v.number()), // Timestamp of last status update
     dailyMaxEngagements: v.number(), // Max engagements allowed per day (default 40)
     createdAt: v.number(), // Timestamp
     updatedAt: v.number(), // Timestamp
@@ -44,12 +47,12 @@ const schema = defineSchema({
     squadId: v.id("squads"), // Squad where post was submitted
     postUrl: v.string(), // LinkedIn post URL
     postUrn: v.string(), // LinkedIn post URN (extracted from URL)
+    workflowId: v.optional(v.string()), // Workflow ID for tracking execution state
     submittedAt: v.number(), // Timestamp when submitted
-    status: v.string(), // Status: "pending", "processing", "completed", "failed"
+    // Note: status is computed dynamically via getPostWithStatus query
   })
     .index("byAuthor", ["authorUserId"]) // Lookup posts by author
     .index("bySquad", ["squadId"]) // Lookup posts by squad
-    .index("byStatus", ["status"]) // Lookup posts by status
     .index("byUrlAndSquad", ["postUrl", "squadId"]), // Uniqueness constraint
 
   // Engagement log (tracks reactions on posts)

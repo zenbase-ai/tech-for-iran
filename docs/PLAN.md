@@ -398,7 +398,6 @@ Use `convex.query(api.queries.getUserProfile, { clerkUserId })` from client comp
   - Check payload structure
   - Verify `account_id` format
   - (Optional) Add webhook signature verification if Unipile supports it
-- [ ] Review Clerk webhook configuration for user lifecycle events
 
 ### TODO: Environment Variable Validation
 - [x] ✅ Already implemented in `src/lib/env.mjs` using `@t3-oss/env-nextjs`:
@@ -439,7 +438,7 @@ Use `convex.query(api.queries.getUserProfile, { clerkUserId })` from client comp
   - Authentication flow with Clerk
   - Convex query/mutation patterns
   - Engagement submission workflow
-  - Webhook handling (Unipile + Clerk)
+  - Webhook handling (Unipile)
 - [ ] Document environment variables required for deployment
 - [ ] Document Convex setup steps:
   - Create Convex project (`npx convex dev`)

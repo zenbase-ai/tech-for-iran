@@ -13,8 +13,9 @@
     "*.css": "tailwindcss"
   },
   "files.exclude": {
-    "**/.DS_Store": true,
+    ".husky/": true,
     "**/.cache": true,
+    "**/.DS_Store": true,
     "**/.next": true,
     "**/.output": true,
     "**/.pnpm": true,
@@ -24,9 +25,9 @@
     "**/coverage": true,
     "**/dist": true,
     "**/node_modules": true,
+    "src/convex/_generated/": true,
     "next-env.d.ts": true,
-    ".husky/": true,
-    "supabase/.temp/": true
+    "tsconfig.tsbuildinfo/": true
   },
   "search.exclude": {
     "**/.venv/": true,

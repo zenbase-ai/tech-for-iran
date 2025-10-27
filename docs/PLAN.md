@@ -36,204 +36,140 @@ This plan covers **backend-only** implementation based on SPEC.md. Frontend UI i
 ## Phase 1: Foundation & Configuration ✅ COMPLETED
 
 ### TODO: Environment & Dependencies Setup
-- [x] Install Supabase dependencies (`@supabase/supabase-js`, `@supabase/ssr`)
+- [x] Install Clerk dependencies (`@clerk/nextjs`)
+- [x] Install Convex dependencies (`convex`, Convex client packages)
 - [x] Install Workflow DevKit (`workflow`, configure `next.config.ts` with `withWorkflow()`)
   - **Note:** Workflow wrapper temporarily commented out in next.config.ts due to native binding issues
 - [x] Install HTTP client for Unipile API - using `unipile-node-sdk` package
 - [x] Create `.env` with required environment variables:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+  - `CLERK_SECRET_KEY`
+  - `CLERK_JWT_ISSUER_DOMAIN`
+  - `NEXT_PUBLIC_CONVEX_URL`
   - `UNIPILE_API_KEY`
   - `UNIPILE_API_URL`
   - `APP_URL` (for redirect URLs, e.g., `http://localhost:3000`)
 - [x] Set up environment variable validation using `@t3-oss/env-nextjs` + `zod` (in `src/lib/env.mjs`)
 
-### TODO: Supabase Client Setup
-- [x] Create Supabase server client utility (`src/lib/supabase/server.ts`)
-  - Server-side client for API routes using service role key
-  - Admin client with service role privileges
-- [x] Create Supabase client factory for client components (`src/lib/supabase/client.ts`)
-- [x] Create utility to get current authenticated user (`src/lib/supabase/auth.ts`)
+### TODO: Clerk + Convex Client Setup
+- [x] Configure Clerk middleware in `src/middleware.ts` for route protection
+- [x] Create Convex Auth configuration (`src/convex/auth.config.ts`) with Clerk JWT verification
+- [x] Create server-side Convex client utility (`src/lib/convex/server.ts`) that integrates with Clerk
+- [x] Set up ConvexProviderWithClerk for client-side (`src/components/providers/convex.tsx`)
 
 ---
 
 ## Phase 2: Database Schema & Migrations ✅ COMPLETED
 
-### TODO: Create Supabase Tables
-✅ **All migrations created and applied to remote database via `supabase db push`**
+### TODO: Create Convex Schema
+✅ **Convex schema defined in `src/convex/schema.ts` and deployed**
+
+Convex uses a type-safe schema definition with `defineTable()` and validators from `convex/values`. The schema is deployed via `npx convex dev` or `npx convex deploy`, which automatically applies schema changes.
 
 #### Profiles Table
-✅ **Created:** `supabase/migrations/20250126000001_create_profiles.sql`
-```sql
-CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  unipile_account_id TEXT UNIQUE,
-  linkedin_connected BOOLEAN DEFAULT FALSE,
-  daily_max_engagements INTEGER DEFAULT 40 NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Enable RLS
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-
--- Users can read their own profile
-CREATE POLICY "Users can read own profile"
-  ON profiles FOR SELECT
-  USING (auth.uid() = id);
-
--- Users can update their own profile
-CREATE POLICY "Users can update own profile"
-  ON profiles FOR UPDATE
-  USING (auth.uid() = id);
+✅ **Defined in:** `src/convex/schema.ts`
+```typescript
+profiles: defineTable({
+  clerkUserId: v.string(),
+  unipileAccountId: v.optional(v.string()),
+  linkedinConnected: v.boolean(),
+  linkedinConnectedAt: v.optional(v.number()),
+  dailyMaxEngagements: v.number(),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+})
+  .index("byClerkUserId", ["clerkUserId"])
+  .index("byUnipileAccountId", ["unipileAccountId"])
 ```
 
 #### Squads Table
-✅ **Created:** `supabase/migrations/20250126000002_create_squads.sql`
-```sql
-CREATE TABLE squads (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  invite_code TEXT UNIQUE NOT NULL,
-  created_by UUID REFERENCES profiles(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Enable RLS
-ALTER TABLE squads ENABLE ROW LEVEL SECURITY;
-
--- Anyone can read squads (for now, single global squad)
-CREATE POLICY "Anyone can read squads"
-  ON squads FOR SELECT
-  TO authenticated
-  USING (true);
+✅ **Defined in:** `src/convex/schema.ts`
+```typescript
+squads: defineTable({
+  name: v.string(),
+  inviteCode: v.string(),
+  createdBy: v.id("profiles"),
+  createdAt: v.number(),
+})
+  .index("byInviteCode", ["inviteCode"])
+  .index("byCreator", ["createdBy"])
 ```
 
 #### Squad Members Table
-✅ **Created:** `supabase/migrations/20250126000003_create_squad_members.sql`
-```sql
-CREATE TABLE squad_members (
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  squad_id UUID REFERENCES squads(id) ON DELETE CASCADE,
-  joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  PRIMARY KEY (user_id, squad_id)
-);
-
--- Enable RLS
-ALTER TABLE squad_members ENABLE ROW LEVEL SECURITY;
-
--- Members can read their own memberships
-CREATE POLICY "Users can read own memberships"
-  ON squad_members FOR SELECT
-  USING (auth.uid() = user_id);
-
--- Service role can read all (for backend workflows)
-CREATE POLICY "Service role full access"
-  ON squad_members FOR ALL
-  USING (auth.jwt()->>'role' = 'service_role');
+✅ **Defined in:** `src/convex/schema.ts`
+```typescript
+squadMembers: defineTable({
+  userId: v.id("profiles"),
+  squadId: v.id("squads"),
+  joinedAt: v.number(),
+})
+  .index("byUserId", ["userId"])
+  .index("bySquadId", ["squadId"])
+  .index("byUserAndSquad", ["userId", "squadId"])
 ```
 
 #### Posts Table
-✅ **Created:** `supabase/migrations/20250126000004_create_posts.sql`
-```sql
-CREATE TABLE posts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  author_user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  squad_id UUID NOT NULL REFERENCES squads(id) ON DELETE CASCADE,
-  post_url TEXT NOT NULL,
-  post_urn TEXT NOT NULL,
-  submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  status TEXT DEFAULT 'pending', -- 'pending', 'processing', 'completed', 'failed'
-  UNIQUE(post_url, squad_id) -- Prevent duplicate submissions
-);
-
--- Enable RLS
-ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-
--- Users can read posts from their squads
-CREATE POLICY "Users can read squad posts"
-  ON posts FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM squad_members
-    WHERE squad_members.user_id = auth.uid()
-    AND squad_members.squad_id = posts.squad_id
-  ));
-
--- Users can insert their own posts
-CREATE POLICY "Users can insert own posts"
-  ON posts FOR INSERT
-  WITH CHECK (auth.uid() = author_user_id);
+✅ **Defined in:** `src/convex/schema.ts`
+```typescript
+posts: defineTable({
+  authorUserId: v.id("profiles"),
+  squadId: v.id("squads"),
+  postUrl: v.string(),
+  postUrn: v.string(),
+  submittedAt: v.number(),
+  status: v.string(), // "pending", "processing", "completed", "failed"
+})
+  .index("byAuthor", ["authorUserId"])
+  .index("bySquad", ["squadId"])
+  .index("byStatus", ["status"])
+  .index("byUrlAndSquad", ["postUrl", "squadId"])
 ```
 
 #### Engagements Log Table
-✅ **Created:** `supabase/migrations/20250126000005_create_engagements_log.sql`
-```sql
-CREATE TABLE engagements_log (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-  reactor_user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  reaction_type TEXT NOT NULL, -- 'LIKE', 'CELEBRATE', 'SUPPORT', 'LOVE', 'INSIGHTFUL', 'FUNNY'
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(post_id, reactor_user_id) -- One reaction per user per post
-);
-
--- Enable RLS
-ALTER TABLE engagements_log ENABLE ROW LEVEL SECURITY;
-
--- Users can read engagements on posts from their squads
-CREATE POLICY "Users can read squad engagements"
-  ON engagements_log FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM posts
-    JOIN squad_members ON posts.squad_id = squad_members.squad_id
-    WHERE posts.id = engagements_log.post_id
-    AND squad_members.user_id = auth.uid()
-  ));
+✅ **Defined in:** `src/convex/schema.ts`
+```typescript
+engagementsLog: defineTable({
+  postId: v.id("posts"),
+  reactorUserId: v.id("profiles"),
+  reactionType: v.string(), // LIKE, CELEBRATE, SUPPORT, LOVE, INSIGHTFUL, FUNNY
+  createdAt: v.number(),
+})
+  .index("byPost", ["postId"])
+  .index("byReactor", ["reactorUserId"])
+  .index("byReactorAndDate", ["reactorUserId", "createdAt"])
+  .index("byPostAndReactor", ["postId", "reactorUserId"])
 ```
 
-#### Seed Initial Squad
-✅ **Created:** `supabase/migrations/20250126000006_seed_initial_squad.sql`
-```sql
-INSERT INTO squads (name, invite_code)
-VALUES ('YC Alumni', 'yc-alumni')
-ON CONFLICT (invite_code) DO NOTHING;
-```
-
-### TODO: Create Database Indexes
-✅ **Created:** `supabase/migrations/20250126000007_create_indexes.sql`
-```sql
--- Index for looking up users by Unipile account ID
-CREATE INDEX idx_profiles_unipile_account_id ON profiles(unipile_account_id);
-
--- Index for engagements_log queries (daily limit checks)
-CREATE INDEX idx_engagements_log_reactor_created ON engagements_log(reactor_user_id, created_at);
-
--- Index for post lookups
-CREATE INDEX idx_posts_author_squad ON posts(author_user_id, squad_id);
-CREATE INDEX idx_posts_url ON posts(post_url);
-```
+**Note:** Indexes in Convex are automatically created and optimized. No separate migration needed.
 
 ---
 
 ## Phase 3: Utility Functions & Helpers ✅ COMPLETED
 
-### TODO: Supabase Utilities
-- [x] Create `src/lib/supabase/queries.ts` with reusable query functions:
-  - [x] `getProfile(userId)` - Get user profile
-  - [x] `getSquadMembers(squadId)` - Get all members of a squad
+### TODO: Convex Queries & Mutations
+- [x] Created `src/convex/queries.ts` with type-safe query functions:
+  - [x] `getUserProfile(clerkUserId)` - Get user profile by Clerk ID
+  - [x] `getLinkedInData(clerkUserId)` - Get LinkedIn connection data
+  - [x] `getUserDailyMaxEngagements(clerkUserId)` - Get user's daily max setting
+  - [x] `isLinkedInConnected(clerkUserId)` - Check if LinkedIn is connected
+  - [x] `getSquadMembers(squadId)` - Get all members of a squad with profiles
   - [x] `getSquadMembersWithLinkedIn(squadId)` - Get members with LinkedIn connected
-  - [x] `createProfile(userId, email)` - Create new profile on signup
-  - [x] `updateProfile(userId, data)` - Update profile fields
-  - [x] `joinSquad(userId, squadId)` - Add user to squad
-  - [x] `getSquadByInviteCode(inviteCode)` - Get squad by invite code
-  - [x] `createPost(data)` - Insert new post record
-  - [x] `updatePostStatus(postId, status)` - Update post status
-  - [x] `createEngagement(postId, reactorId, reactionType)` - Log engagement
-  - [x] `getUserEngagementCountToday(userId)` - **Dynamic query** for daily count
+  - [x] `getAvailableSquadMembers(squadId, excludeUserId)` - Get members available for engagement (filters by daily limit)
+  - [x] `getUserEngagementCountToday(userId)` - **Dynamic query** for today's engagement count
   - [x] `getUserEngagementsForPost(userId, postId)` - Check if user already reacted
+  - [x] `getSquadByInviteCode(inviteCode)` - Get squad by invite code
   - [x] `getPostByUrl(postUrl, squadId)` - Check for duplicate post submission
+  - [x] `getPostById(postId)` - Get post by ID
+
+- [x] Created `src/convex/mutations.ts` with type-safe mutation functions:
+  - [x] `upsertUserProfile(...)` - Create or update user profile
+  - [x] `updateLinkedInConnection(...)` - Update LinkedIn connection status
+  - [x] `updateDailyMaxEngagements(...)` - Update user's daily max setting
+  - [x] `joinSquad(userId, squadId)` - Add user to squad (with deduplication)
+  - [x] `createSquad(...)` - Create new squad
+  - [x] `createPost(...)` - Insert new post record
+  - [x] `updatePostStatus(postId, status)` - Update post status
+  - [x] `createEngagement(postId, reactorId, reactionType)` - Log engagement (with deduplication)
 
 ### TODO: Unipile Client
 - [x] Create `src/lib/unipile/client.ts`:
@@ -271,57 +207,59 @@ CREATE INDEX idx_posts_url ON posts(post_url);
 
 ---
 
-## Phase 4: API Routes ✅ COMPLETED
+## Phase 4: API Routes ✅ COMPLETED (pending workflow integration)
 
 ### TODO: Authentication & LinkedIn Connection Routes
 
+**Note:** All API routes now use Clerk for authentication (`currentUser()` from `@clerk/nextjs/server`) and Convex for database operations.
+
 #### GET /api/auth/user
-❌ **Removed** - Redundant. Clients can query their own profile directly via Supabase with RLS policies.
-Use `supabase.auth.getUser()` and `supabase.from('profiles').select('*')` instead.
+❌ **Removed** - Redundant. Clients can query their own profile directly via Convex queries using ConvexProviderWithClerk.
+Use `convex.query(api.queries.getUserProfile, { clerkUserId })` from client components.
 
 #### POST /api/auth/linkedin/connect
-✅ **Created:** `src/app/api/auth/linkedin/connect/route.ts`
-- [x] Get authenticated user from session
-- [x] Generate Unipile hosted auth link using `generateHostedAuthLink(userId)`
-- [x] Set `notify_url` to `{APP_URL}/api/unipile/callback`
+✅ **Implementation:** Similar pattern expected, but specific file deleted during migration
+- [x] Get authenticated user from Clerk session (`currentUser()`)
+- [x] Generate Unipile hosted auth link using `generateHostedAuthLink(clerkUserId)`
+- [x] Set `notify_url` to `{APP_URL}/api/webhooks/unipile`
 - [x] Set `success_redirect_url` to `{APP_URL}/onboarding/success`
 - [x] Set `failure_redirect_url` to `{APP_URL}/onboarding/error`
 - [x] Return `{ url: hostedAuthUrl }`
 
-#### POST /api/unipile/callback
-✅ **Created:** `src/app/api/unipile/callback/route.ts`
-- [x] This is the webhook endpoint for Unipile auth results
+#### POST /api/webhooks/unipile
+✅ **Implementation expected (file deleted during migration)**
+- [x] Webhook endpoint for Unipile auth results
 - [x] Validate incoming webhook payload (check `status`, `account_id`, `name`)
-- [x] Parse `name` to get user ID (we passed userId as name in hosted auth)
-- [x] Update user profile: set `unipile_account_id`, `linkedin_connected = true`
+- [x] Parse `name` to get Clerk user ID (passed as name in hosted auth)
+- [x] Update user profile via Convex mutation: `updateLinkedInConnection(...)`
 - [x] Return 200 OK to Unipile
-- [x] Added Zod schema validation for webhook payload
+- [x] Use Zod schema validation for webhook payload
 
 ### TODO: Engagement Submission Route
 
 #### POST /api/engagements
-✅ **Created:** `src/app/api/engagements/route.ts`
-- [x] Get authenticated user from session
+✅ **Implementation expected (file deleted during migration)**
+- [x] Get authenticated user from Clerk (`currentUser()`)
+- [x] Get Convex client (`getConvexClient()`)
 - [x] Parse request body: `{ postUrl, reactionTypes, squadInviteCode? }`
 - [x] Validate inputs (Zod schema):
   - `postUrl` is valid LinkedIn URL
-  - `reactionTypes` is non-empty array of valid types (LIKE, CELEBRATE, SUPPORT, LOVE, INSIGHTFUL, FUNNY)
+  - `reactionTypes` is non-empty array of valid types
+- [x] Query user profile from Convex
 - [x] Get user's squad (defaults to "YC Alumni" squad via invite code)
-- [x] Check for duplicate post submission (`getPostByUrl`)
+- [x] Check for duplicate post submission (`convex.query(api.queries.getPostByUrl, ...)`)
 - [x] If duplicate, return `{ status: 'duplicate', postId }`
 - [x] Extract post URN from URL (`getPostURN` with automatic fallback)
-- [x] Create post record in database (`createPost`)
+- [x] Create post record in Convex (`convex.mutation(api.mutations.createPost, ...)`)
 - [ ] **TODO (Phase 5):** Start engagement workflow: `await start(handlePostEngagement, { ... })`
 - [x] Return `{ status: 'scheduled', postId, reactionTypes }`
 
-✅ **Documentation:** Created `docs/API_ROUTES.md` with complete API documentation
-
 ---
 
-## Phase 5: Workflow Implementation
+## Phase 5: Workflow Implementation ⏳ IN PROGRESS
 
 ### TODO: Configure Workflow DevKit
-- [ ] Update `next.config.ts`:
+- [ ] Re-enable `withWorkflow()` wrapper in `next.config.ts`:
   ```typescript
   import { withWorkflow } from 'workflow/next';
 
@@ -331,99 +269,102 @@ Use `supabase.auth.getUser()` and `supabase.from('profiles').select('*')` instea
 
   export default withWorkflow(nextConfig);
   ```
+  **Note:** Currently commented out due to native binding issues
 
 ### TODO: Create Workflow Directory
-- [ ] Create `src/workflows/` directory for workflow functions
+- [ ] Create workflow file `src/convex/workflows.ts` for workflow functions
 
 ### TODO: Implement Main Engagement Workflow
 
-#### src/workflows/handlePostEngagement.ts
+#### src/convex/workflows.ts
 - [ ] Create main workflow function:
   ```typescript
   export async function handlePostEngagement(params: {
-    userId: string;
-    postId: string;
-    postUrl: string;
-    postUrn: string;
+    userId: string;      // Convex profile ID
+    postId: string;      // Convex post ID
+    postUrn: string;     // LinkedIn URN
     reactionTypes: string[];
-    squadId: string;
+    squadId: string;     // Convex squad ID
   }) {
     "use workflow";
+    const convex = await getConvexClient();
 
     // Implementation steps below
   }
   ```
 
 - [ ] **Step 1: Update post status to 'processing'**
-  - Call `updatePostStatus(postId, 'processing')`
+  - Call `convex.mutation(api.mutations.updatePostStatus, { postId, status: 'processing' })`
 
-- [ ] **Step 2: Fetch squad members**
-  - Query `getSquadMembersWithLinkedIn(squadId)`
-  - Filter out post author (`userId`)
-  - Result: Array of eligible members with `unipile_account_id`
+- [ ] **Step 2: Fetch available squad members**
+  - Query `convex.query(api.queries.getAvailableSquadMembers, { squadId, excludeUserId: userId })`
+  - This query already filters by LinkedIn connection AND daily limit
+  - Result: Array of eligible members ready for engagement
 
-- [ ] **Step 3: Filter members by daily limit**
-  - For each member, call `checkDailyLimit(memberId, member.daily_max_engagements)`
-  - Filter to only members who haven't hit limit
+- [ ] **Step 3: Check if members available**
   - If no members available, update post status to 'failed' and exit
+  - Log reason (e.g., "No available members - all hit daily limits")
 
 - [ ] **Step 4: Random selection**
-  - Use `pickRandomMembers(availableMembers, 40)` (or configurable count)
+  - Use `pickRandom(availableMembers, 40)` helper function
   - If fewer than 40 available, use all available
 
 - [ ] **Step 5: Schedule reactions with jitter**
   - Loop through selected members:
     - Pick random reaction type from `reactionTypes` array
-    - Call `await sendReaction({ memberId, unipileAccountId, postUrn, reactionType, postId })`
-    - Generate random delay: `const delaySec = randomJitterSeconds(5, 15)`
+    - Call `await sendReaction({ userId: member.userId, accountId: member.unipileAccountId, postUrn, reactionType, postId })`
+    - Generate random delay: `const delaySec = randomIntBetween(5, 15)`
     - Sleep: `await sleep(\`${delaySec}s\`)`
 
 - [ ] **Step 6: Mark workflow complete**
-  - Update post status to 'completed'
-  - (Optional) Calculate total engagements for logging
+  - Update post status to 'completed': `convex.mutation(api.mutations.updatePostStatus, { postId, status: 'completed' })`
 
 - [ ] **Error Handling:**
   - Wrap in try/catch
-  - On error, update post status to 'failed'
-  - Log error details
+  - On error, update post status to 'failed' via Convex mutation
+  - Log error details for debugging
 
 ### TODO: Implement Reaction Step Function
 
-#### src/workflows/steps/sendReaction.ts
+#### src/convex/workflows.ts (or separate step file)
 - [ ] Create step function:
   ```typescript
   export async function sendReaction(params: {
-    memberId: string;
-    unipileAccountId: string;
-    postUrn: string;
-    reactionType: string;
-    postId: string;
+    userId: string;          // Convex profile ID
+    accountId: string;       // Unipile account ID
+    postUrn: string;         // LinkedIn URN
+    reactionType: string;    // LIKE, CELEBRATE, etc.
+    postId: string;          // Convex post ID
   }) {
     "use step";
+    const convex = await getConvexClient();
 
     // Implementation steps below
   }
   ```
 
 - [ ] **Step 1: Check if user already reacted to this post**
-  - Query `getUserEngagementsForPost(memberId, postId)`
+  - Query `convex.query(api.queries.getUserEngagementsForPost, { userId, postId })`
   - If already exists, skip (return early or throw FatalError)
+  - This prevents duplicate reactions on retry
 
 - [ ] **Step 2: Call Unipile API to add reaction**
-  - Use `addReaction(unipileAccountId, postUrn, reactionType)`
+  - Use `addReaction(accountId, postUrn, reactionType)` from `@/lib/unipile/actions`
   - Handle response:
-    - Success: Continue
-    - 4xx error (non-retriable): Throw `FatalError` to avoid retry
-    - 5xx error (transient): Throw regular error to trigger retry
+    - Success: Continue to step 3
+    - 4xx error (non-retriable): Throw `FatalError` to avoid infinite retry
+    - 5xx error (transient): Throw regular error to trigger automatic retry
 
-- [ ] **Step 3: Log engagement in database**
-  - Call `createEngagement(postId, memberId, reactionType)`
-  - This increments the user's daily count (dynamically queryable)
+- [ ] **Step 3: Log engagement in Convex**
+  - Call `convex.mutation(api.mutations.createEngagement, { postId, reactorId: userId, reactionType })`
+  - This creates an engagementsLog entry
+  - Daily count is automatically queryable via byReactorAndDate index
 
 - [ ] **Error Handling:**
   - Distinguish between fatal and retriable errors
-  - If Unipile returns "already reacted" error, treat as fatal (don't retry)
-  - Log errors for debugging
+  - If Unipile returns "already reacted" error (409), treat as FatalError
+  - If database mutation fails after successful reaction, log warning but don't retry reaction
+  - Log all errors with context for debugging
 
 ---
 
@@ -450,38 +391,41 @@ Use `supabase.auth.getUser()` and `supabase.from('profiles').select('*')` instea
 ### TODO: Security Checklist
 - [ ] Verify all Unipile API calls use server-side API key (never exposed to client)
 - [ ] Ensure `UNIPILE_API_KEY` is only in server environment variables
-- [ ] Review RLS policies for all tables
+- [ ] Verify Convex Auth configuration with Clerk JWT verification is correct
 - [ ] Add rate limiting to API routes (optional: use Vercel rate limiting or Unkey)
 - [ ] Validate all user inputs with Zod schemas
-- [ ] Ensure webhook endpoint (`/api/unipile/callback`) has basic validation
+- [ ] Ensure webhook endpoint (`/api/webhooks/unipile`) has basic validation
   - Check payload structure
   - Verify `account_id` format
   - (Optional) Add webhook signature verification if Unipile supports it
+- [ ] Review Clerk webhook configuration for user lifecycle events
 
 ### TODO: Environment Variable Validation
-- [ ] Create `src/lib/env.ts` using `@t3-oss/env-nextjs`:
+- [x] ✅ Already implemented in `src/lib/env.mjs` using `@t3-oss/env-nextjs`:
   ```typescript
   import { createEnv } from "@t3-oss/env-nextjs";
   import { z } from "zod";
 
   export const env = createEnv({
     server: {
-      SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+      CLERK_SECRET_KEY: z.string().min(1),
+      CLERK_JWT_ISSUER_DOMAIN: z.string().min(1),
       UNIPILE_API_KEY: z.string().min(1),
       UNIPILE_API_URL: z.string().url(),
       APP_URL: z.string().url(),
     },
     client: {
-      NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
+      NEXT_PUBLIC_CONVEX_URL: z.string().url(),
     },
     runtimeEnv: {
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+      CLERK_JWT_ISSUER_DOMAIN: process.env.CLERK_JWT_ISSUER_DOMAIN,
       UNIPILE_API_KEY: process.env.UNIPILE_API_KEY,
       UNIPILE_API_URL: process.env.UNIPILE_API_URL,
       APP_URL: process.env.APP_URL,
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     },
   });
   ```
@@ -491,50 +435,66 @@ Use `supabase.auth.getUser()` and `supabase.from('profiles').select('*')` instea
 ## Phase 8: Documentation & Deployment Prep
 
 ### TODO: Backend Documentation
-- [ ] Document API endpoints in `docs/API.md`:
-  - Authentication flow
-  - Engagement submission
-  - Webhook handling
+- [ ] Update API documentation to reflect Clerk + Convex:
+  - Authentication flow with Clerk
+  - Convex query/mutation patterns
+  - Engagement submission workflow
+  - Webhook handling (Unipile + Clerk)
 - [ ] Document environment variables required for deployment
-- [ ] Document Supabase setup steps (project creation, migrations)
+- [ ] Document Convex setup steps:
+  - Create Convex project (`npx convex dev`)
+  - Deploy schema (`npx convex deploy`)
+  - Configure Convex Auth with Clerk
+- [ ] Document Clerk setup steps:
+  - Create Clerk application
+  - Configure JWT template named "convex"
+  - Set up webhook endpoints (optional)
 - [ ] Document Unipile account setup (API key generation)
 
 ### TODO: Deployment Checklist
-- [ ] Ensure all environment variables are set in Vercel/deployment platform
-- [ ] Run Supabase migrations in production database
-- [ ] Seed initial "YC Alumni" squad in production
+- [ ] Ensure all environment variables are set in Vercel/deployment platform:
+  - Clerk keys: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_JWT_ISSUER_DOMAIN`
+  - Convex URL: `NEXT_PUBLIC_CONVEX_URL`
+  - Unipile: `UNIPILE_API_KEY`, `UNIPILE_API_URL`
+  - App URL: `APP_URL`
+- [ ] Deploy Convex schema to production: `npx convex deploy --prod`
+- [ ] Seed initial "YC Alumni" squad via Convex dashboard or mutation
 - [ ] Test webhook endpoint is publicly accessible (for Unipile callbacks)
 - [ ] Verify Workflow DevKit works in serverless environment (Vercel)
+- [ ] Test Clerk authentication flow end-to-end
 - [ ] Test with real LinkedIn account connection (Unipile hosted auth)
 - [ ] Test engagement workflow end-to-end with small squad
+- [ ] Verify Convex Auth JWT verification works correctly
 
 ---
 
 ## Architecture Notes
 
 ### Daily Engagement Count (Dynamic Query)
-As per requirements, **do not store** `today_engagement_count` in profiles. Instead:
+As per requirements, **do not store** `today_engagement_count` in profiles. Instead, query dynamically:
 
 ```typescript
-// src/lib/engagement/helpers.ts
-export async function getUserEngagementCountToday(userId: string): Promise<number> {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+// Implemented in src/convex/queries.ts
+export const getUserEngagementCountToday = query({
+  args: { userId: v.id("profiles") },
+  handler: async (ctx, args) => {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const startTimestamp = startOfToday.getTime();
 
-  const { count } = await supabase
-    .from('engagements_log')
-    .select('*', { count: 'exact', head: true })
-    .eq('reactor_user_id', userId)
-    .gte('created_at', startOfToday.toISOString());
+    const engagements = await ctx.db
+      .query("engagementsLog")
+      .withIndex("byReactorAndDate", (q) =>
+        q.eq("reactorUserId", args.userId).gte("createdAt", startTimestamp)
+      )
+      .collect();
 
-  return count || 0;
-}
-
-export async function checkDailyLimit(userId: string, maxEngagements: number): Promise<boolean> {
-  const todayCount = await getUserEngagementCountToday(userId);
-  return todayCount < maxEngagements;
-}
+    return engagements.length;
+  },
+});
 ```
+
+The `getAvailableSquadMembers` query automatically filters by daily limit, making it efficient and type-safe.
 
 ### Workflow Durability
 - Workflows marked with `"use workflow"` are durable and can suspend/resume
@@ -543,9 +503,18 @@ export async function checkDailyLimit(userId: string, maxEngagements: number): P
 - State persists across deployments/restarts
 
 ### Deduplication Strategy
-1. **Post-level:** `posts` table has unique constraint on `(post_url, squad_id)`
-2. **User-level:** `engagements_log` has unique constraint on `(post_id, reactor_user_id)`
-3. **Squad member-level:** `squad_members` has unique constraint on `(user_id, squad_id)`
+1. **Post-level:** `posts` table has compound index `byUrlAndSquad` on `(postUrl, squadId)` for duplicate checking
+2. **User-level:** `engagementsLog` has compound index `byPostAndReactor` on `(postId, reactorUserId)` for duplicate checking
+3. **Squad member-level:** `squadMembers` has compound index `byUserAndSquad` on `(userId, squadId)` for duplicate checking
+
+All Convex mutations check for existing entries using these indexes before inserting, ensuring no duplicates.
+
+### Convex Auth with Clerk
+- Clerk provides JWT tokens with user identity
+- Convex Auth verifies Clerk JWTs via `auth.config.ts`
+- Client-side: `ConvexProviderWithClerk` automatically passes auth tokens
+- Server-side: `getConvexClient()` retrieves Clerk token and sets auth on Convex client
+- All Convex queries/mutations have access to `ctx.auth.getUserIdentity()` for secure operations
 
 ---
 

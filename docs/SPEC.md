@@ -2,41 +2,22 @@ LinkedIn Squad Engagement Automation – Technical Spec
 
 Overview and Goals
 
-This project is an engagement automation tool for LinkedIn, targeted at groups (squads) of users such as YC (Y Combinator) alumni. The core idea is that when one member posts on LinkedIn, a selection of other members in the squad will automatically react (e.g. “Like”, “Insightful”, “Celebrate”, etc.) to that post. This boosts engagement by having squad members upvote and potentially comment on each other’s posts. We will build a Next.js web application with Supabase for authentication and database, and leverage Unipile (a third-party LinkedIn integration API) to perform LinkedIn actions on behalf of users. Background tasks (scheduling delayed reactions) will be handled using Vercel’s Workflow DevKit (the use workflow library) for durable, reliable asynchronous jobs ￼.
+This project is an engagement automation tool for LinkedIn, targeted at groups (squads) of users such as YC (Y Combinator) alumni. The core idea is that when one member posts on LinkedIn, a selection of other members in the squad will automatically react (e.g. "Like", "Insightful", "Celebrate", etc.) to that post. This boosts engagement by having squad members upvote and potentially comment on each other's posts. We will build a Next.js web application with Clerk for authentication and Convex for the real-time database, and leverage Unipile (a third-party LinkedIn integration API) to perform LinkedIn actions on behalf of users. Background tasks (scheduling delayed reactions) will be handled using Vercel's Workflow DevKit (the use workflow library) for durable, reliable asynchronous jobs.
 
 Key Objectives:
-	•	User Authentication & Onboarding: Invite users via a squad link, allow them to sign up with passwordless email (magic link or code) using Supabase Auth. Require each user to connect their LinkedIn account through Unipile’s hosted auth flow before fully joining the squad.
+	•	User Authentication & Onboarding: Invite users via a squad link, allow them to sign up using Clerk authentication (email/password, OAuth providers, or magic links). Require each user to connect their LinkedIn account through Unipile's hosted auth flow before fully joining the squad.
 	•	Post Engagement Workflow: Provide a form for a user to submit the URL of a new LinkedIn post they made and select desired reaction types (Like, Celebrate, Insightful, etc.). When submitted, the system will schedule approximately 40 reactions from other squad members’ LinkedIn accounts over the next few minutes (with slight random delays between them to mimic organic engagement).
 	•	Squad Management: Support multiple squads in the backend design (with a squads table and membership relationships), but initially the UI will assume a single global squad called “YC Alumni” that everyone joins via the invite link. Anyone with the invite link can join (no further approval needed).
 	•	Engagement Limits: Allow each user to configure a maximum number of automated engagements per day (e.g. default 40). The system must ensure no user’s LinkedIn account performs more than that number of reactions per day on others’ posts, to avoid triggering LinkedIn’s anti-abuse mechanisms.
 	•	Future Extensibility: Design with future features in mind, notably an AI-powered auto-commenting feature (where the system would generate and post context-relevant comments via AI on behalf of squad members). This will not be implemented now, but the architecture should allow adding it later (likely as an additional workflow step per engagement).
 
 Tech Stack and Components
-	•	Next.js 16: Serves the web UI and API routes. We will use the App Router with React for pages and Next’s built-in API routes for server-side logic (particularly to start workflows and handle webhooks).
-	•	Supabase: Provides authentication (passwordless email) and a PostgreSQL database
 
-LinkedIn Squad Engagement Automation – Technical Spec
-Overview and Goals
+Next.js 13+: Serves the web UI and API routes. We will use the App Router with React for pages and Next's built-in API routes for server-side logic (particularly to start workflows and handle webhooks).
 
-This project is an engagement automation tool for LinkedIn, targeted at groups (squads) of users such as YC (Y Combinator) alumni. The core idea is that when one member posts on LinkedIn, a selection of other members in the squad will automatically react (e.g. “Like”, “Insightful”, “Celebrate”, etc.) to that post. This boosts engagement by having squad members upvote and potentially comment on each other’s posts. We will build a Next.js web application with Supabase for authentication and database, and leverage Unipile (a third-party LinkedIn integration API) to perform LinkedIn actions on behalf of users. Background tasks (scheduling delayed reactions) will be handled using Vercel’s Workflow DevKit (the use workflow library) for durable, reliable asynchronous jobs useworkflow.dev.
+Clerk: Provides modern authentication with support for email/password, OAuth providers (Google, GitHub, etc.), and magic links. Clerk handles all user management, sessions, and security. User authentication state is seamlessly integrated with both Next.js (via middleware) and Convex (via JWT verification).
 
-Key Objectives:
-
-User Authentication & Onboarding: Invite users via a squad link, allow them to sign up with passwordless email (magic link or code) using Supabase Auth. Require each user to connect their LinkedIn account through Unipile’s hosted auth flow before fully joining the squad.
-
-Post Engagement Workflow: Provide a form for a user to submit the URL of a new LinkedIn post they made and select desired reaction types (Like, Celebrate, Insightful, etc.). When submitted, the system will schedule approximately 40 reactions from other squad members’ LinkedIn accounts over the next few minutes (with slight random delays between them to mimic organic engagement).
-
-Squad Management: Support multiple squads in the backend design (with a squads table and membership relationships), but initially the UI will assume a single global squad called “YC Alumni” that everyone joins via the invite link. Anyone with the invite link can join (no further approval needed).
-
-Engagement Limits: Allow each user to configure a maximum number of automated engagements per day (e.g. default 40). The system must ensure no user’s LinkedIn account performs more than that number of reactions per day on others’ posts, to avoid triggering LinkedIn’s anti-abuse mechanisms.
-
-Future Extensibility: Design with future features in mind, notably an AI-powered auto-commenting feature (where the system would generate and post context-relevant comments via AI on behalf of squad members). This will not be implemented now, but the architecture should allow adding it later (likely as an additional workflow step per engagement).
-
-Tech Stack and Components
-
-Next.js 13+: Serves the web UI and API routes. We will use the App Router with React for pages and Next’s built-in API routes for server-side logic (particularly to start workflows and handle webhooks).
-
-Supabase: Provides authentication (passwordless email) and a PostgreSQL database. Supabase will manage user accounts and sessions. We’ll use Supabase’s JS client in Next.js for auth. All application data (user profiles, LinkedIn account info, squads, posts, etc.) will be stored in the Supabase Postgres DB.
+Convex: Provides a real-time, document-oriented database with type-safe queries and mutations. Convex automatically handles real-time subscriptions, optimistic updates, and state management. All application data (user profiles, LinkedIn account info, squads, posts, engagements log) is stored in Convex. Convex Auth integrates with Clerk via JWT verification, ensuring secure access to data based on user identity.
 
 Unipile API (LinkedIn integration): Allows us to programmatically log into users’ LinkedIn accounts and perform actions like reacting to posts. We will use Unipile’s Hosted Auth Wizard for LinkedIn to connect accounts easily
 developer.unipile.com
@@ -118,15 +99,25 @@ learn.microsoft.com
 
 2. Queue Engagements: When the user submits this form, it triggers a Next.js API route (e.g. POST /api/engagements) that kicks off the background workflow to deliver reactions. The request includes the current user’s ID (from session), the post URL, and the selected reaction types. The API handler will do minimal processing synchronously – mainly, it may parse the LinkedIn URL to extract a post identifier, and then call the Workflow DevKit to start a new workflow. For example, using the workflow library:
 
-// In /api/engage/route.ts (assuming Next.js App Router file structure)
+// In /api/engagements/route.ts (assuming Next.js App Router file structure)
 import { start } from 'workflow/api';
 import { handlePostEngagement } from '@/workflows/handlePostEngagement';
+import { currentUser } from '@clerk/nextjs/server';
+import { getConvexClient } from '@/lib/convex/server';
+import { api } from '@/convex/_generated/api';
 
 export async function POST(request: Request) {
   const { postUrl, reactions } = await request.json();
-  const user = await getCurrentUser(); // from Supabase auth session
+  const user = await currentUser(); // from Clerk auth session
+  const convex = await getConvexClient();
+
+  // Get user profile from Convex
+  const profile = await convex.query(api.queries.getUserProfile, {
+    clerkUserId: user.id
+  });
+
   // Launch the engagement workflow asynchronously (does not block response)
-  await start(handlePostEngagement, [user.id, postUrl, reactions]);
+  await start(handlePostEngagement, [profile._id, postUrl, reactions]);
   return NextResponse.json({ status: 'scheduled' });
 }
 
@@ -139,23 +130,31 @@ useworkflow.dev
 
 export async function handlePostEngagement(userId: string, postUrl: string, reactions: string[]) {
   "use workflow";  // marks this function as a durable workflow
+  const convex = await getConvexClient();
+
   // Step 1: Determine target post ID or URN from the URL
-  const postURN = await getPostURNFromUrl(postUrl);  // (we might implement this)
-  // Step 2: Fetch squad members (excluding the author)
-  const squadId = GLOBAL_SQUAD_ID;
-  const members = await db.getMembers(squadId);
-  const otherMembers = members.filter(m => m.userId !== userId && m.linkedInAccountConnected);
-  // Step 3: Filter out members who reached daily limit
-  const availableMembers = filterByDailyLimit(otherMembers);
-  // Step 4: Randomly pick up to N members (e.g. 40) from available pool
+  const postURN = await getPostURN(postUrl);  // from @/lib/linkedin/post-urn
+
+  // Step 2: Get user's squad and fetch available members
+  const squadId = GLOBAL_SQUAD_ID; // From Convex query
+  const availableMembers = await convex.query(api.queries.getAvailableSquadMembers, {
+    squadId,
+    excludeUserId: userId
+  });
+
+  // Step 3: Randomly pick up to N members (e.g. 40) from available pool
+  // Note: availableMembers query already filters by daily limit and LinkedIn connection
   const N = configuredEngagementCount || 40;
   const chosenMembers = pickRandom(availableMembers, N);
-  // Step 5: For each chosen member, schedule a reaction
+
+  // Step 4: For each chosen member, schedule a reaction
   for (const member of chosenMembers) {
     // Pick a random reaction type from the allowed types list
     const reactionType = randomChoice(reactions);
+
     // Execute the reaction via Unipile (step function)
-    await sendReaction(member.unipileAccountId, postURN, reactionType);
+    await sendReaction(member.userId, member.unipileAccountId, postURN, reactionType);
+
     // Sleep a random short interval (jitter) before next engagement
     const delaySec = randomIntBetween(5, 15);
     await sleep(`${delaySec}s`);
@@ -348,25 +347,32 @@ useworkflow.dev
 
 // workflows/handlePostEngagement.ts
 import { FatalError } from 'workflow';
-import { supabaseAdmin } from '@/lib/supabaseAdmin'; // assume we have a server client
-import axios from 'axios';
+import { getConvexClient } from '@/lib/convex/server';
+import { addReaction } from '@/lib/unipile/actions';
+import { api } from '@/convex/_generated/api';
 
-export async function sendReaction(accountId: string, postUrn: string, reactionType: string) {
+export async function sendReaction(
+  userId: string,
+  accountId: string,
+  postUrn: string,
+  reactionType: string
+) {
   "use step";
+  const convex = await getConvexClient();
+
   try {
-    await axios.post(`${process.env.UNIPILE_API_URL}/api/v1/posts/reaction`, {
-      account_id: accountId,
-      post_id: postUrn,
-      reaction: reactionType
-    }, {
-      headers: { 'X-API-KEY': process.env.UNIPILE_API_KEY }
+    // Send reaction via Unipile
+    await addReaction(accountId, postUrn, reactionType);
+
+    // On success, log engagement in Convex
+    await convex.mutation(api.mutations.createEngagement, {
+      postId: postId, // passed from workflow context
+      reactorId: userId,
+      reactionType: reactionType
     });
-    // On success, update DB count
-    await supabaseAdmin.from('profiles')
-      .update({ today_engagement_count: supabaseAdmin.raw('today_engagement_count + 1') })
-      .eq('id', /* user id corresponding to accountId */);
   } catch (err: any) {
-    // If the error indicates the post was already reacted to or some non-retriable error, throw FatalError to avoid infinite retry
+    // If the error indicates the post was already reacted to or some non-retriable error,
+    // throw FatalError to avoid infinite retry
     if (err.response && err.response.status < 500) {
       throw new FatalError(`Unipile reaction API error: ${err.response.status}`);
     }
@@ -432,7 +438,7 @@ This spec has gathered the necessary information to guide an AI agent or develop
 
 User Flow 1: Squad Invitation, Signup, and LinkedIn Connect
 
-1. Invitation & Signup: Initially, the admin (or system) generates an invite link for the “YC Alumni” squad (for now this could be a static link or token since we allow open joining via the link). When a new user clicks the invite link, they are brought to our Next.js app’s signup page. There, they enter their email. We use Supabase Auth (Magic Link/OTP) to sign them in passwordlessly. Supabase supports sending either a Magic Link or a One-Time Password (OTP) code to the email ￼. By default, calling the supabase.auth.signInWithOtp({ email }) method will send a magic link email (the method name is OTP but it sends a magic link unless configured otherwise) ￼. We can optionally configure Supabase to send a 6-digit code instead by editing the email template to include {{ .Token }} instead of the confirmation URL ￼ – this would allow the user to enter a “magic code” on the site, aligning with the “magic code” experience if desired. For now, a magic link is acceptable, but we note the option to use a code. When the user clicks the magic link (or enters the code), their Supabase session is established and they are authenticated in our app. Supabase will create a new user record (with a unique UUID) automatically upon first sign-in if one doesn’t exist ￼.
+1. Invitation & Signup: Initially, the admin (or system) generates an invite link for the "YC Alumni" squad (for now this could be a static link or token since we allow open joining via the link). When a new user clicks the invite link, they are brought to our Next.js app's signup page. Users can sign up using Clerk authentication, which supports multiple methods: email/password, OAuth providers (Google, GitHub, LinkedIn, etc.), or magic links. Clerk's pre-built UI components (<SignUp /> and <SignIn />) handle the entire authentication flow, including email verification and session management. When a user successfully authenticates, Clerk creates a user record with a unique ID and establishes a secure session. Our application uses Clerk's middleware to protect routes and access user information. Upon first sign-in, a Clerk webhook triggers our backend to create a corresponding profile record in Convex, linking the Clerk user ID to our application data.
 
 2. Profile Setup – Connect LinkedIn: After email sign-in, the user is taken to a setup page prompting them to connect their LinkedIn account. We integrate Unipile’s Hosted Auth Wizard for this. When the user clicks “Connect LinkedIn”, our Next.js backend generates a one-time Hosted Auth link via Unipile’s API ￼ ￼. Specifically, our server will call Unipile’s POST /api/v1/hosted/accounts/link endpoint with parameters:
 	•	type: "create" (new account connection)
@@ -455,9 +461,9 @@ The Hosted Auth Wizard link that Unipile returns (in a JSON response with an url
 
 ￼
 
-Our Next.js API route (e.g. /api/unipile/callback) will handle this webhook. It will look up the user by the name/ID, then store the returned account_id in the database, associated with that user’s profile. We will likely have a users (or profiles) table in Supabase where we add fields for unipile_account_id (LinkedIn account) and maybe a flag that LinkedIn is connected. At this point, the user’s onboarding is complete – they are in the “YC Alumni” squad (we create a membership record for them in a squad_members table linking to the squad) and their LinkedIn account is linked for automation. Only users who have connected LinkedIn should be considered active squad members (we will enforce that in the UI and in scheduling logic).
+Our Next.js API route (e.g. /api/webhooks/unipile) will handle this webhook. It will look up the user profile by the name/ID (which corresponds to the Clerk user ID), then store the returned account_id in Convex via a mutation, updating the user's profile with unipile_account_id and linkedinConnected fields. At this point, the user's onboarding is complete – they are in the "YC Alumni" squad (we create a membership record for them in the squadMembers table linking to the squad) and their LinkedIn account is linked for automation. Only users who have connected LinkedIn should be considered active squad members (we will enforce that in the UI and in scheduling logic via Convex queries that filter by linkedinConnected).
 
-Dedupe on join: (Clarification point 3: “Yes dedupe”) – We will ensure that if a user somehow clicks the invite link multiple times or tries to sign up twice with the same email, they won’t be duplicated in the squad. Supabase will prevent duplicate accounts for the same email by default, and we’ll ensure our squad_members table doesn’t create duplicate entries for the same user.
+Dedupe on join: (Clarification point 3: "Yes dedupe") – We will ensure that if a user somehow clicks the invite link multiple times or tries to sign up twice with the same email, they won't be duplicated in the squad. Clerk prevents duplicate accounts for the same email by default, and our Convex mutations check for existing squadMembers entries using compound indexes on (userId, squadId) to prevent duplicate entries.
 
 User Flow 2: Submitting a Post for Squad Engagement
 
@@ -467,15 +473,25 @@ Once onboarded, a user can request engagements on their LinkedIn post via the ap
 
 2. Queue Engagements: When the user submits this form, it triggers a Next.js API route (e.g. POST /api/engagements) that kicks off the background workflow to deliver reactions. The request includes the current user’s ID (from session), the post URL, and the selected reaction types. The API handler will do minimal processing synchronously – mainly, it may parse the LinkedIn URL to extract a post identifier, and then call the Workflow DevKit to start a new workflow. For example, using the workflow library:
 
-// In /api/engage/route.ts (assuming Next.js App Router file structure)
+// In /api/engagements/route.ts (assuming Next.js App Router file structure)
 import { start } from 'workflow/api';
 import { handlePostEngagement } from '@/workflows/handlePostEngagement';
+import { currentUser } from '@clerk/nextjs/server';
+import { getConvexClient } from '@/lib/convex/server';
+import { api } from '@/convex/_generated/api';
 
 export async function POST(request: Request) {
   const { postUrl, reactions } = await request.json();
-  const user = await getCurrentUser(); // from Supabase auth session
+  const user = await currentUser(); // from Clerk auth session
+  const convex = await getConvexClient();
+
+  // Get user profile from Convex
+  const profile = await convex.query(api.queries.getUserProfile, {
+    clerkUserId: user.id
+  });
+
   // Launch the engagement workflow asynchronously (does not block response)
-  await start(handlePostEngagement, [user.id, postUrl, reactions]);
+  await start(handlePostEngagement, [profile._id, postUrl, reactions]);
   return NextResponse.json({ status: 'scheduled' });
 }
 
@@ -485,23 +501,31 @@ Using start() this way initiates the handlePostEngagement workflow function and 
 
 export async function handlePostEngagement(userId: string, postUrl: string, reactions: string[]) {
   "use workflow";  // marks this function as a durable workflow
+  const convex = await getConvexClient();
+
   // Step 1: Determine target post ID or URN from the URL
-  const postURN = await getPostURNFromUrl(postUrl);  // (we might implement this)
-  // Step 2: Fetch squad members (excluding the author)
-  const squadId = GLOBAL_SQUAD_ID;
-  const members = await db.getMembers(squadId);
-  const otherMembers = members.filter(m => m.userId !== userId && m.linkedInAccountConnected);
-  // Step 3: Filter out members who reached daily limit
-  const availableMembers = filterByDailyLimit(otherMembers);
-  // Step 4: Randomly pick up to N members (e.g. 40) from available pool
+  const postURN = await getPostURN(postUrl);  // from @/lib/linkedin/post-urn
+
+  // Step 2: Get user's squad and fetch available members
+  const squadId = GLOBAL_SQUAD_ID; // From Convex query
+  const availableMembers = await convex.query(api.queries.getAvailableSquadMembers, {
+    squadId,
+    excludeUserId: userId
+  });
+
+  // Step 3: Randomly pick up to N members (e.g. 40) from available pool
+  // Note: availableMembers query already filters by daily limit and LinkedIn connection
   const N = configuredEngagementCount || 40;
   const chosenMembers = pickRandom(availableMembers, N);
-  // Step 5: For each chosen member, schedule a reaction
+
+  // Step 4: For each chosen member, schedule a reaction
   for (const member of chosenMembers) {
     // Pick a random reaction type from the allowed types list
     const reactionType = randomChoice(reactions);
+
     // Execute the reaction via Unipile (step function)
-    await sendReaction(member.unipileAccountId, postURN, reactionType);
+    await sendReaction(member.userId, member.unipileAccountId, postURN, reactionType);
+
     // Sleep a random short interval (jitter) before next engagement
     const delaySec = randomIntBetween(5, 15);
     await sleep(`${delaySec}s`);
@@ -533,45 +557,71 @@ This loop continues until all selected members have reacted (or possibly breaks 
 
 4. Completion: After the workflow finishes scheduling all reactions, the post will have a flurry of engagements from the squad. From the user’s perspective, they submitted the link and can watch the reactions roll in over a few minutes on LinkedIn. We might provide in-app feedback like a status (“Engagements in progress…”) or a summary (“Your post has received 40 reactions from the squad!”). The workflow could send a completion event or update a status in the DB which the frontend can poll or subscribe to (though a simpler approach: just trust it completed after X minutes). Since this is asynchronous, a nice enhancement is to use Supabase Realtime or another mechanism to notify the client when done. That’s optional.
 
-Database Design (Supabase)
+Database Design (Convex)
 
-Using Supabase’s Postgres, we will define tables to support the above flows. Key tables and their fields might be:
-	•	profiles (or users): One row per user, generally linked to Supabase auth. We can either use Supabase’s built-in auth.users table and a parallel profiles table or just extend the auth.users via a view. Commonly, Supabase recommends a public profiles table keyed by the auth.users.id. This table would include:
-	•	id (UUID, primary key, matches the Supabase auth user’s ID)
-	•	email (for reference, though also in auth.users)
-	•	unipile_account_id (text, the LinkedIn account identifier from Unipile, if connected)
-	•	linkedin_connected (boolean flag or we infer connected if unipile_account_id is not null)
-	•	daily_max_engagements (integer, default 40, user-configurable)
-	•	today_engagement_count (integer, count of reactions performed today)
-	•	last_engagement_reset (date or timestamp, to know when to reset count)
-	•	Other profile info if needed (name, etc., though not strictly necessary for this functionality)
-	•	squads: One row per squad/group of users. Fields:
-	•	id (int or UUID)
-	•	name (e.g. “YC Alumni”)
-	•	invite_code or invite_link (some token if we want to secure the invite, not strictly needed if one global public squad, but for future multiple squads it’s how we differentiate invite links)
-	•	Possibly created_by (owner) and other metadata if in future we have admins.
-For the MVP, we will pre-create a squad “YC Alumni” (id=1). The invite link could simply be a static route (like our frontend checks a query param like ?squad=1&code=XYZ) – for now “just anyone with the link joins” means we’re not verifying the code; the link could simply point to the signup page for that squad. Simplicity: the invite URL could be https://ourapp.com/invite/yc-alumni which the app knows corresponds to squad 1.
-	•	squad_members: Join table between users and squads (many-to-many if a user can join multiple squads eventually). Fields:
-	•	user_id (UUID, references profiles.id)
-	•	squad_id (references squads.id)
-	•	joined_at (timestamp)
-	•	Unique constraint on (user_id, squad_id) to prevent duplicates.
-When a user signs up via an invite link, we will create an entry here. For MVP with one squad, every new user gets an entry with squad_id = 1.
-	•	posts (optional): We might not need to persist posts, but it could be useful to log which posts were submitted for engagement, by whom and when. If implemented:
-	•	id (maybe an internal UUID or the LinkedIn post URN)
-	•	author_user_id
-	•	squad_id (which squad it was shared to – global squad in our case)
-	•	post_url (the link provided, for reference)
-	•	submitted_at
-	•	Perhaps status or engagement_count etc.
-This table can help ensure we don’t process the exact same post twice (dedupe posts). For example, if the same user or another user accidentally tries to submit a post that was already handled, we can detect that via this table and prevent duplicate scheduling. Given “Yes dedupe” was emphasized, we interpret it both at the member selection level and at the post level – we should avoid duplicate engagements on the same post beyond the intended number. So if a post entry exists, we might alert “This post has already been engaged by the squad.” (However, it’s unlikely someone else would submit another’s post, but theoretically in a squad someone might share someone else’s post link – we could decide policy on that. Likely, only the author should trigger engagement on their own post).
-	•	engagements_log (optional): To track each reaction made, we could log entries:
-	•	id, post_id, reactor_user_id, reaction_type, timestamp.
-This can be used for analytics or debugging. It’s also another way to count daily engagements per user (count where timestamp > start of day, etc.). We might skip this initially to save time, but it’s good for transparency and ensuring no duplicates (a user shouldn’t have two entries on the same post).
+Using Convex's document-oriented database, we define tables (called "collections" in Convex) with type-safe schemas. Convex uses `defineTable()` with validator functions (from `convex/values`) to ensure type safety. Key tables and their fields:
 
-Supabase Auth Integration: We will integrate Supabase Auth into Next.js using the official Supabase JS SDK. On the client side, after entering email, we call supabase.auth.signInWithOtp({ email }). Supabase will handle sending the email. After the user clicks the link (which will redirect back to our app’s callback URL configured in Supabase), the user will be considered logged in (Supabase sets a session, which we can retrieve in Next.js). We may use Supabase’s Next.js Auth Helpers or simply rely on client-side and server-side session fetching via the Supabase client. Since we have an App Router, we can utilize middleware or server components to get the user session (Supabase provides a helper createServerComponentClient to get the session server-side). The exact implementation can follow Supabase’s Next.js example guides. The main point is that once authenticated, we have the user’s ID to use in our database operations.
+profiles: One document per user, linked to Clerk user ID. Fields:
+	•	_id (Convex ID, auto-generated unique identifier)
+	•	clerkUserId (string, reference to Clerk user ID) - indexed for fast lookups
+	•	unipileAccountId (optional string, the LinkedIn account identifier from Unipile)
+	•	linkedinConnected (boolean, whether LinkedIn is connected)
+	•	linkedinConnectedAt (optional number, timestamp when LinkedIn was connected)
+	•	dailyMaxEngagements (number, default 40, user-configurable max engagements per day)
+	•	createdAt (number, timestamp)
+	•	updatedAt (number, timestamp)
+	•	Indexes: byClerkUserId, byUnipileAccountId
 
-Security: We will store the Unipile API Key securely (e.g., in an environment variable on the server). All calls to Unipile (generating auth links, posting reactions) will be made from server-side code (API routes or workflow steps), never from the client, to ensure the API key isn’t exposed ￼. The notify_url for auth results should be a secret endpoint (hard to guess URL or with a verification token) to prevent unauthorized calls; we could also validate that the account_id in the payload is a format we expect and maybe cross-check it via a quick call to Unipile’s account info endpoint. Supabase database should enforce row-level security as appropriate (though if our API always runs with service role for simplicity, we must be cautious; using supabase-js on the server with service key allows easy queries but bypasses RLS – maybe fine for an internal trusted backend). In any case, user-specific operations will be checked against the session user ID.
+Note: Daily engagement counts are NOT stored in profiles. Instead, they are dynamically calculated by querying the engagementsLog table for today's date range. This ensures accuracy and avoids race conditions.
+squads: One document per squad/group of users. Fields:
+	•	_id (Convex ID, auto-generated)
+	•	name (string, e.g. "YC Alumni")
+	•	inviteCode (string, unique token for joining the squad)
+	•	createdBy (Convex ID reference to profiles)
+	•	createdAt (number, timestamp)
+	•	Indexes: byInviteCode, byCreator
+
+For the MVP, we will pre-create a squad "YC Alumni" with a known invite code. The invite link could be a static route that includes the invite code in the URL (e.g., https://ourapp.com/invite/yc-alumni), which the app uses to look up the squad via the byInviteCode index.
+
+squadMembers: Join table between profiles and squads (many-to-many relationship). Fields:
+	•	_id (Convex ID, auto-generated)
+	•	userId (Convex ID reference to profiles)
+	•	squadId (Convex ID reference to squads)
+	•	joinedAt (number, timestamp)
+	•	Indexes: byUserId, bySquadId, byUserAndSquad (compound index for uniqueness check)
+When a user signs up via an invite link, we create an entry here. For MVP with one squad, every new user gets an entry linking to the "YC Alumni" squad.
+
+posts: Logs submitted posts for engagement tracking. Fields:
+	•	_id (Convex ID, auto-generated)
+	•	authorUserId (Convex ID reference to profiles)
+	•	squadId (Convex ID reference to squads)
+	•	postUrl (string, the LinkedIn post URL)
+	•	postUrn (string, extracted LinkedIn post URN)
+	•	submittedAt (number, timestamp)
+	•	status (string, one of: "pending", "processing", "completed", "failed")
+	•	Indexes: byAuthor, bySquad, byStatus, byUrlAndSquad (compound index for deduplication)
+
+This table ensures we don't process the same post twice. The byUrlAndSquad compound index allows efficient duplicate checking when a user submits a post.
+
+engagementsLog: Tracks each reaction made by squad members. Fields:
+	•	_id (Convex ID, auto-generated)
+	•	postId (Convex ID reference to posts)
+	•	reactorUserId (Convex ID reference to profiles)
+	•	reactionType (string, one of: LIKE, CELEBRATE, SUPPORT, LOVE, INSIGHTFUL, FUNNY)
+	•	createdAt (number, timestamp)
+	•	Indexes: byPost, byReactor, byReactorAndDate (for daily limit checks), byPostAndReactor (for deduplication)
+
+This table serves multiple purposes:
+1. Tracks all reactions for analytics and debugging
+2. Enables daily engagement count queries (via byReactorAndDate index)
+3. Prevents duplicate reactions (via byPostAndReactor compound index)
+4. Provides historical data for future features
+
+Clerk + Convex Auth Integration: We integrate Clerk authentication with Convex using Clerk's JWT verification. Clerk provides a JWT template (named "convex") that includes the user's ID and other claims. Convex Auth is configured in `convex/auth.config.ts` to verify Clerk JWTs using the Clerk issuer domain. On the client side, the ConvexProviderWithClerk component wraps the app, automatically passing Clerk's authentication token to Convex queries and mutations. On the server side (API routes, workflows), we use `currentUser()` from `@clerk/nextjs/server` to get the Clerk user, then use `getConvexClient()` to create an authenticated Convex client that respects user permissions. Convex handles authorization transparently via the JWT, so queries and mutations can access `ctx.auth.getUserIdentity()` to get the current user's information.
+
+Security: We will store the Unipile API Key securely in server-side environment variables. All calls to Unipile (generating auth links, posting reactions) will be made from server-side code (API routes or workflow steps), never from the client, to ensure the API key isn't exposed. The webhook endpoint (`/api/webhooks/unipile`) should validate incoming payloads to ensure they come from Unipile. Convex Auth ensures that all database operations are authenticated via Clerk JWT verification. User-specific operations automatically have access to the authenticated user's identity through `ctx.auth`, providing built-in security without manual checks. Environment variables include:
+	•	Server-side: CLERK_SECRET_KEY, CLERK_JWT_ISSUER_DOMAIN, UNIPILE_API_KEY, UNIPILE_API_URL
+	•	Client-side: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, NEXT_PUBLIC_CONVEX_URL
 
 Workflow Implementation Details (Using useWorkflow)
 
@@ -579,25 +629,32 @@ As mentioned, we will create a Next.js API route (e.g., /api/engage) that starts
 
 // workflows/handlePostEngagement.ts
 import { FatalError } from 'workflow';
-import { supabaseAdmin } from '@/lib/supabaseAdmin'; // assume we have a server client
-import axios from 'axios';
+import { getConvexClient } from '@/lib/convex/server';
+import { addReaction } from '@/lib/unipile/actions';
+import { api } from '@/convex/_generated/api';
 
-export async function sendReaction(accountId: string, postUrn: string, reactionType: string) {
+export async function sendReaction(
+  userId: string,
+  accountId: string,
+  postUrn: string,
+  reactionType: string
+) {
   "use step";
+  const convex = await getConvexClient();
+
   try {
-    await axios.post(`${process.env.UNIPILE_API_URL}/api/v1/posts/reaction`, {
-      account_id: accountId,
-      post_id: postUrn,
-      reaction: reactionType
-    }, {
-      headers: { 'X-API-KEY': process.env.UNIPILE_API_KEY }
+    // Send reaction via Unipile
+    await addReaction(accountId, postUrn, reactionType);
+
+    // On success, log engagement in Convex
+    await convex.mutation(api.mutations.createEngagement, {
+      postId: postId, // passed from workflow context
+      reactorId: userId,
+      reactionType: reactionType
     });
-    // On success, update DB count
-    await supabaseAdmin.from('profiles')
-      .update({ today_engagement_count: supabaseAdmin.raw('today_engagement_count + 1') })
-      .eq('id', /* user id corresponding to accountId */);
   } catch (err: any) {
-    // If the error indicates the post was already reacted to or some non-retriable error, throw FatalError to avoid infinite retry
+    // If the error indicates the post was already reacted to or some non-retriable error,
+    // throw FatalError to avoid infinite retry
     if (err.response && err.response.status < 500) {
       throw new FatalError(`Unipile reaction API error: ${err.response.status}`);
     }

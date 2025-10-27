@@ -5,7 +5,5 @@ import { UserButton as ClerkUserButton } from "@clerk/nextjs"
  * Shows user avatar with dropdown menu for profile and sign out
  */
 export function UserButton() {
-  return (
-    <ClerkUserButton appearance={{ elements: { avatarBox: "w-10 h-10", } }} />
-  )
+  return <ClerkUserButton appearance={{ elements: { avatarBox: "w-10 h-10" } }} />
 }

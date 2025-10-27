@@ -5,7 +5,9 @@ import type { NextConfig } from "next"
 
 let config: NextConfig = {
   typedRoutes: true,
-  reactCompiler: true,
+  reactCompiler: {
+    compilationMode: "annotation",
+  },
   images: {
     qualities: [60, 75, 95],
   },
@@ -17,8 +19,5 @@ let config: NextConfig = {
 config = createBundleAnalyzer({
   enabled: Boolean(process.env.ANALYZE),
 })(config)
-
-// TODO: Re-enable once workflow package native binding issue is resolved
-// config = withWorkflow(config)
 
 export default config

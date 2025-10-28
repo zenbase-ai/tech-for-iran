@@ -1,23 +1,20 @@
 import { auth } from "@clerk/nextjs/server"
-import { NextRequest, NextResponse } from "next/server"
-import { fetchQuery, fetchMutation } from "convex/nextjs"
+import { fetchMutation, fetchQuery } from "convex/nextjs"
+import { type NextRequest, NextResponse } from "next/server"
 import { api } from "@/convex/_generated/api"
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { code: string } },
-) {
+export type InviteCodeParams = {
+  code: string
+}
+
+export async function GET(request: NextRequest, { params }: { params: InviteCodeParams }) {
   try {
     const inviteCode = params.code
-
     // Validate the invite code
-    const squad = await fetchQuery(api.queries.getSquadByInviteCode, {
-      inviteCode,
-    })
-
+    const squad = await fetchQuery(api.queries.getSquadByInviteCode, { inviteCode })
     if (!squad) {
-      // Invalid invite code - redirect to sign-in with error
-      return NextResponse.redirect(new URL("/sign-in?error=invalid_invite", request.url))
+      // Invalid invite code - redirect to home page with error
+      return NextResponse.redirect(new URL("/?error=invalid_invite", request.url))
     }
 
     // Check if user is authenticated
@@ -29,33 +26,36 @@ export async function GET(
     }
 
     // Get user's onboarding status
-    const onboardingStatus = await fetchQuery(api.queries.getUserOnboardingStatus, {
-      clerkUserId: userId,
-    })
+    const { account, needsReconnection, isHealthy } = await fetchQuery(
+      api.queries.getUserOnboardingStatus,
+      {
+        userId,
+      },
+    )
 
     // If profile doesn't exist yet, redirect to onboarding with invite param
-    if (!onboardingStatus.hasProfile) {
-      return NextResponse.redirect(new URL(`/onboarding/connect?invite=${inviteCode}`, request.url))
+    if (!account) {
+      return NextResponse.redirect(new URL(`/linkedin?invite=${inviteCode}`, request.url))
     }
 
     // If LinkedIn not connected, redirect to onboarding with invite param
-    if (!onboardingStatus.isLinkedInConnected) {
-      return NextResponse.redirect(new URL(`/onboarding/connect?invite=${inviteCode}`, request.url))
+    if (needsReconnection || !isHealthy) {
+      return NextResponse.redirect(new URL(`/linkedin?invite=${inviteCode}`, request.url))
     }
 
     // User is authenticated and LinkedIn is connected - join the squad
     try {
       await fetchMutation(api.mutations.joinSquad, {
-        userId: onboardingStatus.profile._id,
+        userId,
         squadId: squad._id,
       })
 
-      // Successfully joined - redirect to dashboard with success param
-      return NextResponse.redirect(new URL("/dashboard?joined=true", request.url))
+      // Successfully joined - redirect to main with success param
+      return NextResponse.redirect(new URL("/main?joined=true", request.url))
     } catch (error) {
-      // If join fails (e.g., already a member), still redirect to dashboard
+      // If join fails (e.g., already a member), still redirect to main
       console.error("Error joining squad:", error)
-      return NextResponse.redirect(new URL("/dashboard", request.url))
+      return NextResponse.redirect(new URL("/main", request.url))
     }
   } catch (error) {
     console.error("Error in invite route:", error)

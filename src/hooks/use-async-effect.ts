@@ -5,7 +5,6 @@ import { useEffect } from "react"
 const isAsyncGenerator = (
   val: AsyncGenerator<void, void, void> | Promise<void>,
 ): val is AsyncGenerator<void, void, void> => {
-  // biome-ignore lint/suspicious/noExplicitAny: silence!
   return isFunction((val as any)[Symbol.asyncIterator])
 }
 

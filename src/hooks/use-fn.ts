@@ -1,7 +1,6 @@
 import { isFunction } from "es-toolkit"
 import { useMemo, useRef } from "react"
 
-// biome-ignore lint/suspicious/noExplicitAny: silence!
 type Noop = (this: any, ...args: any[]) => any
 
 type PickFunction<T extends Noop> = (

@@ -2,20 +2,17 @@
 
 import { SignUp } from "@clerk/nextjs"
 import { useSearchParams } from "next/navigation"
-import { Box } from "@/components/layout/box"
+import { VStack } from "@/components/layout/stack"
 
 export default function SignUpPage() {
   const searchParams = useSearchParams()
   const inviteCode = searchParams.get("invite")
 
-  // If there's an invite code, pass it through to the onboarding redirect
-  const redirectUrl = inviteCode
-    ? `/onboarding/connect?invite=${inviteCode}`
-    : "/onboarding/connect"
+  const redirectUrl = inviteCode ? `/linkedin?invite=${inviteCode}` : "/linkedin"
 
   return (
-    <Box as="main" className="flex items-center justify-center min-h-[60vh]">
+    <VStack as="main" justify="center" items="center" className="min-h-[60vh]">
       <SignUp forceRedirectUrl={redirectUrl} signInUrl="/sign-in" />
-    </Box>
+    </VStack>
   )
 }

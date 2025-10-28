@@ -10,6 +10,7 @@
 
 import type * as auth from "../auth.js";
 import type * as helpers from "../helpers.js";
+import type * as http from "../http.js";
 import type * as index from "../index.js";
 import type * as mutations from "../mutations.js";
 import type * as queries from "../queries.js";
@@ -33,6 +34,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   helpers: typeof helpers;
+  http: typeof http;
   index: typeof index;
   mutations: typeof mutations;
   queries: typeof queries;

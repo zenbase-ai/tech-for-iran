@@ -45,18 +45,12 @@ export const NEEDS_RECONNECTION_STATUSES = [
   LinkedInStatus.DELETED,
 ] as const
 
-/**
- * Check if a LinkedIn account status is healthy
- */
 export const isHealthyStatus = (status: string | null | undefined): boolean => {
   if (!status) return false
-  return HEALTHY_STATUSES.includes(status as LinkedInStatusType)
+  return HEALTHY_STATUSES.includes(status as any)
 }
 
-/**
- * Check if a LinkedIn account needs reconnection
- */
 export const needsReconnection = (status: string | null | undefined): boolean => {
   if (!status) return false
-  return NEEDS_RECONNECTION_STATUSES.includes(status as LinkedInStatusType)
+  return NEEDS_RECONNECTION_STATUSES.includes(status as any)
 }

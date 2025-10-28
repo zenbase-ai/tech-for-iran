@@ -1,51 +1,26 @@
-"use client"
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
+import { VStack } from "@/components/layout/stack"
+import { Hero } from "@/components/marketing/hero"
+import { Highlighter } from "@/components/ui/highlighter"
 
-import { useUser } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { api } from "@/convex/_generated/api"
+export default async function HomePage() {
+  const { userId } = await auth()
+  if (userId) {
+    return redirect("/main")
+  }
 
-export default function HomePage() {
-  const router = useRouter()
-  const { user, isLoaded: isUserLoaded } = useUser()
-
-  // Check if LinkedIn is connected
-  const isLinkedInConnected = useQuery(
-    api.queries.isLinkedInConnected,
-    user ? { clerkUserId: user.id } : "skip",
-  )
-
-  useEffect(() => {
-    if (!isUserLoaded) {
-      return
-    }
-
-    // If not authenticated, redirect to sign-in
-    if (!user) {
-      router.push("/sign-in")
-      return
-    }
-
-    // If authenticated, check LinkedIn connection status
-    if (isLinkedInConnected === undefined) {
-      return // Still loading
-    }
-
-    if (isLinkedInConnected) {
-      router.push("/dashboard")
-    } else {
-      router.push("/onboarding/connect")
-    }
-  }, [isLinkedInConnected, user, isUserLoaded, router])
-
-  // Show loading state while redirecting
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100 mx-auto mb-4" />
-        <p className="text-lg">Loading...</p>
-      </div>
-    </div>
+    <VStack as="main" justify="center" items="center" className="min-h-[60vh]">
+      <Hero
+        title={
+          <em>
+            <Highlighter action="underline">Amplify</Highlighter> your LinkedIn presence
+          </em>
+        }
+        lede="Join a squad, boost each other's posts, and make your professional content reach further."
+        ctas={{ "Sign Up": "/sign-up", "Sign In": "/sign-in" }}
+      />
+    </VStack>
   )
 }

@@ -1,10 +1,12 @@
+import { env } from "./env.mjs"
+
 export const LINKEDIN_REACTION_TYPES = [
-  "LIKE",
-  "CELEBRATE",
-  "SUPPORT",
-  "LOVE",
-  "INSIGHTFUL",
-  "FUNNY",
+  "like",
+  "celebrate",
+  "support",
+  "love",
+  "insightful",
+  "funny",
 ] as const
 
 export type LinkedInReactionType = (typeof LINKEDIN_REACTION_TYPES)[number]
@@ -15,7 +17,7 @@ export const isValidReactionType = (type: string): type is LinkedInReactionType 
 export const validateReactionTypes = (types: string[]): LinkedInReactionType[] =>
   types.filter(isValidReactionType)
 
-export const extractPostURNFromUrl = (url: string): string | null => {
+export const parsePostURN = (url: string): string | null => {
   try {
     const urlObj = new URL(url)
 
@@ -55,7 +57,7 @@ export const extractPostURNFromUrl = (url: string): string | null => {
   }
 }
 
-export const isValidLinkedInPostUrl = (url: string): boolean => {
+export const isValidLinkedInPostURL = (url: string): boolean => {
   try {
     const urlObj = new URL(url)
     const hostname = urlObj.hostname.toLowerCase()
@@ -74,4 +76,38 @@ export const isValidLinkedInPostUrl = (url: string): boolean => {
   } catch {
     return false
   }
+}
+
+export const generateHostedAuthLink = async (userId: string) => {
+  const expiresOn = new Date()
+  expiresOn.setHours(expiresOn.getHours() + 24) // Link expires in 24 hours
+
+  // Build success redirect URL - include invite code if present, redirect directly to main
+  const response = await fetch(`${env.UNIPILE_API_URL}/api/v1/hosted/accounts/link`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-KEY": env.UNIPILE_API_KEY,
+    },
+    body: JSON.stringify({
+      api_url: env.UNIPILE_API_URL,
+      type: "create",
+      name: userId,
+      providers: ["LINKEDIN"],
+      expiresOn: expiresOn.toISOString(),
+      success_redirect_url: `${env.APP_URL}/linkedin`,
+      failure_redirect_url: `${env.APP_URL}/linkedin`,
+      notify_url: `${env.APP_URL}/webhooks/unipile`,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(
+      `Failed to generate hosted auth link: ${response.status} ${response.statusText} - ${error}`,
+    )
+  }
+
+  const data = await response.json()
+  return data.url as string
 }

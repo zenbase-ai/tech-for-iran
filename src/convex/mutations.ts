@@ -1,170 +1,114 @@
 import { v } from "convex/values"
-import type { Id } from "./_generated/dataModel"
-import type { MutationCtx } from "./_generated/server"
 import { internalMutation, mutation } from "./_generated/server"
-import { LinkedInStatus } from "./helpers"
 
-export const upsertUserProfile = mutation({
+export const linkLinkedinAccount = mutation({
   args: {
-    clerkUserId: v.string(),
-    unipileAccountId: v.optional(v.string()),
-    linkedinConnected: v.optional(v.boolean()),
-    linkedinConnectedAt: v.optional(v.number()),
-    dailyMaxEngagements: v.optional(v.number()),
+    userId: v.string(),
+    unipileId: v.string(),
   },
   handler: async (ctx, args) => {
-    // Check if profile already exists
-    const existing = await ctx.db
-      .query("profiles")
-      .withIndex("byClerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
-      .first()
+    const [account, profile] = await Promise.all([
+      ctx.db
+        .query("linkedinAccounts")
+        .withIndex("byAccount", (q) => q.eq("unipileId", args.unipileId))
+        .first(),
+      ctx.db
+        .query("linkedinProfiles")
+        .withIndex("byAccount", (q) => q.eq("unipileId", args.unipileId))
+        .first(),
+    ])
 
-    const now = Date.now()
+    if (!account) {
+      throw new Error("Account not found")
+    }
+    if (!profile) {
+      throw new Error("Profile not found")
+    }
+
+    if (!account.userId) {
+      await ctx.db.patch(account._id, {
+        userId: args.userId,
+        updatedAt: Date.now(),
+      })
+    }
+
+    if (!profile.userId) {
+      await ctx.db.patch(profile._id, {
+        userId: args.userId,
+        updatedAt: Date.now(),
+      })
+    }
+  },
+})
+
+export const upsertLinkedinAccount = mutation({
+  args: {
+    unipileId: v.string(),
+    message: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("linkedinAccounts")
+      .withIndex("byAccount", (q) => q.eq("unipileId", args.unipileId))
+      .first()
 
     if (existing) {
-      // Update existing profile
-      await ctx.db.patch(existing._id, {
-        unipileAccountId: args.unipileAccountId ?? existing.unipileAccountId,
-        linkedinConnected: args.linkedinConnected ?? existing.linkedinConnected,
-        linkedinConnectedAt: args.linkedinConnectedAt ?? existing.linkedinConnectedAt,
-        dailyMaxEngagements: args.dailyMaxEngagements ?? existing.dailyMaxEngagements,
-        updatedAt: now,
+      return await ctx.db.patch(existing._id, {
+        status: args.message,
+        updatedAt: Date.now(),
       })
-      return existing._id
     }
 
-    // Create new profile
-    const profileId = await ctx.db.insert("profiles", {
-      clerkUserId: args.clerkUserId,
-      unipileAccountId: args.unipileAccountId,
-      linkedinConnected: args.linkedinConnected ?? false,
-      linkedinConnectedAt: args.linkedinConnectedAt,
-      dailyMaxEngagements: args.dailyMaxEngagements ?? 40,
-      createdAt: now,
-      updatedAt: now,
-    })
-
-    return profileId
-  },
-})
-
-export const updateLinkedInConnection = mutation({
-  args: {
-    clerkUserId: v.string(),
-    unipileAccountId: v.string(),
-    linkedinConnected: v.boolean(),
-    linkedinConnectedAt: v.optional(v.number()),
-    linkedinStatus: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("byClerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
-      .first()
-
-    if (!profile) {
-      throw new Error("Profile not found")
-    }
-
-    const now = Date.now()
-    const updateData: Record<string, unknown> = {
-      unipileAccountId: args.unipileAccountId,
-      linkedinConnected: args.linkedinConnected,
-      linkedinConnectedAt: args.linkedinConnectedAt ?? now,
-      updatedAt: now,
-    }
-
-    // Set initial status if provided
-    if (args.linkedinStatus) {
-      updateData.linkedinStatus = args.linkedinStatus
-      updateData.linkedinStatusUpdatedAt = now
-    }
-
-    await ctx.db.patch(profile._id, updateData)
-
-    return profile._id
-  },
-})
-
-export const updateLinkedInStatus = mutation({
-  args: {
-    unipileAccountId: v.string(),
-    status: v.string(),
-    statusMessage: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("byUnipileAccountId", (q) => q.eq("unipileAccountId", args.unipileAccountId))
-      .first()
-
-    if (!profile) {
-      throw new Error(`Profile not found for Unipile account ${args.unipileAccountId}`)
-    }
-
-    const now = Date.now()
-    const updateData: Record<string, unknown> = {
-      linkedinStatus: args.status,
-      linkedinStatusMessage: args.statusMessage,
-      linkedinStatusUpdatedAt: now,
-      updatedAt: now,
-    }
-
-    // Update connection status based on account status
-    switch (args.status) {
-      case LinkedInStatus.OK:
-      case LinkedInStatus.SYNC_SUCCESS:
-      case LinkedInStatus.RECONNECTED:
-      case LinkedInStatus.CREATION_SUCCESS:
-        updateData.linkedinConnected = true
-        break
-      case LinkedInStatus.DELETED:
-        updateData.linkedinConnected = false
-        updateData.unipileAccountId = undefined // Clear the account ID
-        break
-      case LinkedInStatus.CREDENTIALS:
-      case LinkedInStatus.ERROR:
-      case LinkedInStatus.STOPPED:
-        updateData.linkedinConnected = false // Needs reconnection
-        break
-      case LinkedInStatus.CONNECTING:
-        // Keep current connection status during connecting phase
-        break
-    }
-
-    await ctx.db.patch(profile._id, updateData)
-
-    return profile._id
-  },
-})
-
-export const updateDailyMaxEngagements = mutation({
-  args: {
-    clerkUserId: v.string(),
-    dailyMax: v.number(),
-  },
-  handler: async (ctx, args) => {
-    const profile = await ctx.db
-      .query("profiles")
-      .withIndex("byClerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
-      .first()
-
-    if (!profile) {
-      throw new Error("Profile not found")
-    }
-
-    await ctx.db.patch(profile._id, {
-      dailyMaxEngagements: args.dailyMax,
+    await ctx.db.insert("linkedinAccounts", {
+      unipileId: args.unipileId,
+      status: args.message,
+      createdAt: Date.now(),
       updatedAt: Date.now(),
     })
+  },
+})
 
-    return profile._id
+export const upsertLinkedinProfile = internalMutation({
+  args: {
+    unipileId: v.string(),
+    url: v.string(),
+    picture: v.string(),
+    maxActions: v.number(),
+    firstName: v.string(),
+    lastName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("linkedinProfiles")
+      .withIndex("byAccount", (q) => q.eq("unipileId", args.unipileId))
+      .first()
+
+    if (existing) {
+      return await ctx.db.patch(existing._id, {
+        firstName: args.firstName,
+        lastName: args.lastName,
+        maxActions: args.maxActions,
+        picture: args.picture,
+        updatedAt: Date.now(),
+        url: args.url,
+      })
+    }
+
+    await ctx.db.insert("linkedinProfiles", {
+      unipileId: args.unipileId,
+      firstName: args.firstName,
+      lastName: args.lastName,
+      maxActions: args.maxActions,
+      picture: args.picture,
+      updatedAt: Date.now(),
+      url: args.url,
+    })
   },
 })
 
 export const joinSquad = mutation({
   args: {
-    userId: v.id("profiles"),
+    userId: v.string(),
     squadId: v.id("squads"),
   },
   handler: async (ctx, args) => {
@@ -193,7 +137,7 @@ export const createSquad = mutation({
   args: {
     name: v.string(),
     inviteCode: v.string(),
-    createdBy: v.id("profiles"),
+    createdBy: v.string(),
   },
   handler: async (ctx, args) => {
     // Check if invite code already exists
@@ -219,7 +163,7 @@ export const createSquad = mutation({
 
 export const createPost = mutation({
   args: {
-    authorUserId: v.id("profiles"),
+    userId: v.string(),
     squadId: v.id("squads"),
     postUrl: v.string(),
     postUrn: v.string(),
@@ -235,7 +179,7 @@ export const createPost = mutation({
     }
 
     const postId = await ctx.db.insert("posts", {
-      authorUserId: args.authorUserId,
+      userId: args.userId,
       squadId: args.squadId,
       postUrl: args.postUrl,
       postUrn: args.postUrn,
@@ -247,73 +191,30 @@ export const createPost = mutation({
   },
 })
 
-export const updatePostStatus = mutation({
+export const createEngagement = internalMutation({
   args: {
     postId: v.id("posts"),
-    status: v.string(), // "pending", "processing", "completed", "failed"
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.postId, {
-      status: args.status,
-    })
-    return args.postId
-  },
-})
-
-export const updatePostStatusInternal = internalMutation({
-  args: {
-    postId: v.id("posts"),
-    status: v.string(),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.patch(args.postId, {
-      status: args.status,
-    })
-    return args.postId
-  },
-})
-
-// Shared handler for createEngagement
-async function createEngagementHandler(
-  ctx: MutationCtx,
-  args: { postId: Id<"posts">; reactorId: Id<"profiles">; reactionType: string },
-) {
-  // Check for duplicate engagement
-  const existing = await ctx.db
-    .query("engagementsLog")
-    .withIndex("byPostAndReactor", (q) =>
-      q.eq("postId", args.postId).eq("reactorUserId", args.reactorId),
-    )
-    .first()
-
-  if (existing) {
-    return null // Already reacted
-  }
-
-  const engagementId = await ctx.db.insert("engagementsLog", {
-    postId: args.postId,
-    reactorUserId: args.reactorId,
-    reactionType: args.reactionType,
-    createdAt: Date.now(),
-  })
-
-  return engagementId
-}
-
-export const createEngagement = mutation({
-  args: {
-    postId: v.id("posts"),
-    reactorId: v.id("profiles"),
+    userId: v.string(),
     reactionType: v.string(),
   },
-  handler: createEngagementHandler,
-})
+  handler: async (ctx, args) => {
+    // Check for duplicate engagement
+    const existing = await ctx.db
+      .query("engagements")
+      .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", args.userId))
+      .first()
 
-export const createEngagementInternal = internalMutation({
-  args: {
-    postId: v.id("posts"),
-    reactorId: v.id("profiles"),
-    reactionType: v.string(),
+    if (existing) {
+      return null // Already reacted
+    }
+
+    const engagementId = await ctx.db.insert("engagements", {
+      postId: args.postId,
+      userId: args.userId,
+      reactionType: args.reactionType,
+      createdAt: Date.now(),
+    })
+
+    return engagementId
   },
-  handler: createEngagementHandler,
 })

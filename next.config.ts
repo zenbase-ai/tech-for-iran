@@ -10,6 +10,14 @@ let config: NextConfig = {
   },
   images: {
     qualities: [60, 75, 95],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "media.licdn.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
   },
   experimental: {
     turbopackFileSystemCacheForDev: true,

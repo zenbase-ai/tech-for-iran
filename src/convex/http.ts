@@ -1,5 +1,5 @@
 import { httpRouter } from "convex/server"
-import { api } from "./_generated/api"
+import { api, internal } from "./_generated/api"
 import { httpAction } from "./_generated/server"
 
 const http = httpRouter()
@@ -12,75 +12,74 @@ http.route({
   handler: httpAction(async (ctx, request) => {
     try {
       const payload = await request.json()
-      console.log("Unipile webhook received:", JSON.stringify(payload, null, 2))
 
-      // Handle AccountStatus updates (status change notifications)
       if ("AccountStatus" in payload) {
-        const { AccountStatus } = payload as {
-          AccountStatus: {
-            account_id: string
-            account_type: string
-            message: string
-          }
-        }
+        const { account_id, account_type, message } = payload.AccountStatus
 
-        const { account_id, account_type, message } = AccountStatus
+        if (account_type !== "LINKEDIN") {
+          return new Response(null, { status: 201 })
+        }
 
         if (!account_id) {
           return Response.json({ error: "Missing account_id in AccountStatus" }, { status: 400 })
         }
 
-        if (account_type !== "LINKEDIN") {
-          console.log(`Ignoring non-LinkedIn account status for type: ${account_type}`)
-          return Response.json({ success: true, ignored: true }, { status: 200 })
-        }
-
-        console.log(`Account status update: ${account_id} -> ${message}`)
-
-        // Update LinkedIn account status
-        await ctx.runMutation(api.mutations.updateLinkedInStatus, {
-          unipileAccountId: account_id,
-          status: message,
-          statusMessage: message,
+        await ctx.runMutation(api.mutations.upsertLinkedinAccount, {
+          unipileId: account_id,
+          message,
         })
 
-        console.log(`LinkedIn status updated for account ${account_id}: ${message}`)
+        if (message === "SYNC_SUCCESS") {
+          const profile = await ctx.runAction(internal.unipile.getLinkedinProfile, {
+            accountId: account_id,
+          })
+
+          await ctx.runMutation(internal.mutations.upsertLinkedinProfile, {
+            unipileId: account_id,
+            firstName: profile.first_name,
+            lastName: profile.last_name,
+            maxActions: 40,
+            picture: profile.profile_picture_url,
+            url: profile.public_profile_url,
+          })
+        }
 
         return Response.json({ success: true }, { status: 200 })
       }
 
-      // Handle initial account connection (Hosted Auth callback)
-      // Unipile sends account details including the 'name' field we set (userId)
-      const { account_id, name, provider } = payload as {
-        account_id?: string
-        name?: string
-        provider?: string
-      }
+      console.error(payload)
+      throw new Error("TBD")
 
-      if (!account_id) {
-        return Response.json({ error: "Missing account_id" }, { status: 400 })
-      }
+      // // Handle initial account connection (Hosted Auth callback)
+      // // Unipile sends account details including the 'name' field we set (userId)
+      // const { account_id, name, provider } = payload as {
+      //   account_id?: string
+      //   name?: string
+      //   provider?: string
+      // }
 
-      if (!name) {
-        return Response.json({ error: "Missing user identifier (name)" }, { status: 400 })
-      }
+      // if (!account_id) {
+      //   return Response.json({ error: "Missing account_id" }, { status: 400 })
+      // }
 
-      console.log(
-        `Initial connection for user ${name} with account ID: ${account_id} (provider: ${provider})`,
-      )
+      // if (!name) {
+      //   return Response.json({ error: "Missing user identifier (name)" }, { status: 400 })
+      // }
 
-      // Update user's LinkedIn connection status
-      await ctx.runMutation(api.mutations.updateLinkedInConnection, {
-        clerkUserId: name, // name contains the Clerk user ID
-        unipileAccountId: account_id,
-        linkedinConnected: true,
-        linkedinConnectedAt: Date.now(),
-        linkedinStatus: "CONNECTING", // Initial status, will be updated by AccountStatus webhook
-      })
+      // console.log(
+      //   `Initial connection for user ${name} with account ID: ${account_id} (provider: ${provider})`,
+      // )
 
-      console.log(`LinkedIn connection established for user: ${name}`)
+      // // Update user's LinkedIn connection status
+      // await ctx.runMutation(api.mutations.upsertUnipileAccount, {
+      //   userId: name, // name contains the Clerk user ID
+      //   accountId: account_id,
+      //   message: "CONNECTING", // Initial status, will be updated by AccountStatus webhook
+      // })
 
-      return Response.json({ success: true }, { status: 200 })
+      // console.log(`LinkedIn connection established for user: ${name}`)
+
+      // return Response.json({ success: true }, { status: 200 })
     } catch (error) {
       console.error("Unipile webhook error:", error)
       return Response.json(

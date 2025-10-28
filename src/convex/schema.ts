@@ -29,43 +29,43 @@ const schema = defineSchema({
     .index("byUserAndAccount", ["userId", "unipileId"])
     .index("byAccount", ["unipileId"]),
 
-  // Squads (groups of users who engage with each other's posts)
-  squads: defineTable({
-    name: v.string(), // Squad name (e.g., "YC Alumni")
+  // Pods (groups of users who engage with each other's posts)
+  pods: defineTable({
+    name: v.string(), // Pod name (e.g., "YC Alumni")
     inviteCode: v.string(), // Unique invite code for joining
-    createdBy: v.string(), // Reference to profile who created the squad
+    createdBy: v.string(), // Reference to profile who created the pod
     createdAt: v.number(), // Timestamp
   })
     .index("byInviteCode", ["inviteCode"]) // Efficient lookup by invite code
     .index("byCreator", ["createdBy"]), // Lookup by creator
 
-  // Squad members (join table for many-to-many relationship)
-  squadMembers: defineTable({
+  // Pod members (join table for many-to-many relationship)
+  podsMembers: defineTable({
     userId: v.string(), // Reference to profile
-    squadId: v.id("squads"), // Reference to squad
+    podId: v.id("pods"), // Reference to pod
     joinedAt: v.number(), // Timestamp when user joined
   })
-    .index("byUser", ["userId"]) // Lookup all squads for a user
-    .index("bySquad", ["squadId"]) // Lookup all members of a squad
-    .index("byUserAndSquad", ["userId", "squadId"]), // Uniqueness constraint
+    .index("byUser", ["userId"])
+    .index("byPod", ["podId"])
+    .index("byUserAndPod", ["userId", "podId"]),
 
   // Posts submitted for engagement
   posts: defineTable({
-    userId: v.string(), // User who submitted the post
-    squadId: v.id("squads"), // Squad where post was submitted
+    userId: v.string(),
+    podId: v.id("pods"), // Pod where post was submitted
     postUrl: v.string(), // LinkedIn post URL
     postUrn: v.string(), // LinkedIn post URN (extracted from URL)
-    workflowId: v.optional(v.string()), // Workflow ID for tracking execution state
-    submittedAt: v.number(), // Timestamp when submitted
+    workflowId: v.optional(v.string()),
+    submittedAt: v.number(),
     // Note: status is computed dynamically via getPostWithStatus query
   })
-    .index("byUser", ["userId"]) // Lookup posts by author
-    .index("bySquad", ["squadId"]) // Lookup posts by squad
-    .index("byUrlAndSquad", ["postUrl", "squadId"]), // Uniqueness constraint
+    .index("byUser", ["userId"])
+    .index("byPod", ["podId"])
+    .index("byUrlAndPod", ["postUrl", "podId"]),
 
   // Engagement log (tracks reactions on posts)
   engagements: defineTable({
-    postId: v.id("posts"), // Reference to post
+    postId: v.id("posts"),
     userId: v.string(), // User who reacted
     reactionType: v.string(), // Type: LIKE, CELEBRATE, SUPPORT, LOVE, INSIGHTFUL, FUNNY
     createdAt: v.number(), // Timestamp when reaction was sent

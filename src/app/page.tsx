@@ -1,26 +1,19 @@
-import { auth } from "@clerk/nextjs/server"
-import { redirect } from "next/navigation"
-import { VStack } from "@/components/layout/stack"
+import { Box } from "@/components/layout/box"
 import { Hero } from "@/components/marketing/hero"
 import { Highlighter } from "@/components/ui/highlighter"
 
-export default async function HomePage() {
-  const { userId } = await auth()
-  if (userId) {
-    return redirect("/main")
-  }
-
+export default function HomePage() {
   return (
-    <VStack as="main" justify="center" items="center" className="min-h-[60vh]">
+    <Box as="main" className="mt-[24vh]">
       <Hero
         title={
           <em>
-            <Highlighter action="underline">Amplify</Highlighter> your LinkedIn presence
+            Get <Highlighter action="underline">boosted.</Highlighter>
           </em>
         }
-        lede="Join a squad, boost each other's posts, and make your professional content reach further."
+        lede="Join a pod, boost each other's posts, and amplify your reach."
         ctas={{ "Sign Up": "/sign-up", "Sign In": "/sign-in" }}
       />
-    </VStack>
+    </Box>
   )
 }

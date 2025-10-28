@@ -51,11 +51,11 @@ export async function GET(request: NextRequest, { params }: { params: InviteCode
       })
 
       // Successfully joined - redirect to main with success param
-      return NextResponse.redirect(new URL("/main?joined=true", request.url))
+      return NextResponse.redirect(new URL("/pods?joined=true", request.url))
     } catch (error) {
       // If join fails (e.g., already a member), still redirect to main
       console.error("Error joining squad:", error)
-      return NextResponse.redirect(new URL("/main", request.url))
+      return NextResponse.redirect(new URL("/pods", request.url))
     }
   } catch (error) {
     console.error("Error in invite route:", error)

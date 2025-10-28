@@ -1,3 +1,4 @@
+import { LuGem } from "react-icons/lu"
 import { HStack, type StackProps, VStack } from "@/components/layout/stack"
 import { CTALinkButton } from "@/components/ui/cta-link-button"
 import { cn } from "@/lib/utils"
@@ -58,8 +59,7 @@ export const HeroCTA: React.FC<HeroCTAProps> = ({ className, children, ...props 
   <HStack
     wrap
     items="center"
-    justify="center"
-    className={cn("gap-2 lg:justify-start mt-1", className)}
+    className={cn("gap-2 justify-center lg:justify-start mt-1", className)}
     {...props}
   >
     {children}
@@ -69,14 +69,22 @@ export const HeroCTA: React.FC<HeroCTAProps> = ({ className, children, ...props 
 export type HeroSectionProps = StackProps
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ className, children, ...props }) => (
-  <VStack
+  <HStack
     as="section"
     id="hero"
+    wrap
     items="center"
     justify="center"
-    className={cn("size-full min-w-[320px] max-w-[1280px] mx-auto", "gap-4", className)}
+    className={cn(
+      "size-full min-w-[320px] max-w-[1280px] mx-auto",
+      "gap-4 sm:gap-6 md:gap-8 lg:gap-10",
+      className,
+    )}
     {...props}
   >
-    {children}
-  </VStack>
+    <aside>
+      <LuGem className="size-42 stroke-[1px]" />
+    </aside>
+    <VStack className="gap-4 items-center lg:items-start">{children}</VStack>
+  </HStack>
 )

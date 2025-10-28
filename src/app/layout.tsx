@@ -4,6 +4,7 @@ import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
 import { Container } from "@/components/layout/container"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/sonner"
+import { ThemeToggler } from "@/components/ui/theme-toggler"
 import { cn } from "@/lib/utils"
 
 export const viewport: Viewport = {
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           <Container className="my-8 md:my-10 lg:my-12">{children}</Container>
           <Toaster />
+          <ThemeToggler className="fixed bottom-4 right-4" duration={0.3} />
         </Providers>
       </body>
     </html>

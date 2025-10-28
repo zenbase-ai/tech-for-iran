@@ -3,7 +3,9 @@ import { fetchMutation, fetchQuery } from "convex/nextjs"
 import Image from "next/image"
 import Link from "next/link"
 import { RedirectType, redirect } from "next/navigation"
+import { LuArrowLeft, LuUserX } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
+import { Button } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
 import { generateHostedAuthLink } from "@/lib/unipile"
 
@@ -33,13 +35,13 @@ export default async function LinkedInPage({ searchParams }: LinkedInPageParams)
   }
 
   return (
-    <VStack>
-      <HStack className="gap-3" items="center" justify="center">
+    <VStack items="center" justify="center" className="gap-6">
+      <HStack className="gap-4" items="center" justify="center">
         <Image
           src={profile.picture}
           alt={`${profile.firstName} ${profile.lastName}`}
-          width={24}
-          height={24}
+          width={48}
+          height={48}
           className="rounded-full mt-1"
         />
         <Link
@@ -48,10 +50,24 @@ export default async function LinkedInPage({ searchParams }: LinkedInPageParams)
           rel="noopener noreferrer"
           className="hover:underline"
         >
-          <h2 className="font-serif text-lg leading-[0.95]">
+          <h2 className="font-serif text-xl leading-[0.95]">
             {profile.firstName} {profile.lastName}
           </h2>
         </Link>
+      </HStack>
+
+      <HStack items="center" justify="evenly" className="gap-4 w-full">
+        <Button variant="secondary" size="sm" asChild>
+          <Link href="/pods">
+            <LuArrowLeft />
+            Main
+          </Link>
+        </Button>
+
+        <Button variant="destructive" size="sm">
+          Delete
+          <LuUserX />
+        </Button>
       </HStack>
     </VStack>
   )

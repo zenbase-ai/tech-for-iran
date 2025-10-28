@@ -1,5 +1,5 @@
 import { httpRouter } from "convex/server"
-import { api, internal } from "./_generated/api"
+import { internal } from "./_generated/api"
 import { httpAction } from "./_generated/server"
 
 const http = httpRouter()
@@ -24,17 +24,17 @@ http.route({
           return Response.json({ error: "Missing account_id in AccountStatus" }, { status: 400 })
         }
 
-        await ctx.runMutation(api.mutations.upsertLinkedinAccount, {
+        await ctx.runMutation(internal.linkedin.upsertAccount, {
           unipileId: account_id,
           message,
         })
 
         if (message === "SYNC_SUCCESS") {
-          const profile = await ctx.runAction(internal.unipile.getLinkedinProfile, {
+          const profile = await ctx.runAction(internal.linkedin.fetchProfile, {
             accountId: account_id,
           })
 
-          await ctx.runMutation(internal.mutations.upsertLinkedinProfile, {
+          await ctx.runMutation(internal.linkedin.upsertProfile, {
             unipileId: account_id,
             firstName: profile.first_name,
             lastName: profile.last_name,

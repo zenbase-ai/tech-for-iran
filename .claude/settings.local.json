@@ -1,6 +1,9 @@
 {
   "permissions": {
-    "allow": ["Bash(cat:*)"],
+    "allow": [
+      "Bash(cat:*)",
+      "mcp__ide__getDiagnostics"
+    ],
     "deny": [],
     "ask": []
   }

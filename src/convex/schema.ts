@@ -18,7 +18,6 @@ const schema = defineSchema({
   linkedinProfiles: defineTable({
     userId: v.optional(v.string()),
     unipileId: v.string(),
-    //
     firstName: v.string(),
     lastName: v.string(),
     maxActions: v.number(),
@@ -36,11 +35,12 @@ const schema = defineSchema({
     createdBy: v.string(), // Reference to profile who created the pod
     createdAt: v.number(), // Timestamp
   })
+    .index("byName", ["name"])
     .index("byInviteCode", ["inviteCode"]) // Efficient lookup by invite code
     .index("byCreator", ["createdBy"]), // Lookup by creator
 
   // Pod members (join table for many-to-many relationship)
-  podsMembers: defineTable({
+  memberships: defineTable({
     userId: v.string(), // Reference to profile
     podId: v.id("pods"), // Reference to pod
     joinedAt: v.number(), // Timestamp when user joined
@@ -53,15 +53,15 @@ const schema = defineSchema({
   posts: defineTable({
     userId: v.string(),
     podId: v.id("pods"), // Pod where post was submitted
-    postUrl: v.string(), // LinkedIn post URL
-    postUrn: v.string(), // LinkedIn post URN (extracted from URL)
+    url: v.string(), // LinkedIn post URL
+    urn: v.string(), // LinkedIn post URN (extracted from URL)
     workflowId: v.optional(v.string()),
     submittedAt: v.number(),
     // Note: status is computed dynamically via getPostWithStatus query
   })
     .index("byUser", ["userId"])
     .index("byPod", ["podId"])
-    .index("byUrlAndPod", ["postUrl", "podId"]),
+    .index("byURL", ["url"]),
 
   // Engagement log (tracks reactions on posts)
   engagements: defineTable({

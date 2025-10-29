@@ -1,9 +1,12 @@
-import { Stack } from "@/components/layout/stack"
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <Stack as="main" justify="center" items="center" className="min-h-[60vh] mx-auto">
-      {children}
-    </Stack>
-  )
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const userId = await auth()
+
+  if (!userId) {
+    return redirect("/sign-in" as any)
+  }
+
+  return <>{children}</>
 }

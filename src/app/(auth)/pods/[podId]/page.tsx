@@ -1,18 +1,19 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@clerk/nextjs"
 import { usePaginatedQuery, useQuery } from "convex/react"
 import { notFound, useParams } from "next/navigation"
 import { LuExternalLink, LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { HStack, VStack } from "@/components/layout/stack"
+import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { PodMembers } from "./pod-members"
 import { SubmitPostForm } from "./submit-post-form"
 
 export default function PodPage() {
-  const { user, isLoaded: userLoaded } = useUser()
+  const auth = useAuth()
   const params = useParams()
   const podId = params.podId as Id<"pods">
 
@@ -22,25 +23,13 @@ export default function PodPage() {
   const recentPosts = usePaginatedQuery(api.pods.posts, { podId }, { initialNumItems: 10 })
 
   // Show loading state while user or initial data is loading
-  if (!userLoaded || pod === undefined || stats === undefined || recentPosts.isLoading) {
-    return (
-      <VStack className="gap-8 max-w-4xl mx-auto">
-        <p className="text-muted-foreground">Loading...</p>
-      </VStack>
-    )
-  }
-
-  // Redirect to sign in if not authenticated
-  if (!user) {
-    if (typeof window !== "undefined") {
-      window.location.href = "/sign-in"
-    }
-    return null
+  if (!auth.isLoaded || pod === undefined || stats === undefined || recentPosts.isLoading) {
+    return <Loading />
   }
 
   // Show 404 if pod doesn't exist
   if (!pod) {
-    notFound()
+    return notFound()
   }
 
   return (

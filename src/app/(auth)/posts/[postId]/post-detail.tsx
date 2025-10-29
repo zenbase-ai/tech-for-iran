@@ -1,14 +1,13 @@
 "use client"
 
 import { useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
-import { VStack } from "@/components/layout/stack"
-import { HStack } from "@/components/layout/stack"
+import Image from "next/image"
+import { LuCheck, LuClock, LuExternalLink, LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
+import { HStack, VStack } from "@/components/layout/stack"
 import { Badge } from "@/components/ui/badge"
-import { LuExternalLink, LuCheck, LuClock, LuUsers } from "react-icons/lu"
-import type { Doc } from "@/convex/_generated/dataModel"
+import { api } from "@/convex/_generated/api"
+import type { Doc, Id } from "@/convex/_generated/dataModel"
 
 type PostWithStatus = Doc<"posts"> & { status: string }
 
@@ -166,17 +165,21 @@ export function PostDetail({
               <Box
                 key={member.userId}
                 className={`border rounded-lg p-4 transition-colors ${
-                  isEngaged ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900" : "bg-background"
+                  isEngaged
+                    ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900"
+                    : "bg-background"
                 }`}
               >
                 <HStack items="center" justify="between">
                   <HStack items="center" className="gap-3">
                     {/* Avatar */}
                     {member.picture ? (
-                      <img
+                      <Image
                         src={member.picture}
                         alt={`${member.firstName} ${member.lastName}`}
-                        className="size-10 rounded-full"
+                        className="rounded-full"
+                        width={40}
+                        height={40}
                       />
                     ) : (
                       <Box className="size-10 rounded-full bg-muted flex items-center justify-center">
@@ -215,9 +218,7 @@ export function PostDetail({
                   </HStack>
 
                   {/* Reaction Badge */}
-                  {isEngaged && (
-                    <Badge variant="secondary">{engagement.reactionType}</Badge>
-                  )}
+                  {isEngaged && <Badge variant="secondary">{engagement.reactionType}</Badge>}
                 </HStack>
               </Box>
             )

@@ -1,33 +1,25 @@
-"use client"
-
-import { useAuth } from "@clerk/nextjs"
-import { usePaginatedQuery, useQuery } from "convex/react"
-import { notFound, useParams } from "next/navigation"
-import { LuExternalLink, LuUsers } from "react-icons/lu"
+import { fetchQuery } from "convex/nextjs"
+import { notFound } from "next/navigation"
+import { LuNewspaper, LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { HStack, VStack } from "@/components/layout/stack"
-import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { PodMembers } from "./pod-members"
+import { Members } from "./members"
+import { Posts } from "./posts"
 import { SubmitPostForm } from "./submit-post-form"
 
-export default function PodPage() {
-  const auth = useAuth()
-  const params = useParams()
-  const podId = params.podId as Id<"pods">
+export type PodPageProps = {
+  params: Promise<{ podId: Id<"pods"> }>
+}
 
-  // Fetch pod data and stats
-  const pod = useQuery(api.pods.get, { podId })
-  const stats = useQuery(api.pods.stats, { podId })
-  const recentPosts = usePaginatedQuery(api.pods.posts, { podId }, { initialNumItems: 10 })
+export default async function PodPage({ params }: PodPageProps) {
+  const { podId } = await params
+  const [pod, stats] = await Promise.all([
+    fetchQuery(api.pods.get, { podId }),
+    fetchQuery(api.pods.stats, { podId }),
+  ])
 
-  // Show loading state while user or initial data is loading
-  if (!auth.isLoaded || pod === undefined || stats === undefined || recentPosts.isLoading) {
-    return <Loading />
-  }
-
-  // Show 404 if pod doesn't exist
   if (!pod) {
     return notFound()
   }
@@ -37,61 +29,31 @@ export default function PodPage() {
       {/* Pod Header */}
       <Box>
         <h1 className="text-3xl font-bold mb-2 font-serif italic">{pod.name}</h1>
-        <HStack className="gap-6 text-sm text-muted-foreground">
-          <HStack items="center" className="gap-1">
-            <LuUsers className="size-4" />
-            <span>
-              {stats.memberCount} {stats.memberCount === 1 ? "member" : "members"}
-            </span>
-          </HStack>
-          <span>{stats.postCount} posts submitted</span>
+        <HStack items="center" className="gap-1 text-sm text-muted-foreground font-mono">
+          <LuUsers className="size-4" />
+          <span>{stats.memberCount} members</span>
+          <LuNewspaper className="size-4 ml-3" />
+          <span>{stats.postCount} posts</span>
         </HStack>
       </Box>
 
-      {/* Members Section */}
-      <VStack className="gap-3">
-        <h2 className="text-xl font-semibold">Members</h2>
-        <PodMembers podId={podId} />
-      </VStack>
-
       {/* Post Submission Section */}
       <VStack className="gap-3">
-        <h2 className="text-xl font-semibold">Submit Post</h2>
+        <h2 className="text-xl font-semibold font-serif italic">Submit Post</h2>
         <SubmitPostForm podId={podId} />
       </VStack>
 
       {/* Recent Posts */}
-      {recentPosts.results.length > 0 && (
-        <VStack className="gap-3">
-          <h2 className="text-xl font-semibold">Recent Posts</h2>
-          <VStack className="gap-2">
-            {recentPosts.results.map((post) => (
-              <Box
-                key={post._id}
-                className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
-              >
-                <HStack items="center" justify="between">
-                  <Box>
-                    <a
-                      href={post.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline inline-flex items-center gap-1"
-                    >
-                      LinkedIn Post
-                      <LuExternalLink className="size-3" />
-                    </a>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Submitted {new Date(post.submittedAt).toLocaleDateString()} •{" "}
-                      {post.engagements.length} engagement{post.engagements.length !== 1 ? "s" : ""}
-                    </p>
-                  </Box>
-                </HStack>
-              </Box>
-            ))}
-          </VStack>
-        </VStack>
-      )}
+      <VStack className="gap-3">
+        <h2 className="text-xl font-semibold font-serif italic">Recent Posts</h2>
+        <Posts podId={podId} />
+      </VStack>
+
+      {/* Members Section */}
+      <VStack className="gap-3">
+        <h2 className="text-xl font-semibold font-serif italic">Members</h2>
+        <Members podId={podId} />
+      </VStack>
     </VStack>
   )
 }

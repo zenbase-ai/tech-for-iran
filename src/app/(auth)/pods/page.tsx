@@ -28,17 +28,8 @@ export default function PodsPage() {
   }, [pods.isLoading, pods.results, router])
 
   // Show loading state while user or pods are loading
-  if (!auth.isLoaded || pods.isLoading) {
+  if (!auth.isLoaded || pods.isLoading || pods.results.length === 1) {
     return <Loading />
-  }
-
-  // Don't render if redirecting to single pod
-  if (pods.results.length === 1) {
-    return (
-      <VStack className="gap-8 max-w-2xl mx-auto">
-        <p className="text-muted-foreground">Redirecting...</p>
-      </VStack>
-    )
   }
 
   return (

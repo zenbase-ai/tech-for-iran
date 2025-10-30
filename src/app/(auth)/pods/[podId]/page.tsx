@@ -1,12 +1,13 @@
 import { fetchQuery } from "convex/nextjs"
 import { notFound } from "next/navigation"
-import { LuNewspaper, LuUsers } from "react-icons/lu"
+import plur from "plur"
 import { Box } from "@/components/layout/box"
-import { HStack, VStack } from "@/components/layout/stack"
+import { VStack } from "@/components/layout/stack"
+import { Separator } from "@/components/ui/separator"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { tokenAuth } from "@/lib/clerk"
 import { Members } from "./members"
-import { Posts } from "./posts"
 import { SubmitPostForm } from "./submit-post-form"
 
 export type PodPageProps = {
@@ -14,10 +15,11 @@ export type PodPageProps = {
 }
 
 export default async function PodPage({ params }: PodPageProps) {
-  const { podId } = await params
+  const [{ token }, { podId }] = await Promise.all([tokenAuth(), params])
+
   const [pod, stats] = await Promise.all([
-    fetchQuery(api.pods.get, { podId }),
-    fetchQuery(api.pods.stats, { podId }),
+    fetchQuery(api.pods.get, { podId }, { token }),
+    fetchQuery(api.pods.stats, { podId }, { token }),
   ])
 
   if (!pod) {
@@ -25,33 +27,28 @@ export default async function PodPage({ params }: PodPageProps) {
   }
 
   return (
-    <VStack className="gap-8 max-w-4xl mx-auto">
+    <VStack className="px-2 w-screen max-w-[640px] gap-8 mx-auto">
       {/* Pod Header */}
       <Box>
-        <h1 className="text-3xl font-bold mb-2 font-serif italic">{pod.name}</h1>
-        <HStack items="center" className="gap-1 text-sm text-muted-foreground font-mono">
-          <LuUsers className="size-4" />
-          <span>{stats.memberCount} members</span>
-          <LuNewspaper className="size-4 ml-3" />
-          <span>{stats.postCount} posts</span>
-        </HStack>
+        <h1 className="text-2xl font-bold mb-2 font-serif italic">{pod.name}</h1>
+        <p className="text-muted-foreground">
+          Submit a LinkedIn post and watch the engagements roll in.
+        </p>
       </Box>
 
       {/* Post Submission Section */}
       <VStack className="gap-3">
-        <h2 className="text-xl font-semibold font-serif italic">Submit Post</h2>
+        <h2 className="text-lg font-semibold">Submit Post</h2>
         <SubmitPostForm podId={podId} />
       </VStack>
 
-      {/* Recent Posts */}
-      <VStack className="gap-3">
-        <h2 className="text-xl font-semibold font-serif italic">Recent Posts</h2>
-        <Posts podId={podId} />
-      </VStack>
+      <Separator className="my-16" />
 
       {/* Members Section */}
       <VStack className="gap-3">
-        <h2 className="text-xl font-semibold font-serif italic">Members</h2>
+        <h2 className="text-lg font-semibold">
+          {stats.memberCount} {plur("member", stats.memberCount)}
+        </h2>
         <Members podId={podId} />
       </VStack>
     </VStack>

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { LuExternalLink, LuNewspaper } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { HStack, VStack } from "@/components/layout/stack"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
@@ -24,10 +25,14 @@ export const Posts: React.FC<PostsProps> = ({ podId }) => {
   // Empty state
   if (posts.results.length === 0) {
     return (
-      <Box className="border border-dashed rounded-lg p-8 text-center">
-        <LuNewspaper className="mx-auto size-12 text-muted-foreground mb-3" />
-        <p className="text-muted-foreground font-mono">No posts yet</p>
-      </Box>
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia>
+            <LuNewspaper className="size-12 text-muted-foreground" />
+          </EmptyMedia>
+          <EmptyTitle className="font-mono">No posts yet</EmptyTitle>
+        </EmptyHeader>
+      </Empty>
     )
   }
 

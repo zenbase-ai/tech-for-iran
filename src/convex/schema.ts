@@ -9,7 +9,6 @@ const schema = defineSchema({
     userId: v.optional(v.string()),
     unipileId: v.string(),
     status: v.string(),
-    createdAt: v.number(), // Timestamp
     updatedAt: v.number(), // Timestamp
   })
     .index("byUserAndAccount", ["userId", "unipileId"])
@@ -33,7 +32,6 @@ const schema = defineSchema({
     name: v.string(), // Pod name (e.g., "YC Alumni")
     inviteCode: v.string(), // Unique invite code for joining
     createdBy: v.string(), // Reference to profile who created the pod
-    createdAt: v.number(), // Timestamp
   })
     .index("byName", ["name"])
     .index("byInviteCode", ["inviteCode"]) // Efficient lookup by invite code
@@ -57,7 +55,19 @@ const schema = defineSchema({
     urn: v.string(), // LinkedIn post URN (extracted from URL)
     workflowId: v.optional(v.string()),
     submittedAt: v.number(),
-    // Note: status is computed dynamically via getPostWithStatus query
+    // Workflow completion tracking
+    status: v.optional(
+      v.union(
+        v.literal("pending"),
+        v.literal("processing"),
+        v.literal("completed"),
+        v.literal("failed"),
+        v.literal("canceled"),
+      ),
+    ),
+    successCount: v.optional(v.number()),
+    failedCount: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
   })
     .index("byUser", ["userId"])
     .index("byPod", ["podId"])
@@ -68,9 +78,8 @@ const schema = defineSchema({
     postId: v.id("posts"),
     userId: v.string(), // User who reacted
     reactionType: v.string(), // Type: LIKE, CELEBRATE, SUPPORT, LOVE, INSIGHTFUL, FUNNY
-    createdAt: v.number(), // Timestamp when reaction was sent
   })
-    .index("byUserAndDate", ["userId", "createdAt"]) // For daily limit checks
+    .index("byUser", ["userId"]) // For daily limit checks
     .index("byPostAndUser", ["postId", "userId"]), // Uniqueness constraint
 })
 

@@ -1,8 +1,8 @@
-import { auth } from "@clerk/nextjs/server"
 import { fetchMutation, fetchQuery } from "convex/nextjs"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
-import { generateHostedAuthLink } from "@/lib/unipile"
+import { tokenAuth } from "@/lib/clerk"
+import { generateHostedAuthLink } from "./actions"
 
 type LinkedInPageParams = {
   searchParams: Promise<{
@@ -12,18 +12,19 @@ type LinkedInPageParams = {
 }
 
 export default async function LinkedInPage({ searchParams }: LinkedInPageParams) {
-  const [{ userId }, { account_id, invite }] = await Promise.all([auth(), searchParams])
+  const [{ token, userId }, { account_id, invite }] = await Promise.all([tokenAuth(), searchParams])
   if (!userId) {
     return redirect("/")
   }
 
   if (account_id) {
-    await fetchMutation(api.linkedin.linkAccount, { unipileId: account_id, userId })
+    await fetchMutation(api.linkedin.linkAccount, { unipileId: account_id }, { token })
   }
 
   const { account, profile, needsReconnection, isHealthy } = await fetchQuery(
     api.linkedin.getState,
-    { userId },
+    {},
+    { token },
   )
 
   if (account == null || profile == null || needsReconnection || !isHealthy) {

@@ -1,6 +1,12 @@
+import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
+import { internal } from "./_generated/api"
 import { internalMutation, mutation, query } from "./_generated/server"
-import { podPostCount, postEngagementCount } from "./aggregates"
+import { podMemberCount, podPostCount, postEngagementCount } from "./aggregates"
+import { requireAuth } from "./helpers/auth"
+import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from "./helpers/errors"
+import { isValidLinkedInPostURL, parsePostURN, validateReactionTypes } from "./helpers/linkedin"
+import { workflow } from "./workflows"
 
 // ============================================================================
 // Queries
@@ -15,33 +21,37 @@ export const get = query({
   },
   handler: async (ctx, args) => {
     const post = await ctx.db.get(args.postId)
-    if (!post) return null
+    if (!post) {
+      return null
+    }
 
-    // Count engagements for status computation
-    const engagementCount = await postEngagementCount.count(ctx, { namespace: args.postId })
+    const { userId } = await requireAuth(ctx)
+    if (post.userId !== userId) {
+      throw new UnauthorizedError()
+    }
 
-    const postAge = Date.now() - post.submittedAt
-
-    // Compute status dynamically
+    // Use stored status if available, otherwise compute dynamically for backwards compatibility
     let status: string
-    if (!post.workflowId) {
-      // No workflow ID means workflow hasn't started yet
-      status = "pending"
-    } else if (engagementCount > 0) {
-      // If any engagements logged, consider it completed
-      status = "completed"
-    } else if (postAge > 60 * 60 * 1000) {
-      // If post is over 1 hour old and no engagements, likely failed
-      status = "failed"
+    if (post.status) {
+      // Use the stored status from workflow completion
+      status = post.status
     } else {
-      // Workflow started but no engagements yet - still processing
-      status = "processing"
+      // Fallback to dynamic computation for legacy posts without status field
+      const engagementCount = await postEngagementCount.count(ctx, { namespace: args.postId })
+      const postAge = Date.now() - post.submittedAt
+
+      if (!post.workflowId) {
+        status = "pending"
+      } else if (engagementCount > 0) {
+        status = "completed"
+      } else if (postAge > 60 * 60 * 1000) {
+        status = "failed"
+      } else {
+        status = "processing"
+      }
     }
 
-    return {
-      ...post,
-      status,
-    }
+    return { ...post, status }
   },
 })
 
@@ -49,12 +59,22 @@ export const get = query({
  * Get all engagements for a post
  */
 export const engagements = query({
-  args: { postId: v.id("posts") },
-  handler: async (ctx, args) =>
-    await ctx.db
+  args: { postId: v.id("posts"), paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const post = await ctx.db.get(args.postId)
+    if (!post) {
+      throw new NotFoundError()
+    }
+    const { userId } = await requireAuth(ctx)
+    if (post.userId !== userId) {
+      throw new UnauthorizedError()
+    }
+
+    return await ctx.db
       .query("engagements")
       .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId))
-      .collect(),
+      .paginate(args.paginationOpts)
+  },
 })
 
 // ============================================================================
@@ -63,27 +83,93 @@ export const engagements = query({
 
 export const submit = mutation({
   args: {
-    userId: v.string(),
     podId: v.id("pods"),
     url: v.string(),
-    urn: v.string(),
+    reactionTypes: v.optional(v.array(v.string())),
+    targetCount: v.optional(v.number()),
+    minDelay: v.optional(v.number()),
+    maxDelay: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const { podId, url } = args
+    const { userId } = await requireAuth(ctx)
+
+    // Validate LinkedIn URL format
+    if (!isValidLinkedInPostURL(args.url)) {
+      throw new BadRequestError(
+        "Invalid LinkedIn post URL. Please provide a valid LinkedIn post URL.",
+      )
+    }
+
+    // Validate and extract URN early
+    const urn = parsePostURN(args.url)
+    if (!urn) {
+      throw new BadRequestError(
+        "Could not extract post URN from URL. Please ensure the URL is a valid LinkedIn post URL.",
+      )
+    }
+
+    // Validate reaction types if provided
+    let reactionTypes = args.reactionTypes ?? ["like", "celebrate", "support"]
+    if (args.reactionTypes) {
+      const validReactionTypes = validateReactionTypes(args.reactionTypes)
+      if (validReactionTypes.length === 0) {
+        throw new BadRequestError("At least one valid reaction type must be provided.")
+      }
+      reactionTypes = validReactionTypes
+    }
+
+    // Get pod to validate targetCount
+    const pod = await ctx.db.get(args.podId)
+    if (!pod) {
+      throw new NotFoundError()
+    }
+
+    // Count total pod members using aggregate (more efficient than .collect().length)
+    const totalMembers = await podMemberCount.count(ctx, { namespace: args.podId })
+
+    // Validate targetCount
+    const targetCount = args.targetCount
+    if (targetCount !== undefined) {
+      if (targetCount < 1) {
+        throw new BadRequestError("Target count must be at least 1.")
+      }
+      if (targetCount > totalMembers) {
+        throw new BadRequestError(
+          `Target count (${targetCount}) cannot exceed total pod members (${totalMembers}).`,
+        )
+      }
+    }
+
+    // Validate delays
+    const minDelay = args.minDelay ?? 5
+    const maxDelay = args.maxDelay ?? 15
+    if (minDelay < 1) {
+      throw new BadRequestError("Minimum delay must be at least 1 second.")
+    }
+    if (maxDelay < minDelay) {
+      throw new BadRequestError("Maximum delay must be greater than or equal to minimum delay.")
+    }
+    if (maxDelay > 300) {
+      throw new BadRequestError("Maximum delay cannot exceed 300 seconds (5 minutes).")
+    }
+
     const existing = await ctx.db
       .query("posts")
-      .withIndex("byURL", (q) => q.eq("url", args.url))
+      .withIndex("byURL", (q) => q.eq("url", url))
       .first()
 
     if (existing) {
-      throw new Error("Post already submitted to this pod")
+      throw new ConflictError("Post already submitted to this pod")
     }
 
     const postId = await ctx.db.insert("posts", {
-      userId: args.userId,
-      podId: args.podId,
-      url: args.url,
-      urn: args.urn,
+      userId,
+      podId,
+      url,
+      urn,
       submittedAt: Date.now(),
+      status: "pending",
     })
 
     // Update aggregate
@@ -91,6 +177,21 @@ export const submit = mutation({
     if (post) {
       await podPostCount.insert(ctx, post)
     }
+
+    // Start engagement workflow with completion handler
+    const workflowId = await workflow.start(
+      ctx,
+      internal.workflows.postEngagementWorkflow,
+      { postId, userId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay },
+      {
+        startAsync: true,
+        context: { postId },
+        onComplete: internal.workflows.handleWorkflowCompletion,
+      },
+    )
+
+    // Store workflow ID and update status to processing
+    await ctx.db.patch(postId, { workflowId, status: "processing" })
 
     return postId
   },
@@ -114,14 +215,13 @@ export const createEngagement = internalMutation({
       .first()
 
     if (existing) {
-      return null // Already reacted
+      throw new ConflictError()
     }
 
     const engagementId = await ctx.db.insert("engagements", {
       postId: args.postId,
       userId: args.userId,
       reactionType: args.reactionType,
-      createdAt: Date.now(),
     })
 
     // Update aggregate

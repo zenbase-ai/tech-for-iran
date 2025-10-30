@@ -1,7 +1,7 @@
-import { auth } from "@clerk/nextjs/server"
 import { fetchMutation, fetchQuery } from "convex/nextjs"
 import { type NextRequest, NextResponse } from "next/server"
 import { api } from "@/convex/_generated/api"
+import { tokenAuth } from "@/lib/clerk"
 
 export type JoinCodeParams = {
   inviteCode: string
@@ -9,7 +9,7 @@ export type JoinCodeParams = {
 
 export async function GET(request: NextRequest, { params }: { params: Promise<JoinCodeParams> }) {
   try {
-    const [{ userId }, { inviteCode }] = await Promise.all([auth(), params])
+    const [{ userId, token }, { inviteCode }] = await Promise.all([tokenAuth(), params])
 
     // If not authenticated, redirect to sign-up with invite param
     if (!userId) {
@@ -17,36 +17,32 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Jo
     }
 
     // Validate the invite code
-    const pod = await fetchQuery(api.pods.lookup, { inviteCode })
+    const pod = await fetchQuery(api.pods.lookup, { inviteCode }, { token })
     if (!pod) {
       // Invalid invite code - redirect to pods page with error
       return NextResponse.redirect(new URL("/pods?error=invalid_invite", request.url))
     }
 
     // Get user's onboarding status
-    const { account, needsReconnection, isHealthy } = await fetchQuery(api.linkedin.getState, {
-      userId,
-    })
+    const { account, needsReconnection, isHealthy } = await fetchQuery(
+      api.linkedin.getState,
+      {},
+      { token },
+    )
 
     // If profile doesn't exist yet, redirect to onboarding with invite param
-    if (!account) {
-      return NextResponse.redirect(new URL(`/linkedin?invite=${inviteCode}`, request.url))
-    }
-
-    // If LinkedIn not connected, redirect to onboarding with invite param
-    if (needsReconnection || !isHealthy) {
+    if (!account || needsReconnection || !isHealthy) {
       return NextResponse.redirect(new URL(`/linkedin?invite=${inviteCode}`, request.url))
     }
 
     // User is authenticated and LinkedIn is connected - join the pod
     try {
-      await fetchMutation(api.pods.join, {
-        userId,
-        podId: pod._id,
-      })
+      await fetchMutation(api.pods.join, { podId: pod._id }, { token })
 
       // Successfully joined - redirect to pods page with success param
-      return NextResponse.redirect(new URL("/pods?joined=true", request.url))
+      return NextResponse.redirect(
+        new URL(`/pods?joinedPod=${encodeURIComponent(pod.name)}`, request.url),
+      )
     } catch (error) {
       // If join fails (e.g., already a member), still redirect to pods page
       console.error("Error joining pod:", error)

@@ -26,7 +26,7 @@ http.route({
 
         await ctx.runMutation(internal.linkedin.upsertAccount, {
           unipileId: account_id,
-          message,
+          status: message,
         })
 
         if (message === "SYNC_SUCCESS") {

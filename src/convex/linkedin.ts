@@ -1,11 +1,12 @@
+import { getAuthUserId } from "@convex-dev/auth/server"
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import { env } from "@/lib/env.mjs"
-import type { LinkedInReactionType } from "@/lib/unipile"
 import { internalAction, internalMutation, mutation, query } from "./_generated/server"
+import type { LinkedInReactionType } from "./helpers/linkedin"
 
 // ============================================================================
-// Re-exports from @/lib/unipile
+// Re-exports from helpers/linkedin
 // ============================================================================
 
 export {
@@ -13,7 +14,7 @@ export {
   LINKEDIN_REACTION_TYPES,
   type LinkedInReactionType,
   validateReactionTypes,
-} from "@/lib/unipile"
+} from "./helpers/linkedin"
 
 // ============================================================================
 // LinkedIn Account Status Constants
@@ -72,11 +73,16 @@ export const needsReconnection = (status: string | null | undefined): boolean =>
 // ============================================================================
 
 export const getState = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) {
+      throw new Error("Unauthenticated")
+    }
+
     const [account, profile] = await Promise.all([
-      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", args.userId, "userId"),
-      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", args.userId, "userId"),
+      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", userId, "userId"),
+      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", userId, "userId"),
     ])
 
     if (!account || !profile) {
@@ -98,10 +104,14 @@ export const getState = query({
 
 export const linkAccount = mutation({
   args: {
-    userId: v.string(),
     unipileId: v.string(),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx)
+    if (!userId) {
+      throw new Error("Unauthenticated")
+    }
+
     const [account, profile] = await Promise.all([
       getOneFrom(ctx.db, "linkedinAccounts", "byAccount", args.unipileId, "unipileId"),
       getOneFrom(ctx.db, "linkedinProfiles", "byAccount", args.unipileId, "unipileId"),
@@ -114,19 +124,12 @@ export const linkAccount = mutation({
       throw new Error("Profile not found")
     }
 
-    if (!account.userId) {
-      await ctx.db.patch(account._id, {
-        userId: args.userId,
-        updatedAt: Date.now(),
-      })
-    }
+    const updatedAt = Date.now()
 
-    if (!profile.userId) {
-      await ctx.db.patch(profile._id, {
-        userId: args.userId,
-        updatedAt: Date.now(),
-      })
-    }
+    await Promise.all([
+      ctx.db.patch(account._id, { userId, updatedAt }),
+      ctx.db.patch(profile._id, { userId, updatedAt }),
+    ])
   },
 })
 
@@ -137,7 +140,7 @@ export const linkAccount = mutation({
 export const upsertAccount = internalMutation({
   args: {
     unipileId: v.string(),
-    message: v.string(),
+    status: v.string(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -147,15 +150,14 @@ export const upsertAccount = internalMutation({
 
     if (existing) {
       return await ctx.db.patch(existing._id, {
-        status: args.message,
+        status: args.status,
         updatedAt: Date.now(),
       })
     }
 
     await ctx.db.insert("linkedinAccounts", {
       unipileId: args.unipileId,
-      status: args.message,
-      createdAt: Date.now(),
+      status: args.status,
       updatedAt: Date.now(),
     })
   },

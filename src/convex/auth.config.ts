@@ -6,5 +6,5 @@ if (!domain) {
 }
 
 export default {
-  providers: [{ domain: domain, applicationID: "convex" }],
+  providers: [{ domain, applicationID: "convex" }],
 } satisfies AuthConfig

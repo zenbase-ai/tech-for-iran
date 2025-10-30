@@ -10,8 +10,10 @@
 
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
+import type * as helpers_auth from "../helpers/auth.js";
+import type * as helpers_errors from "../helpers/errors.js";
+import type * as helpers_linkedin from "../helpers/linkedin.js";
 import type * as http from "../http.js";
-import type * as index from "../index.js";
 import type * as linkedin from "../linkedin.js";
 import type * as pods from "../pods.js";
 import type * as posts from "../posts.js";
@@ -35,8 +37,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   aggregates: typeof aggregates;
   auth: typeof auth;
+  "helpers/auth": typeof helpers_auth;
+  "helpers/errors": typeof helpers_errors;
+  "helpers/linkedin": typeof helpers_linkedin;
   http: typeof http;
-  index: typeof index;
   linkedin: typeof linkedin;
   pods: typeof pods;
   posts: typeof posts;

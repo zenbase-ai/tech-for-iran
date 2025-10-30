@@ -1,10 +1,11 @@
 "use server"
 
-import { auth } from "@clerk/nextjs/server"
 import { fetchMutation, fetchQuery } from "convex/nextjs"
 import { redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { parsePostURN } from "@/convex/helpers/linkedin"
+import { tokenAuth } from "@/lib/clerk"
 
 export interface SubmitPostState {
   error?: string
@@ -15,11 +16,7 @@ export async function submitPostAction(
   _prevState: SubmitPostState | null,
   formData: FormData,
 ): Promise<SubmitPostState> {
-  const { userId } = await auth()
-
-  if (!userId) {
-    return { error: "You must be signed in to submit a post" }
-  }
+  const { token } = await tokenAuth()
 
   const url = formData.get("url")?.toString()?.trim()
 
@@ -27,24 +24,37 @@ export async function submitPostAction(
     return { error: "Please enter a LinkedIn post URL" }
   }
 
-  // Extract URN from LinkedIn URL
-  // Format: https://www.linkedin.com/feed/update/urn:li:activity:1234567890/
-  const urnMatch = url.match(/urn:li:activity:(\d+)/)
-  if (!urnMatch) {
+  // Extract URN from LinkedIn URL using the utility function
+  const urn = parsePostURN(url)
+  if (!urn) {
     return { error: "Invalid LinkedIn post URL. Please provide a valid post URL." }
   }
 
-  const urn = `urn:li:activity:${urnMatch[1]}`
+  // Parse reaction types from checkboxes (FormData.getAll returns array)
+  const reactionTypesRaw = formData.getAll("reactionTypes")
+  const reactionTypes =
+    reactionTypesRaw.length > 0 ? reactionTypesRaw.map((v) => v.toString()) : undefined
+
+  // Parse target count
+  const targetCountRaw = formData.get("targetCount")?.toString()
+  const targetCount = targetCountRaw ? Number.parseInt(targetCountRaw, 10) : undefined
+
+  // Parse delays
+  const minDelayRaw = formData.get("minDelay")?.toString()
+  const minDelay = minDelayRaw ? Number.parseInt(minDelayRaw, 10) : undefined
+
+  const maxDelayRaw = formData.get("maxDelay")?.toString()
+  const maxDelay = maxDelayRaw ? Number.parseInt(maxDelayRaw, 10) : undefined
 
   try {
     // Verify user is a member of this pod
-    const membership = await fetchQuery(api.pods.get, { podId })
+    const membership = await fetchQuery(api.pods.get, { podId }, { token })
     if (!membership) {
       return { error: "Pod not found" }
     }
 
     // Check LinkedIn connection exists
-    const linkedInState = await fetchQuery(api.linkedin.getState, { userId })
+    const linkedInState = await fetchQuery(api.linkedin.getState, {}, { token })
     if (!linkedInState.account) {
       return { error: "You must connect your LinkedIn account first" }
     }
@@ -53,16 +63,22 @@ export async function submitPostAction(
       return { error: "Your LinkedIn connection needs to be refreshed. Please reconnect." }
     }
 
-    // Submit the post
-    const postId = await fetchMutation(api.posts.submit, {
-      userId,
-      podId,
-      url,
-      urn,
-    })
+    // Submit the post with all configuration parameters
+    const postId = await fetchMutation(
+      api.posts.submit,
+      {
+        podId,
+        url,
+        reactionTypes,
+        targetCount,
+        minDelay,
+        maxDelay,
+      },
+      { token },
+    )
 
     // Redirect to post detail page
-    redirect(`/posts/${postId}`)
+    return redirect(`/posts/${postId}`)
   } catch (error) {
     if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
       throw error

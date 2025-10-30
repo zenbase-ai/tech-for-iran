@@ -23,7 +23,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           items="center"
           className="text-center mt-[20vh] size-full gap-4 md:gap-6 lg:gap-8"
         >
-          <h1 className="text-xl md:text-2xl font-serif">Something went terribly wrong.</h1>
+          <h1 className="text-xl font-serif italic bold">Something went terribly wrong.</h1>
           <HoverButton variant="primary" onClick={reset}>
             Reset
           </HoverButton>

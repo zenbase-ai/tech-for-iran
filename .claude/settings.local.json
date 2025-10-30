@@ -1,6 +1,12 @@
 {
   "permissions": {
-    "allow": ["Bash(cat:*)", "mcp__ide__getDiagnostics"],
+    "allow": [
+      "Bash(cat:*)",
+      "mcp__ide__getDiagnostics",
+      "WebFetch(domain:context7.com)",
+      "WebFetch(domain:docs.convex.dev)",
+      "WebFetch(domain:clerk.com)"
+    ],
     "deny": [],
     "ask": []
   }

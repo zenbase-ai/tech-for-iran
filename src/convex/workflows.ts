@@ -5,6 +5,7 @@ import { randomInt, sample } from "es-toolkit"
 import { components, internal } from "./_generated/api"
 import { internalAction, internalMutation } from "./_generated/server"
 import { postEngagementCount } from "./aggregates"
+import { errorMessage } from "./helpers/errors"
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
@@ -60,7 +61,7 @@ export const sendReactionAndLog = internalAction({
       // If either step fails, return failure (no partial success)
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage(error),
       }
     }
   },

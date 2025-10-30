@@ -16,7 +16,7 @@ export default function NotFoundPage() {
     >
       <VStack items="center" className="gap-2">
         <h1 className="text-xl md:text-2xl font-serif italic">You found a secret hallway.</h1>
-        <Badge variant="secondary" className="font-mono text-base">
+        <Badge variant="secondary" className="text-base">
           CODE 404
         </Badge>
       </VStack>

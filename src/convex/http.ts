@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server"
 import { internal } from "./_generated/api"
 import { httpAction } from "./_generated/server"
+import { errorMessage } from "./helpers/errors"
 
 const http = httpRouter()
 
@@ -80,12 +81,9 @@ http.route({
       // console.log(`LinkedIn connection established for user: ${name}`)
 
       // return Response.json({ success: true }, { status: 200 })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Unipile webhook error:", error)
-      return Response.json(
-        { error: error instanceof Error ? error.message : "Internal server error" },
-        { status: 500 },
-      )
+      return Response.json({ error: errorMessage(error) }, { status: 500 })
     }
   }),
 })

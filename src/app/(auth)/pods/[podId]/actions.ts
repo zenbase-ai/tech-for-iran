@@ -7,15 +7,15 @@ import type { Id } from "@/convex/_generated/dataModel"
 import { parsePostURN } from "@/convex/helpers/linkedin"
 import { tokenAuth } from "@/lib/clerk"
 
-export interface SubmitPostState {
+type SubmitPostState = {
   error?: string
 }
 
-export async function submitPostAction(
+export const submitPostAction = async (
   podId: Id<"pods">,
   _prevState: SubmitPostState | null,
   formData: FormData,
-): Promise<SubmitPostState> {
+): Promise<SubmitPostState> => {
   const { token } = await tokenAuth()
 
   const url = formData.get("url")?.toString()?.trim()
@@ -48,17 +48,17 @@ export async function submitPostAction(
 
   try {
     // Verify user is a member of this pod
-    const membership = await fetchQuery(api.pods.get, { podId }, { token })
+    const [membership, linkedInState] = await Promise.all([
+      fetchQuery(api.pods.get, { podId }, { token }),
+      fetchQuery(api.linkedin.getState, {}, { token }),
+    ])
+
     if (!membership) {
       return { error: "Pod not found" }
     }
-
-    // Check LinkedIn connection exists
-    const linkedInState = await fetchQuery(api.linkedin.getState, {}, { token })
-    if (!linkedInState.account) {
+    if (!linkedInState.profile) {
       return { error: "You must connect your LinkedIn account first" }
     }
-
     if (linkedInState.needsReconnection || !linkedInState.isHealthy) {
       return { error: "Your LinkedIn connection needs to be refreshed. Please reconnect." }
     }
@@ -66,23 +66,19 @@ export async function submitPostAction(
     // Submit the post with all configuration parameters
     const postId = await fetchMutation(
       api.posts.submit,
-      {
-        podId,
-        url,
-        reactionTypes,
-        targetCount,
-        minDelay,
-        maxDelay,
-      },
+      { podId, url, reactionTypes, targetCount, minDelay, maxDelay },
       { token },
     )
 
     // Redirect to post detail page
     return redirect(`/posts/${postId}`)
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
+  } catch (error: unknown) {
+    if (!(error instanceof Error)) {
+      return { error: String(error) }
+    }
+    if (error.message.includes("NEXT_REDIRECT")) {
       throw error
     }
-    return { error: error instanceof Error ? error.message : "Failed to submit post" }
+    return { error: error.message }
   }
 }

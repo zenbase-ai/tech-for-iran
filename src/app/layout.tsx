@@ -1,6 +1,6 @@
 import type { Viewport } from "next"
 import "./globals.css"
-import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
+import { crimsonPro, inter } from "@/components/assets/fonts"
 import { Container } from "@/components/layout/container"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/sonner"
@@ -24,12 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       </head>
       <body
-        className={cn(
-          "antialiased w-screen min-h-screen",
-          inter.variable,
-          geistMono.variable,
-          crimsonPro.variable,
-        )}
+        className={cn("antialiased w-screen min-h-screen", inter.variable, crimsonPro.variable)}
       >
         <Providers>
           <Container className="my-8 md:my-10 lg:my-12">{children}</Container>

@@ -12,6 +12,7 @@ import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 
@@ -60,10 +61,10 @@ export default function PodsPage() {
 
       {/* Pods List */}
       {pods.results.length === 0 ? (
-        <Empty>
+        <Empty className="text-muted-foreground">
           <EmptyHeader>
             <EmptyMedia>
-              <LuUsers className="size-12 text-muted-foreground" />
+              <LuUsers className="size-8" />
             </EmptyMedia>
             <EmptyTitle>You haven&apos;t joined any pods yet</EmptyTitle>
             <EmptyDescription>Enter an invite code below to join your first pod</EmptyDescription>
@@ -71,18 +72,20 @@ export default function PodsPage() {
         </Empty>
       ) : (
         <Box className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
-          {pods.results.map((pod) => (
-            <Link
-              key={pod._id}
-              href={`/pods/${pod._id}`}
-              className="border rounded-full py-3 px-6 hover:bg-accent/50 transition-colors text-left w-full block"
-            >
-              <h3 className="font-semibold">{pod.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                Joined {new Date(pod.joinedAt).toLocaleDateString()}
-              </p>
-            </Link>
-          ))}
+          <ItemGroup className="contents">
+            {pods.results.map((pod) => (
+              <Item key={pod._id} variant="outline" asChild>
+                <Link href={`/pods/${pod._id}`}>
+                  <ItemContent>
+                    <ItemTitle>{pod.name}</ItemTitle>
+                    <ItemDescription>
+                      Joined {new Date(pod.joinedAt).toLocaleDateString()}
+                    </ItemDescription>
+                  </ItemContent>
+                </Link>
+              </Item>
+            ))}
+          </ItemGroup>
         </Box>
       )}
 

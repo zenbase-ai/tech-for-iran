@@ -48,11 +48,7 @@ export const EmptyMedia: React.FC<
 )
 
 export const EmptyTitle: React.FC<React.ComponentProps<"div">> = ({ className, ...props }) => (
-  <div
-    data-slot="empty-title"
-    className={cn("text-md font-medium tracking-tight", className)}
-    {...props}
-  />
+  <div data-slot="empty-title" className={cn("text-base tracking-tight", className)} {...props} />
 )
 
 export const EmptyDescription: React.FC<React.ComponentProps<"p">> = ({ className, ...props }) => (

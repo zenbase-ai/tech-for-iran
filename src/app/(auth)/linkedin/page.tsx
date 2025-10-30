@@ -1,8 +1,12 @@
 import { fetchMutation, fetchQuery } from "convex/nextjs"
 import { RedirectType, redirect } from "next/navigation"
+import { VStack } from "@/components/layout/stack"
+import { Separator } from "@/components/ui/separator"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/clerk"
 import { generateHostedAuthLink } from "./actions"
+import { DisconnectForm } from "./disconnect-form"
+import { ProfileForm } from "./profile-form"
 
 type LinkedInPageParams = {
   searchParams: Promise<{
@@ -21,13 +25,13 @@ export default async function LinkedInPage({ searchParams }: LinkedInPageParams)
     await fetchMutation(api.linkedin.linkAccount, { unipileId: account_id }, { token })
   }
 
-  const { account, profile, needsReconnection, isHealthy } = await fetchQuery(
+  const { profile, needsReconnection, isHealthy } = await fetchQuery(
     api.linkedin.getState,
     {},
     { token },
   )
 
-  if (account == null || profile == null || needsReconnection || !isHealthy) {
+  if (profile == null || needsReconnection || !isHealthy) {
     const authLink = await generateHostedAuthLink(userId)
     return redirect(authLink as any, RedirectType.push)
   }
@@ -38,6 +42,15 @@ export default async function LinkedInPage({ searchParams }: LinkedInPageParams)
     return redirect(`/join/${invite}`)
   }
 
-  // Redirect to pods page
-  return redirect("/pods")
+  return (
+    <VStack className="px-2 w-screen max-w-[640px] gap-8 mx-auto">
+      <h1 className="text-2xl font-bold mb-2 font-serif italic">LinkedIn Settings</h1>
+
+      <ProfileForm profile={profile} />
+
+      <Separator className="my-8" />
+
+      <DisconnectForm profile={profile} />
+    </VStack>
+  )
 }

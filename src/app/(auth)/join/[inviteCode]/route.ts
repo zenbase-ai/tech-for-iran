@@ -23,18 +23,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Jo
       return NextResponse.redirect(new URL("/pods?error=invalid_invite", request.url))
     }
 
-    // Get user's onboarding status
-    const { account, needsReconnection, isHealthy } = await fetchQuery(
-      api.linkedin.getState,
-      {},
-      { token },
-    )
-
-    // If profile doesn't exist yet, redirect to onboarding with invite param
-    if (!account || needsReconnection || !isHealthy) {
-      return NextResponse.redirect(new URL(`/linkedin?invite=${inviteCode}`, request.url))
-    }
-
     // User is authenticated and LinkedIn is connected - join the pod
     try {
       await fetchMutation(api.pods.join, { podId: pod._id }, { token })

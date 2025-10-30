@@ -14,3 +14,6 @@ export type CSS = React.CSSProperties & {
 }
 
 export const css = (styles: CSS) => styles as React.CSSProperties
+
+export const errorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error)

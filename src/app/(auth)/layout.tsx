@@ -1,19 +1,14 @@
-import { auth } from "@clerk/nextjs/server"
-import { redirect } from "next/navigation"
-import { VStack } from "@/components/layout/stack"
+import { Protect, RedirectToSignIn } from "@clerk/nextjs"
+import { Box } from "@/components/layout/box"
 import { Nav } from "./nav"
 
-export default async function AuthLayout({ children }: { children: React.ReactNode }) {
-  const userId = await auth()
-
-  if (!userId) {
-    return redirect("/sign-in" as any)
-  }
-
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <VStack items="center" className="gap-4">
-      <Nav className="fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" />
-      <main className="flex-1 mt-24">{children}</main>
-    </VStack>
+    <Protect fallback={<RedirectToSignIn />}>
+      <Box className="pt-24">
+        <Nav className="fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" />
+        <Box as="main">{children}</Box>
+      </Box>
+    </Protect>
   )
 }

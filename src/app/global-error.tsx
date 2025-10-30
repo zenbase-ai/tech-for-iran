@@ -36,7 +36,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               className="dark:invert"
             />
           </Box>
-          <Badge variant="secondary" className="font-mono text-base">
+          <Badge variant="secondary" className="text-base">
             GLOBAL ERROR
           </Badge>
           {process.env.NODE_ENV === "development" && (

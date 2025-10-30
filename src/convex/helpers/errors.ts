@@ -28,3 +28,6 @@ export class BadRequestError extends ConvexError<ErrorData> {
     super({ message, cause })
   }
 }
+
+export const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)

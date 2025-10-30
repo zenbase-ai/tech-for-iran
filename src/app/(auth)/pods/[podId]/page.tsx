@@ -8,7 +8,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { tokenAuth } from "@/lib/clerk"
 import { Members } from "./members"
-import { SubmitPostForm } from "./submit-post-form"
+import { PostForm } from "./post-form"
 
 export type PodPageProps = {
   params: Promise<{ podId: Id<"pods"> }>
@@ -36,15 +36,10 @@ export default async function PodPage({ params }: PodPageProps) {
         </p>
       </Box>
 
-      {/* Post Submission Section */}
-      <VStack className="gap-3">
-        <h2 className="text-lg font-semibold">Submit Post</h2>
-        <SubmitPostForm podId={podId} />
-      </VStack>
+      <PostForm podId={podId} />
 
-      <Separator className="my-16" />
+      <Separator className="my-8" />
 
-      {/* Members Section */}
       <VStack className="gap-3">
         <h2 className="text-lg font-semibold">
           {stats.memberCount} {plur("member", stats.memberCount)}

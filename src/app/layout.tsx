@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Providers>
           <Container className="my-8 md:my-10 lg:my-12">{children}</Container>
-          <Toaster />
+          <Toaster position="top-right" />
           <ThemeToggler className="fixed bottom-4 right-4" duration={0.3} />
         </Providers>
       </body>

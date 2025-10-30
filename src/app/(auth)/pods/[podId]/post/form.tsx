@@ -2,9 +2,12 @@
 
 import { useQuery } from "convex/react"
 import { capitalize } from "es-toolkit/string"
-import { useActionState, useEffectEvent, useState } from "react"
+import Form from "next/form"
+import { useActionState, useEffect, useEffectEvent, useState } from "react"
 import { LuChevronDown } from "react-icons/lu"
+import { toast } from "sonner"
 import { useBoolean } from "usehooks-ts"
+import Loading from "@/app/loading"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -24,6 +27,7 @@ import type { Id } from "@/convex/_generated/dataModel"
 import { LINKEDIN_REACTION_TYPES, type LinkedInReactionType } from "@/convex/helpers/linkedin"
 import { cn } from "@/lib/utils"
 import { submitPostAction } from "./actions"
+import { maxDelay, minDelay, targetCount } from "./schema"
 
 export type PostFormProps = {
   podId: Id<"pods">
@@ -38,7 +42,13 @@ const DEFAULT_REACTIONS: LinkedInReactionType[] = [
 ]
 
 export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
-  const [state, formAction, pending] = useActionState(submitPostAction.bind(null, podId), null)
+  const [formState, formAction, formLoading] = useActionState(submitPostAction, {})
+
+  useEffect(() => {
+    if (!formLoading && formState?.message) {
+      toast.success(formState.message)
+    }
+  }, [formState?.message, formLoading])
 
   // Track selected reaction types for form submission
   const [selectedReactions, setSelectedReactions] =
@@ -54,15 +64,20 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
 
   const { value: showOptions, setValue: setShowOptions } = useBoolean(false)
 
+  if (!pod) {
+    return <Loading />
+  }
+
   return (
-    <form action={formAction} className="flex flex-col items-center gap-4">
+    <Form action={formAction} className="flex flex-col items-center gap-4">
       {/* Form-level Error */}
-      {state?.error && <FieldError>{state.error}</FieldError>}
+      {formState?.error && <FieldError>{formState.error}</FieldError>}
+
+      <input type="hidden" name="podId" value={podId} />
 
       {/* Post URL Input */}
       <Field className="flex-row">
         <Input
-          id="post-url"
           name="url"
           type="url"
           className="h-12"
@@ -71,7 +86,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
           autoFocus
         />
 
-        <HoverButton type="submit" disabled={pending} className="max-w-fit">
+        <HoverButton type="submit" disabled={formLoading} className="max-w-fit">
           Submit
         </HoverButton>
       </Field>
@@ -109,11 +124,10 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
           <Field>
             <FieldLabel htmlFor="targetCount">Target engagement count</FieldLabel>
             <Input
-              id="targetCount"
               name="targetCount"
               type="number"
-              min={1}
-              max={pod?.memberCount}
+              min={targetCount.min}
+              max={targetCount.max}
               defaultValue={defaultTargetCount}
             />
             <FieldDescription>
@@ -126,22 +140,20 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
             <Field>
               <FieldLabel htmlFor="minDelay">Min delay between reactions in seconds</FieldLabel>
               <Input
-                id="minDelay"
                 name="minDelay"
                 type="number"
-                min={1}
-                max={300}
+                min={minDelay.min}
+                max={minDelay.max}
                 defaultValue={5}
               />
             </Field>
             <Field>
               <FieldLabel htmlFor="maxDelay">Max delay between reactions in seconds</FieldLabel>
               <Input
-                id="maxDelay"
                 name="maxDelay"
                 type="number"
-                min={1}
-                max={300}
+                min={maxDelay.min}
+                max={maxDelay.max}
                 defaultValue={15}
               />
             </Field>
@@ -157,6 +169,6 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
           </Button>
         </CollapsibleTrigger>
       </Collapsible>
-    </form>
+    </Form>
   )
 }

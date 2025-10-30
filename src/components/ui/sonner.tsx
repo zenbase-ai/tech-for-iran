@@ -9,8 +9,9 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
+import { css } from "@/lib/utils"
 
-const Toaster = ({ ...props }: ToasterProps) => {
+export const Toaster: React.FC<ToasterProps> = ({ ...props }) => {
   const { theme = "system" } = useTheme()
 
   return (
@@ -24,17 +25,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
+      style={css({
+        "--normal-bg": "var(--popover)",
+        "--normal-text": "var(--popover-foreground)",
+        "--normal-border": "var(--border)",
+        "--border-radius": "var(--radius)",
+      })}
       {...props}
     />
   )
 }
-
-export { Toaster }

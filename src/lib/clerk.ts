@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 
-class UnauthenticatedError extends Error {
+export class UnauthenticatedError extends Error {
   constructor() {
     super("Unauthenticated")
     this.name = "UnauthenticatedError"

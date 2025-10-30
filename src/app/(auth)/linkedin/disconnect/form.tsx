@@ -1,7 +1,9 @@
 "use client"
 
+import { useQuery } from "convex/react"
 import Form from "next/form"
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
+import { toast } from "sonner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,16 +17,22 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
+import { api } from "@/convex/_generated/api"
 import { disconnectFormAction } from "./actions"
 
-export type DisconnectFormProps = {
-  profile: {
-    unipileId: string
-  }
-}
+export const DisconnectForm: React.FC = () => {
+  const { profile } = useQuery(api.linkedin.getState, {}) ?? {}
+  const [formState, formAction, formLoading] = useActionState(disconnectFormAction, {})
 
-export const DisconnectForm: React.FC<DisconnectFormProps> = ({ profile: { unipileId } }) => {
-  const [state, formAction, pending] = useActionState(disconnectFormAction, null)
+  useEffect(() => {
+    if (!formLoading && formState.message) {
+      toast.success(formState.message)
+    }
+  }, [formState.message, formLoading])
+
+  if (!profile) {
+    return null
+  }
 
   return (
     <AlertDialog>
@@ -35,8 +43,8 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({ profile: { unipi
       </AlertDialogTrigger>
       <AlertDialogContent>
         <Form action={formAction}>
-          {state?.error && <FieldError>{state.error}</FieldError>}
-          <input type="hidden" name="unipileId" value={unipileId} />
+          {formState?.error && <FieldError>{formState.error}</FieldError>}
+          <input type="hidden" name="unipileId" value={profile.unipileId} />
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>Your fellow alumni are counting on you!</AlertDialogDescription>
@@ -45,10 +53,10 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({ profile: { unipi
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel type="button" disabled={pending}>
+            <AlertDialogCancel type="button" disabled={formLoading}>
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction type="submit" disabled={pending} variant="destructive">
+            <AlertDialogAction type="submit" disabled={formLoading} variant="destructive">
               Disconnect
             </AlertDialogAction>
           </AlertDialogFooter>

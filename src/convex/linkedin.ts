@@ -95,7 +95,7 @@ export const getState = query({
 // Mutations
 // ============================================================================
 
-export const linkAccount = mutation({
+export const connectAccount = mutation({
   args: {
     unipileId: v.string(),
   },

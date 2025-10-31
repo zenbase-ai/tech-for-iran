@@ -18,17 +18,17 @@ import {
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
 import { api } from "@/convex/_generated/api"
-import { disconnectFormAction } from "./actions"
+import { disconnectAccount } from "./actions"
 
 export const DisconnectForm: React.FC = () => {
   const { profile } = useQuery(api.linkedin.getState, {}) ?? {}
-  const [formState, formAction, formLoading] = useActionState(disconnectFormAction, {})
+  const [formState, formAction, formLoading] = useActionState(disconnectAccount, {})
 
   useEffect(() => {
     if (!formLoading && formState.message) {
       toast.success(formState.message)
     }
-  }, [formState.message, formLoading])
+  }, [formLoading, formState.message])
 
   if (!profile) {
     return null

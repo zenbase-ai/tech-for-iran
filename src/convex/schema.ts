@@ -9,6 +9,7 @@ const schema = defineSchema({
     userId: v.optional(v.string()),
     unipileId: v.string(),
     status: v.string(),
+    maxActions: v.number(),
     updatedAt: v.number(), // Timestamp
   })
     .index("byUserAndAccount", ["userId", "unipileId"])
@@ -19,7 +20,6 @@ const schema = defineSchema({
     unipileId: v.string(),
     firstName: v.string(),
     lastName: v.string(),
-    maxActions: v.number(),
     picture: v.string(),
     url: v.string(),
     updatedAt: v.number(),

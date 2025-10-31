@@ -9,20 +9,20 @@ import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/fie
 import { Input } from "@/components/ui/input"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
-import { profileFormAction } from "./actions"
+import { updateAccount } from "./actions"
 import { maxActions } from "./schema"
 
-export const ProfileForm: React.FC = () => {
-  const { profile } = useQuery(api.linkedin.getState, {}) ?? {}
-  const [formState, formAction, formLoading] = useActionState(profileFormAction, {})
+export const AccountForm: React.FC = () => {
+  const { account } = useQuery(api.linkedin.getState, {}) ?? {}
+  const [formState, formAction, formLoading] = useActionState(updateAccount, {})
 
   useEffect(() => {
     if (!formLoading && formState.message) {
       toast.success(formState.message)
     }
-  }, [formState.message, formLoading])
+  }, [formLoading, formState.message])
 
-  if (!profile) {
+  if (!account) {
     return <Loading />
   }
 
@@ -37,7 +37,7 @@ export const ProfileForm: React.FC = () => {
             type="number"
             min={maxActions.min}
             max={maxActions.max}
-            defaultValue={profile.maxActions}
+            defaultValue={account.maxActions}
             required
           />
         </FieldContent>

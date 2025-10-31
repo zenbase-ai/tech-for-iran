@@ -1,35 +1,43 @@
-"use client"
-
 import { SignIn } from "@clerk/nextjs"
-import { useSearchParams } from "next/navigation"
 import { LuOctagonX } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-export default function SignInPage() {
-  const searchParams = useSearchParams()
-  const error = searchParams.get("error")
+const errorMessages = {
+  unauthenticated: {
+    title: "Authentication Required",
+    description: "Please sign in to continue.",
+  },
+  server_error: {
+    title: "Server Error",
+    description: "Something went wrong. Please try again later.",
+  },
+}
+
+export type SignInPageProps = {
+  params: Promise<{
+    inviteCode?: string
+    error?: keyof typeof errorMessages
+  }>
+}
+
+export default async function SignInPage({ params }: SignInPageProps) {
+  const { inviteCode, error } = await params
+  const redirecetURL = inviteCode
+    ? `/linkedin/connect?inviteCode=${inviteCode}`
+    : "/linkedin/connect"
 
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh] gap-4">
-      {/* Show error alerts */}
-      {error === "unauthenticated" && (
-        <Alert variant="destructive" className="max-w-md">
+      {!!error && (
+        <Alert variant="destructive">
           <LuOctagonX className="size-4" />
-          <AlertTitle>Authentication Required</AlertTitle>
-          <AlertDescription>Please sign in to continue.</AlertDescription>
+          <AlertTitle>{errorMessages[error].title}</AlertTitle>
+          <AlertDescription>{errorMessages[error].description}</AlertDescription>
         </Alert>
       )}
 
-      {error === "server_error" && (
-        <Alert variant="destructive" className="max-w-md">
-          <LuOctagonX className="size-4" />
-          <AlertTitle>Server Error</AlertTitle>
-          <AlertDescription>Something went wrong. Please try again later.</AlertDescription>
-        </Alert>
-      )}
-
-      <SignIn forceRedirectUrl="/pods" signUpUrl="/sign-up" />
+      <SignIn forceRedirectUrl={redirecetURL} signUpUrl="/sign-up" />
     </VStack>
   )
 }

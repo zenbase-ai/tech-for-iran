@@ -26,7 +26,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { LINKEDIN_REACTION_TYPES, type LinkedInReactionType } from "@/convex/helpers/linkedin"
 import { cn } from "@/lib/utils"
-import { submitPostAction } from "./actions"
+import { submitPost } from "./actions"
 import { maxDelay, minDelay, targetCount } from "./schema"
 
 export type PostFormProps = {
@@ -42,7 +42,7 @@ const DEFAULT_REACTIONS: LinkedInReactionType[] = [
 ]
 
 export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
-  const [formState, formAction, formLoading] = useActionState(submitPostAction, {})
+  const [formState, formAction, formLoading] = useActionState(submitPost, {})
 
   useEffect(() => {
     if (!formLoading && formState?.message) {

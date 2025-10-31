@@ -5,6 +5,7 @@ import * as z from "zod"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { tokenAuth } from "@/lib/clerk"
+import { errorMessage } from "@/lib/utils"
 import { SubmitPostSchema } from "./schema"
 
 type SubmitPostState = {
@@ -12,7 +13,7 @@ type SubmitPostState = {
   error?: string
 }
 
-export const submitPostAction = async (
+export const submitPost = async (
   _prevState: SubmitPostState,
   formData: FormData,
 ): Promise<SubmitPostState> => {
@@ -27,18 +28,18 @@ export const submitPostAction = async (
 
   try {
     // Verify user is a member of this pod
-    const [membership, linkedInState] = await Promise.all([
+    const [membership, { account, profile, needsReconnection }] = await Promise.all([
       fetchQuery(api.pods.get, { podId }, { token }),
       fetchQuery(api.linkedin.getState, {}, { token }),
     ])
 
     if (!membership) {
-      return { error: "Pod not found" }
+      return { error: "You are not a member of this pod." }
     }
-    if (!linkedInState.profile) {
-      return { error: "You must connect your LinkedIn account first" }
+    if (!profile || !account) {
+      return { error: "You must connect your LinkedIn account first." }
     }
-    if (linkedInState.needsReconnection || !linkedInState.isHealthy) {
+    if (needsReconnection) {
       return { error: "Your LinkedIn connection needs to be refreshed. Please reconnect." }
     }
 
@@ -48,12 +49,9 @@ export const submitPostAction = async (
     // Redirect to post detail page
     return { message: "Post submitted!" }
   } catch (error: unknown) {
-    if (!(error instanceof Error)) {
-      return { error: String(error) }
-    }
-    if (error.message.includes("NEXT_REDIRECT")) {
+    if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
       throw error
     }
-    return { error: error.message }
+    return { error: errorMessage(error) }
   }
 }

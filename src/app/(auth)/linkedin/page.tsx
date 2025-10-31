@@ -2,8 +2,8 @@ import { LuOctagonX } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
+import { AccountForm } from "./account/form"
 import { DisconnectForm } from "./disconnect/form"
-import { ProfileForm } from "./profile/form"
 
 export type LinkedinPageProps = {
   searchParams: Promise<{
@@ -28,7 +28,7 @@ export default async function LinkedinPage({ searchParams }: LinkedinPageProps) 
 
       <h1 className="text-2xl font-bold mb-2 font-serif italic">LinkedIn Settings</h1>
 
-      <ProfileForm />
+      <AccountForm />
 
       <Separator className="my-8" />
 

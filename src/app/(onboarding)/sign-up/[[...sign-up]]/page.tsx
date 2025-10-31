@@ -1,18 +1,21 @@
-"use client"
-
 import { SignUp } from "@clerk/nextjs"
-import { useSearchParams } from "next/navigation"
 import { VStack } from "@/components/layout/stack"
 
-export default function SignUpPage() {
-  const searchParams = useSearchParams()
-  const inviteCode = searchParams.get("invite")
+export type SignUpPageProps = {
+  params: Promise<{
+    inviteCode?: string
+  }>
+}
 
-  const redirectUrl = inviteCode ? `/linkedin?invite=${inviteCode}` : "/linkedin"
+export default async function SignUpPage({ params }: SignUpPageProps) {
+  const { inviteCode } = await params
+  const redirectURL = inviteCode
+    ? `/linkedin/connect?inviteCode=${inviteCode}`
+    : "/linkedin/connect"
 
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh]">
-      <SignUp forceRedirectUrl={redirectUrl} signInUrl="/sign-in" />
+      <SignUp forceRedirectUrl={redirectURL} signInUrl="/sign-in" />
     </VStack>
   )
 }

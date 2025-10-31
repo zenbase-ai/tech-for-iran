@@ -1,92 +1,29 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
-import { internalAction, internalMutation, mutation, query } from "./_generated/server"
-import { requireAuth } from "./helpers/auth"
-import { NotFoundError } from "./helpers/errors"
-import type { LinkedInReactionType } from "./helpers/linkedin"
+import { internalAction, internalMutation } from "./_generated/server"
+import { authMutation, authQuery } from "./helpers/convex"
+import { needsReconnection } from "./helpers/linkedin"
 import { unipile } from "./helpers/unipile"
-
-// ============================================================================
-// Re-exports from helpers/linkedin
-// ============================================================================
-
-export {
-  isValidReactionType,
-  LINKEDIN_REACTION_TYPES,
-  type LinkedInReactionType,
-  validateReactionTypes,
-} from "./helpers/linkedin"
-
-// ============================================================================
-// LinkedIn Account Status Constants
-// ============================================================================
-
-/**
- * LinkedIn account statuses from Unipile webhook
- * @see https://docs.unipile.com/api-reference/webhooks/account-status
- */
-export const LinkedInStatus = {
-  OK: "OK", // Account is healthy and syncing
-  SYNC_SUCCESS: "SYNC_SUCCESS", // Synchronization completed successfully
-  CREATION_SUCCESS: "CREATION_SUCCESS", // Account was successfully created
-  RECONNECTED: "RECONNECTED", // Account was successfully reconnected
-  CONNECTING: "CONNECTING", // Account is attempting to connect
-  CREDENTIALS: "CREDENTIALS", // Invalid credentials, needs reconnection
-  ERROR: "ERROR", // Unexpected error during sync
-  STOPPED: "STOPPED", // Synchronization has stopped
-  DELETED: "DELETED", // Account was deleted
-} as const
-
-export type LinkedInStatusType = (typeof LinkedInStatus)[keyof typeof LinkedInStatus]
-
-/**
- * Statuses that indicate the account is healthy and can be used for engagements
- */
-export const HEALTHY_STATUSES = [
-  LinkedInStatus.OK,
-  LinkedInStatus.SYNC_SUCCESS,
-  LinkedInStatus.RECONNECTED,
-  LinkedInStatus.CREATION_SUCCESS,
-] as const
-
-/**
- * Statuses that require user action to reconnect
- */
-export const NEEDS_RECONNECTION_STATUSES = [
-  LinkedInStatus.CREDENTIALS,
-  LinkedInStatus.ERROR,
-  LinkedInStatus.STOPPED,
-  LinkedInStatus.DELETED,
-] as const
-
-export const isHealthyStatus = (status: string | null | undefined): boolean =>
-  !!status && HEALTHY_STATUSES.includes(status as any)
-
-export const needsReconnection = (status: string | null | undefined): boolean =>
-  !!status && NEEDS_RECONNECTION_STATUSES.includes(status as any)
 
 // ============================================================================
 // Queries
 // ============================================================================
-
-export const getState = query({
+export const getState = authQuery({
   args: {},
   handler: async (ctx) => {
-    const { userId } = await requireAuth(ctx)
-
     const [account, profile] = await Promise.all([
-      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", userId, "userId"),
-      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", userId, "userId"),
+      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", ctx.userId, "userId"),
+      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", ctx.userId, "userId"),
     ])
 
     if (!account || !profile) {
-      return { profile: null, needsReconnection: true, isHealthy: false }
+      return { account: null, profile: null, needsReconnection: true } as const
     }
 
     return {
+      account,
       profile,
       needsReconnection: needsReconnection(account.status),
-      isHealthy: isHealthyStatus(account.status),
     }
   },
 })
@@ -95,34 +32,31 @@ export const getState = query({
 // Mutations
 // ============================================================================
 
-export const connectAccount = mutation({
+export const connectAccount = authMutation({
   args: {
     unipileId: v.string(),
   },
   handler: async (ctx, args) => {
-    const { userId } = await requireAuth(ctx)
-
     const [account, profile] = await Promise.all([
       getOneFromOrThrow(ctx.db, "linkedinAccounts", "byAccount", args.unipileId, "unipileId"),
       getOneFromOrThrow(ctx.db, "linkedinProfiles", "byAccount", args.unipileId, "unipileId"),
     ])
 
-    const updatedAt = Date.now()
+    const patch = {
+      userId: ctx.userId,
+      updatedAt: Date.now(),
+    }
 
-    await Promise.all([
-      ctx.db.patch(account._id, { userId, updatedAt }),
-      ctx.db.patch(profile._id, { userId, updatedAt }),
-    ])
+    await Promise.all([ctx.db.patch(account._id, patch), ctx.db.patch(profile._id, patch)])
   },
 })
 
-export const unlinkAccount = mutation({
+export const unlinkAccount = authMutation({
   args: {},
   handler: async (ctx) => {
-    const { userId } = await requireAuth(ctx)
     const [account, profile] = await Promise.all([
-      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", userId, "userId"),
-      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", userId, "userId"),
+      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", ctx.userId, "userId"),
+      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", ctx.userId, "userId"),
     ])
 
     if (account) {
@@ -134,24 +68,20 @@ export const unlinkAccount = mutation({
   },
 })
 
-export const updateProfile = mutation({
+export const updateAccount = authMutation({
   args: {
     maxActions: v.number(),
   },
   handler: async (ctx, args) => {
-    const { userId } = await requireAuth(ctx)
+    const account = await getOneFromOrThrow(
+      ctx.db,
+      "linkedinAccounts",
+      "byUserAndAccount",
+      ctx.userId,
+      "userId",
+    )
 
-    const profile = await ctx.db
-      .query("linkedinProfiles")
-      .withIndex("byUserAndAccount")
-      .filter((q) => q.eq(q.field("userId"), userId))
-      .first()
-
-    if (!profile) {
-      throw new NotFoundError()
-    }
-
-    await ctx.db.patch(profile._id, {
+    await ctx.db.patch(account._id, {
       maxActions: args.maxActions,
       updatedAt: Date.now(),
     })
@@ -184,6 +114,7 @@ export const upsertAccount = internalMutation({
       unipileId: args.unipileId,
       status: args.status,
       updatedAt: Date.now(),
+      maxActions: 25,
     })
   },
 })
@@ -217,29 +148,20 @@ export const upsertProfile = internalMutation({
 // ============================================================================
 // Internal Actions (API Calls)
 // ============================================================================
-
-/**
- * Add a reaction to a LinkedIn post
- * POST /api/v1/posts/reaction
- */
-export const react = internalAction({
-  args: {
-    accountId: v.string(),
-    postUrn: v.string(),
-    reactionType: v.string(),
-  },
-  handler: async (_ctx, args) =>
-    await unipile("POST", "/api/v1/posts/reaction", {
-      account_id: args.accountId,
-      post_id: args.postUrn,
-      reaction_type: args.reactionType.toLowerCase() as LinkedInReactionType,
-    }),
-})
+export type FetchProfileResult = {
+  first_name: string
+  last_name: string
+  profile_picture_url: string
+  public_profile_url: string
+}
 
 export const fetchProfile = internalAction({
   args: {
     accountId: v.string(),
   },
   handler: async (_ctx, args) =>
-    await unipile("GET", `/api/v1/users/me?account_id=${encodeURIComponent(args.accountId)}`),
+    await unipile<FetchProfileResult>(
+      "GET",
+      `/api/v1/users/me?account_id=${encodeURIComponent(args.accountId)}`,
+    ),
 })

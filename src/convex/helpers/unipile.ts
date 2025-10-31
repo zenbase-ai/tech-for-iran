@@ -4,7 +4,7 @@ import { env } from "@/lib/env.mjs"
 export type UnipileAPIErrorData = {
   method: string
   path: string
-  statusText: string
+  status: number
   body: string
 }
 
@@ -25,7 +25,7 @@ export const unipile = async <T = any>(
     throw new UnipileAPIError({
       method,
       path,
-      statusText: response.statusText,
+      status: response.status,
       body: (await response.text()) || "Unknown error",
     })
   }

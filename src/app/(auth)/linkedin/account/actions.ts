@@ -5,25 +5,25 @@ import * as z from "zod"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/clerk"
 import { errorMessage } from "@/lib/utils"
-import { ProfileSchema } from "./schema"
+import { AccountUpdateSchema } from "./schema"
 
-export type ProfileFormState = {
+export type UpdateAccountState = {
   message?: string
   error?: string
 }
 
-export const profileFormAction = async (
-  _prevState: ProfileFormState,
+export const updateAccount = async (
+  _prevState: UpdateAccountState,
   formData: FormData,
-): Promise<ProfileFormState> => {
-  const { data, success, error } = ProfileSchema.safeParse(Object.fromEntries(formData))
+): Promise<UpdateAccountState> => {
+  const { data, success, error } = AccountUpdateSchema.safeParse(Object.fromEntries(formData))
   if (!success) {
     return { error: z.prettifyError(error) }
   }
 
   try {
     const { token } = await tokenAuth()
-    await fetchMutation(api.linkedin.updateProfile, data, { token })
+    await fetchMutation(api.linkedin.updateAccount, data, { token })
     return { message: "Your LinkedIn settings has been updated." }
   } catch (error: unknown) {
     return { error: errorMessage(error) }

@@ -1,4 +1,5 @@
 import { fetchMutation, fetchQuery } from "convex/nextjs"
+import { DateTime } from "luxon"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { unipile } from "@/convex/helpers/unipile"
@@ -27,13 +28,13 @@ export default async function GET({ searchParams }: LinkedinConnectRouteParams) 
     await fetchMutation(api.linkedin.connectAccount, { unipileId: account_id }, { token })
   }
 
-  const { profile, needsReconnection, isHealthy } = await fetchQuery(
+  const { account, profile, needsReconnection } = await fetchQuery(
     api.linkedin.getState,
     {},
     { token },
   )
 
-  if (profile == null || needsReconnection || !isHealthy) {
+  if (!account || !profile || needsReconnection) {
     const authLink = await generateHostedAuthLink(userId, inviteCode)
     return redirect(authLink as any, RedirectType.push)
   }
@@ -47,8 +48,7 @@ export default async function GET({ searchParams }: LinkedinConnectRouteParams) 
 
 const generateHostedAuthLink = async (userId: string, inviteCode?: string) => {
   const redirectRoute = "/linkedin/connect"
-  const expiresOn = new Date()
-  expiresOn.setMinutes(expiresOn.getMinutes())
+  const expiresOn = DateTime.utc().plus({ minutes: 10 }).toISO()
 
   const successRedirectURL = new URL(redirectRoute, env.APP_URL)
   if (inviteCode) {
@@ -58,7 +58,7 @@ const generateHostedAuthLink = async (userId: string, inviteCode?: string) => {
     api_url: env.UNIPILE_API_URL,
     type: "create",
     providers: ["LINKEDIN"],
-    expiresOn: expiresOn.toISOString(),
+    expiresOn,
     name: userId,
     success_redirect_url: successRedirectURL.toString(),
     failure_redirect_url: new URL(`${redirectRoute}?error=true`, env.APP_URL).toString(),

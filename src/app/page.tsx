@@ -4,11 +4,12 @@ import { Hero } from "@/components/marketing/hero"
 import { Highlighter } from "@/components/ui/highlighter"
 
 export default async function HomePage() {
-  const { userId } = await auth()
-  const loggedIn = !!userId
+  const { isAuthenticated } = await auth()
 
-  const lede = loggedIn ? "" : "Join a pod, boost each other's posts, and amplify your reach."
-  const ctas: Record<string, string> = loggedIn
+  const lede = isAuthenticated
+    ? ""
+    : "Join a pod, boost each other's posts, and amplify your reach."
+  const ctas: Record<string, string> = isAuthenticated
     ? { Dashboard: "/pods" }
     : { "Sign Up": "/sign-up", "Sign In": "/sign-in" }
 
@@ -17,7 +18,7 @@ export default async function HomePage() {
       <Hero
         title={
           <em>
-            Get <Highlighter action="underline">boosted.</Highlighter>
+            <Highlighter action="underline">Cracked</Highlighter>book.
           </em>
         }
         lede={lede}

@@ -4,12 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "bun --bun next build",
-    "start": "next start",
-    "lint": "biome check .",
-    "format": "biome format --write .",
-    "convex:dev": "convex dev",
-    "convex:deploy": "convex deploy"
+    "build": "bun --bun next build"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.53.4",

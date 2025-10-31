@@ -60,8 +60,10 @@ export const get = authQuery({
   },
 })
 
-export type MemberProfile = Pick<Doc<"memberships">, "userId" | "joinedAt"> &
-  Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
+export type MemberProfile = {
+  userId: string
+  joinedAt: number
+} & Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
 
 export const members = memberQuery({
   args: {
@@ -74,7 +76,7 @@ export const members = memberQuery({
       .withIndex("byPod", (q) => q.eq("podId", args.podId))
       .paginate(args.paginationOpts)
 
-    const members = await pmap(memberships.page, async ({ userId, joinedAt }) => {
+    const members = await pmap(memberships.page, async ({ userId, _creationTime }) => {
       const profile = await getOneFrom(
         ctx.db,
         "linkedinProfiles",
@@ -89,7 +91,7 @@ export const members = memberQuery({
 
       return {
         userId,
-        joinedAt,
+        joinedAt: _creationTime,
         firstName: profile.firstName,
         lastName: profile.lastName,
         picture: profile.picture,
@@ -171,15 +173,11 @@ export const join = authMutation({
       .first()
 
     if (existing) {
-      throw new ConflictError()
+      return existing._id
     }
 
     // Add to pod
-    const membershipId = await ctx.db.insert("memberships", {
-      userId,
-      podId,
-      joinedAt: Date.now(),
-    })
+    const membershipId = await ctx.db.insert("memberships", { userId, podId })
 
     // Update aggregate
     const membership = await ctx.db.get(membershipId)

@@ -6,7 +6,7 @@ import { unipile } from "@/convex/helpers/unipile"
 import { tokenAuth } from "@/lib/clerk"
 import { env } from "@/lib/env.mjs"
 
-export type LinkedinConnectRouteParams = {
+export type LinkedinConnectPageParams = {
   searchParams: Promise<{
     account_id?: string
     error?: string
@@ -14,7 +14,7 @@ export type LinkedinConnectRouteParams = {
   }>
 }
 
-export default async function LinkedinConnectPage({ searchParams }: LinkedinConnectRouteParams) {
+export default async function LinkedinConnectPage({ searchParams }: LinkedinConnectPageParams) {
   const [{ userId, token }, { account_id, error, inviteCode }] = await Promise.all([
     tokenAuth(),
     searchParams,
@@ -26,25 +26,24 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
 
   if (account_id) {
     await fetchMutation(api.linkedin.connectAccount, { unipileId: account_id }, { token })
+
+    return handleRedirect(inviteCode)
   }
 
-  const { account, profile, needsReconnection } = await fetchQuery(
-    api.linkedin.getState,
-    {},
-    { token },
-  )
+  const { account, needsReconnection } = await fetchQuery(api.linkedin.getState, {}, { token })
 
-  if (!account || !profile || needsReconnection) {
+  if (!account || needsReconnection) {
     const authLink = await generateHostedAuthLink(userId, inviteCode)
-    return redirect(authLink as any, RedirectType.push)
+    return redirect(authLink as any, RedirectType.replace)
   }
 
-  if (inviteCode) {
-    return redirect(`/join/${inviteCode}`, RedirectType.replace)
-  }
-
-  return redirect("/pods", RedirectType.replace)
+  return handleRedirect(inviteCode)
 }
+
+const handleRedirect = (inviteCode?: string) =>
+  inviteCode
+    ? redirect(`/join/${inviteCode}`, RedirectType.replace)
+    : redirect("/pods", RedirectType.replace)
 
 const generateHostedAuthLink = async (userId: string, inviteCode?: string) => {
   const redirectRoute = "/linkedin/connect"

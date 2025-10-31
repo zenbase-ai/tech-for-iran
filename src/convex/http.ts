@@ -39,7 +39,6 @@ http.route({
             unipileId: account_id,
             firstName: profile.first_name,
             lastName: profile.last_name,
-            maxActions: 40,
             picture: profile.profile_picture_url,
             url: profile.public_profile_url,
           })

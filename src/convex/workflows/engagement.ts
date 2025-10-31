@@ -5,13 +5,13 @@ import { getOneFrom } from "convex-helpers/server/relationships"
 import { randomInt, sample } from "es-toolkit"
 import { DateTime } from "luxon"
 import type { DeepNonNullable, DeepRequired } from "ts-essentials"
-import { components, internal } from "./_generated/api"
-import { internalAction, internalMutation, internalQuery } from "./_generated/server"
-import { postEngagementCount } from "./aggregates"
-import { pmap } from "./helpers/collections"
-import { ConflictError, errorMessage } from "./helpers/errors"
-import { type LinkedInReactionType, needsReconnection } from "./helpers/linkedin"
-import { UnipileAPIError, unipile } from "./helpers/unipile"
+import { components, internal } from "@/convex/_generated/api"
+import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
+import { postEngagementCount } from "@/convex/aggregates"
+import { pmap } from "@/convex/helpers/collections"
+import { ConflictError, errorMessage } from "@/convex/helpers/errors"
+import { type LinkedInReactionType, needsReconnection } from "@/convex/helpers/linkedin"
+import { UnipileAPIError, unipile } from "@/convex/helpers/unipile"
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
@@ -45,40 +45,36 @@ export const workflow = new WorkflowManager(components.workflow, {
  * In handleWorkflowCompletion, we validate the manual count against the aggregate
  * and always store the aggregate count as authoritative in the post document.
  */
+export type PerformResult = { successCount: number; failedCount: number }
+
 export const perform = workflow.define({
   args: {
     postId: v.id("posts"),
     userId: v.string(),
     podId: v.id("pods"),
     urn: v.string(),
-    reactionTypes: v.array(v.string()), // Array of allowed reaction types
-    targetCount: v.optional(v.number()), // Default 40
-    minDelay: v.optional(v.number()), // Default 5s
-    maxDelay: v.optional(v.number()), // Default 15s
+    reactionTypes: v.array(v.string()),
+    targetCount: v.number(),
+    minDelay: v.number(),
+    maxDelay: v.number(),
   },
-  handler: async (step, args): Promise<{ successCount: number; failedCount: number }> => {
-    const targetCount = args.targetCount ?? 40
-    // Incoming minDelay/maxDelay are provided in SECONDS by submit validator; convert to ms here
-    const minDelaySeconds = args.minDelay ?? 5
-    const maxDelaySeconds = args.maxDelay ?? 15
-    let successCount = 0
-    let failedCount = 0
+  handler: async (step, args): Promise<PerformResult> => {
+    const performResult: PerformResult = { successCount: 0, failedCount: 0 }
 
     // Track users who have already reacted (to prevent duplicates)
     const excludeUserIds = [args.userId]
 
     // Send reactions with delays (schedule each step after a per-iteration jitter)
-
-    for (let i = 0; i < targetCount; i++) {
+    for (let i = 0; i < args.targetCount; i++) {
       // Random delay between minDelayMs and maxDelayMs (randomInt uses exclusive upper bound)
-      const delayMs = randomInt(minDelaySeconds, maxDelaySeconds + 1) * 1000
+      const delayMs = randomInt(args.minDelay, args.maxDelay + 1) * 1000
 
       // Choose a random reaction type from the allowed types
       const reactionType = sample(args.reactionTypes) ?? "like"
 
       // Send the reaction via Unipile AND log it in the database atomically
       const result = await step.runAction(
-        internal.engage.performOne,
+        internal.workflows.engagement.performOne,
         { podId: args.podId, postUrn: args.urn, reactionType, postId: args.postId, excludeUserIds },
         // Because we await each action, runAfter is relative to now; use the per-iteration delay only
         { name: `Send ${reactionType} reaction #${i + 1}`, runAfter: delayMs },
@@ -86,16 +82,15 @@ export const perform = workflow.define({
 
       if ("userId" in result) {
         excludeUserIds.push(result.userId)
-        successCount++
+        performResult.successCount++
       } else if (result.error === "UNAVAILABLE_MEMBER") {
         break
       } else {
-        failedCount++
+        performResult.failedCount++
       }
     }
 
-    // Status is now computed dynamically based on engagements
-    return { successCount, failedCount }
+    return performResult
   },
 })
 
@@ -112,7 +107,7 @@ export const performOne = internalAction({
   },
   handler: async (ctx, args): Promise<PerformOneResult> => {
     // Step 1: Select an available pod member
-    const account = await ctx.runQuery(internal.engage.availableAccount, {
+    const account = await ctx.runQuery(internal.workflows.engagement.availableAccount, {
       podId: args.podId,
       postId: args.postId,
       excludeUserIds: args.excludeUserIds,
@@ -124,7 +119,7 @@ export const performOne = internalAction({
 
     // Step 2: Send reaction via Unipile API
     // Note: internal.linkedin.react throws on transient errors to trigger retry
-    const [success, data] = await ctx.runAction(internal.engage.react, {
+    const [success, data] = await ctx.runAction(internal.workflows.engagement.react, {
       accountId: account.unipileId,
       postUrn: args.postUrn,
       reactionType: args.reactionType,
@@ -135,7 +130,7 @@ export const performOne = internalAction({
 
     // Step 3: Log engagement in database
     try {
-      await ctx.runMutation(internal.engage.log, {
+      await ctx.runMutation(internal.workflows.engagement.log, {
         userId: account.userId,
         postId: args.postId,
         reactionType: args.reactionType,

@@ -4,10 +4,10 @@ import * as z from "zod"
 import { SubmitPostSchema } from "@/app/(auth)/pods/[podId]/post/schema"
 import { internal } from "./_generated/api"
 import { podMemberCount, podPostCount, postEngagementCount } from "./aggregates"
-import { workflow } from "./engage"
 import { authMutation, authQuery } from "./helpers/convex"
 import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from "./helpers/errors"
 import { parsePostURN } from "./helpers/linkedin"
+import { workflow } from "./workflows/engagement"
 
 // ============================================================================
 // Queries
@@ -144,9 +144,13 @@ export const submit = authMutation({
     // Start engagement workflow with completion handler
     const workflowId = await workflow.start(
       ctx,
-      internal.engage.perform,
+      internal.workflows.engagement.perform,
       { postId, userId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay },
-      { startAsync: true, context: { postId }, onComplete: internal.engage.onWorkflowComplete },
+      {
+        startAsync: true,
+        context: { postId },
+        onComplete: internal.workflows.engagement.onWorkflowComplete,
+      },
     )
 
     // Store workflow ID and update status to processing

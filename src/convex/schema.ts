@@ -41,7 +41,6 @@ const schema = defineSchema({
   memberships: defineTable({
     userId: v.string(), // Reference to profile
     podId: v.id("pods"), // Reference to pod
-    joinedAt: v.number(), // Timestamp when user joined
   })
     .index("byUser", ["userId"])
     .index("byPod", ["podId"])

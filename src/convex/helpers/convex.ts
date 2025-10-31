@@ -23,3 +23,8 @@ export const authMutation = customMutation(mutation, {
     }
   },
 })
+
+export const update = <T extends Record<string, unknown>>(data: T): T & { updatedAt: number } => ({
+  ...data,
+  updatedAt: Date.now(),
+})

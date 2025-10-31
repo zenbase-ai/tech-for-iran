@@ -10,7 +10,6 @@
 
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as engage from "../engage.js";
 import type * as helpers_auth from "../helpers/auth.js";
 import type * as helpers_collections from "../helpers/collections.js";
 import type * as helpers_convex from "../helpers/convex.js";
@@ -22,6 +21,7 @@ import type * as linkedin from "../linkedin.js";
 import type * as pods from "../pods.js";
 import type * as posts from "../posts.js";
 import type * as user from "../user.js";
+import type * as workflows_engagement from "../workflows/engagement.js";
 
 import type {
   ApiFromModules,
@@ -40,7 +40,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   aggregates: typeof aggregates;
   auth: typeof auth;
-  engage: typeof engage;
   "helpers/auth": typeof helpers_auth;
   "helpers/collections": typeof helpers_collections;
   "helpers/convex": typeof helpers_convex;
@@ -52,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   pods: typeof pods;
   posts: typeof posts;
   user: typeof user;
+  "workflows/engagement": typeof workflows_engagement;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

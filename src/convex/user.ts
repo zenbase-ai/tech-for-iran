@@ -13,9 +13,9 @@ export const pods = authQuery({
 
     const podIds = memberships.page.map((m) => m.podId)
     const pods = await getAll(ctx.db, podIds)
-    const page = zip(memberships.page, pods).map(([membership, pod]) => ({
+    const page = zip(memberships.page, pods).map(([{ _creationTime }, pod]) => ({
       ...pod,
-      joinedAt: membership.joinedAt,
+      joinedAt: _creationTime,
     }))
 
     return { ...memberships, page }

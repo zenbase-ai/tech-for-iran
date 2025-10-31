@@ -1,5 +1,10 @@
 import { SignUp } from "@clerk/nextjs"
+import type { Metadata } from "next"
 import { VStack } from "@/components/layout/stack"
+
+export const metadata: Metadata = {
+  title: "Sign Up",
+}
 
 export type SignUpPageProps = {
   params: Promise<{

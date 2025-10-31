@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "convex/react"
+import { type Preloaded, usePreloadedQuery } from "convex/react"
 import Form from "next/form"
 import { useActionState, useEffect } from "react"
 import { toast } from "sonner"
@@ -17,11 +17,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { FieldError } from "@/components/ui/field"
-import { api } from "@/convex/_generated/api"
+import type { api } from "@/convex/_generated/api"
 import { disconnectAccount } from "./actions"
 
-export const DisconnectForm: React.FC = () => {
-  const { profile } = useQuery(api.linkedin.getState, {}) ?? {}
+export type DisconnectFormProps = {
+  linkedin: Preloaded<typeof api.linkedin.getState>
+}
+
+export const DisconnectForm: React.FC<DisconnectFormProps> = ({ linkedin }) => {
+  const { profile } = usePreloadedQuery(linkedin)
   const [formState, formAction, formLoading] = useActionState(disconnectAccount, {})
 
   useEffect(() => {

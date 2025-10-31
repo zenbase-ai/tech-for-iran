@@ -22,7 +22,7 @@ export const disconnectAccount = async (
 
   try {
     await Promise.all([
-      fetchMutation(api.linkedin.unlinkAccount),
+      fetchMutation(api.linkedin.disconnectAccount),
       unipile<void>("DELETE", `/api/v1/accounts/${data.unipileId}`),
     ])
     return { message: "Your LinkedIn account has been disconnected." }

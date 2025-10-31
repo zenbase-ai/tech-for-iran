@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
 import { getAll } from "convex-helpers/server/relationships"
 import { zip } from "es-toolkit"
-import { authQuery } from "./helpers/convex"
+import { authQuery } from "@/convex/helpers/convex"
 
 export const pods = authQuery({
   args: { paginationOpts: paginationOptsValidator },

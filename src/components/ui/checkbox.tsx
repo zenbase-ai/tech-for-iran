@@ -1,7 +1,7 @@
 "use client"
 
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-import { CheckIcon } from "lucide-react"
+import { LuCheck } from "react-icons/lu"
 
 import { cn } from "@/lib/utils"
 
@@ -20,7 +20,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({ className, ...props }) => (
       data-slot="checkbox-indicator"
       className="grid place-content-center text-current transition-none"
     >
-      <CheckIcon className="size-3.5" />
+      <LuCheck className="size-3.5" />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 )

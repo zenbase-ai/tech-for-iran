@@ -1,5 +1,5 @@
 import { fetchQuery } from "convex/nextjs"
-import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 import plur from "plur"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
@@ -14,6 +14,15 @@ export type PodPageProps = {
   params: Promise<{ podId: Id<"pods"> }>
 }
 
+export const generateMetadata = async ({ params }: PodPageProps): Promise<Metadata> => {
+  const [{ token }, { podId }] = await Promise.all([tokenAuth(), params])
+  const pod = await fetchQuery(api.pods.get, { podId }, { token })
+
+  return {
+    title: `${pod.name} | Crackedbook`,
+  }
+}
+
 export default async function PodPage({ params }: PodPageProps) {
   const [{ token }, { podId }] = await Promise.all([tokenAuth(), params])
 
@@ -21,10 +30,6 @@ export default async function PodPage({ params }: PodPageProps) {
     fetchQuery(api.pods.get, { podId }, { token }),
     fetchQuery(api.pods.stats, { podId }, { token }),
   ])
-
-  if (!pod) {
-    return notFound()
-  }
 
   return (
     <VStack className="px-2 w-screen max-w-[640px] gap-8 mx-auto">

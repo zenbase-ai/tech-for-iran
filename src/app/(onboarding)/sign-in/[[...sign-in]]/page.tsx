@@ -1,4 +1,5 @@
 import { SignIn } from "@clerk/nextjs"
+import type { Metadata } from "next"
 import { LuOctagonX } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -12,6 +13,10 @@ const errorMessages = {
     title: "Server Error",
     description: "Something went wrong. Please try again later.",
   },
+}
+
+export const metadata: Metadata = {
+  title: "Sign In",
 }
 
 export type SignInPageProps = {

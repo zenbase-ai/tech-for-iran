@@ -1,11 +1,11 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { omit, pick } from "es-toolkit"
-import { internalAction, internalMutation } from "./_generated/server"
-import { authMutation, authQuery, update } from "./helpers/convex"
-import { ConflictError } from "./helpers/errors"
-import { needsReconnection } from "./helpers/linkedin"
-import { unipile } from "./helpers/unipile"
+import { internalAction, internalMutation } from "@/convex/_generated/server"
+import { authMutation, authQuery, update } from "@/convex/helpers/convex"
+import { ConflictError } from "@/convex/helpers/errors"
+import { needsReconnection } from "@/convex/helpers/linkedin"
+import { unipile } from "@/convex/helpers/unipile"
 
 // ============================================================================
 // Queries
@@ -43,7 +43,7 @@ export const connectAccount = authMutation({
       getOneFrom(ctx.db, "linkedinProfiles", "byAccount", unipileId, "unipileId"),
     ])
 
-    if (account.unipileId) {
+    if (account.userId) {
       throw new ConflictError()
     }
 
@@ -67,16 +67,18 @@ export const connectAccount = authMutation({
   },
 })
 
-export const unlinkAccount = authMutation({
+export const disconnectAccount = authMutation({
   args: {},
   handler: async (ctx) => {
     const [account, profile] = await Promise.all([
-      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", ctx.userId, "userId"),
+      getOneFromOrThrow(ctx.db, "linkedinAccounts", "byUserAndAccount", ctx.userId, "userId"),
       getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", ctx.userId, "userId"),
     ])
 
-    if (account) await ctx.db.delete(account._id)
-    if (profile) await ctx.db.delete(profile._id)
+    await Promise.all([
+      ctx.db.delete(account._id),
+      profile ? ctx.db.delete(profile._id) : Promise.resolve(),
+    ])
   },
 })
 
@@ -160,19 +162,19 @@ export const upsertProfile = internalMutation({
 // ============================================================================
 // Internal Actions (API Calls)
 // ============================================================================
-export type FetchProfileResult = {
+export type GetUnipileAccountResult = {
   first_name: string
   last_name: string
   profile_picture_url: string
   public_profile_url: string
 }
 
-export const fetchProfile = internalAction({
+export const getUnipileAccount = internalAction({
   args: {
     accountId: v.string(),
   },
   handler: async (_ctx, args) =>
-    await unipile<FetchProfileResult>(
+    await unipile<GetUnipileAccountResult>(
       "GET",
       `/api/v1/users/me?account_id=${encodeURIComponent(args.accountId)}`,
     ),

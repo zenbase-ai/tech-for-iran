@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server"
-import { internal } from "./_generated/api"
-import { httpAction } from "./_generated/server"
-import { errorMessage } from "./helpers/errors"
+import { internal } from "@/convex/_generated/api"
+import { httpAction } from "@/convex/_generated/server"
+import { errorMessage } from "@/convex/helpers/errors"
 
 const http = httpRouter()
 
@@ -31,7 +31,7 @@ http.route({
         })
 
         if (message === "SYNC_SUCCESS") {
-          const profile = await ctx.runAction(internal.linkedin.fetchProfile, {
+          const profile = await ctx.runAction(internal.linkedin.getUnipileAccount, {
             accountId: account_id,
           })
 

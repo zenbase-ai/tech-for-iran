@@ -40,8 +40,12 @@ export const NEEDS_RECONNECTION_STATUSES = [
   LinkedInStatus.DELETED,
 ] as const
 
-export const needsReconnection = (status: string | null | undefined): boolean =>
-  !!status && NEEDS_RECONNECTION_STATUSES.includes(status as any)
+export const needsReconnection = (status?: string | null): boolean => {
+  if (status == null) {
+    return true
+  }
+  return NEEDS_RECONNECTION_STATUSES.includes(status as any)
+}
 
 export const LINKEDIN_REACTION_TYPES = [
   "like",

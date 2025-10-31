@@ -1,6 +1,6 @@
 import { TableAggregate } from "@convex-dev/aggregate"
-import { components } from "./_generated/api"
-import type { DataModel } from "./_generated/dataModel"
+import { components } from "@/convex/_generated/api"
+import type { DataModel } from "@/convex/_generated/dataModel"
 
 // Aggregate for counting pod members
 export const podMemberCount = new TableAggregate<{

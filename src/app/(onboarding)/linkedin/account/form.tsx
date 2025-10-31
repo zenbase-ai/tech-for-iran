@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "convex/react"
+import { type Preloaded, usePreloadedQuery } from "convex/react"
 import Form from "next/form"
 import { useActionState, useEffect } from "react"
 import { toast } from "sonner"
@@ -8,12 +8,16 @@ import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Loading } from "@/components/ui/loading"
-import { api } from "@/convex/_generated/api"
+import type { api } from "@/convex/_generated/api"
 import { updateAccount } from "./actions"
 import { maxActions } from "./schema"
 
-export const AccountForm: React.FC = () => {
-  const { account } = useQuery(api.linkedin.getState, {}) ?? {}
+export type AccountFormProps = {
+  linkedin: Preloaded<typeof api.linkedin.getState>
+}
+
+export const AccountForm: React.FC<AccountFormProps> = ({ linkedin }) => {
+  const { account } = usePreloadedQuery(linkedin)
   const [formState, formAction, formLoading] = useActionState(updateAccount, {})
 
   useEffect(() => {

@@ -1,13 +1,7 @@
 "use client"
 
-import {
-  CircleCheckIcon,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon,
-} from "lucide-react"
 import { useTheme } from "next-themes"
+import { LuCircleCheck, LuInfo, LuLoader, LuOctagonX, LuTriangleAlert } from "react-icons/lu"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { css } from "@/lib/utils"
 
@@ -19,11 +13,11 @@ export const Toaster: React.FC<ToasterProps> = ({ ...props }) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       icons={{
-        success: <CircleCheckIcon className="size-4" />,
-        info: <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
-        error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        success: <LuCircleCheck className="size-4" />,
+        info: <LuInfo className="size-4" />,
+        warning: <LuTriangleAlert className="size-4" />,
+        error: <LuOctagonX className="size-4" />,
+        loading: <LuLoader className="size-4 animate-spin" />,
       }}
       style={css({
         "--normal-bg": "var(--popover)",

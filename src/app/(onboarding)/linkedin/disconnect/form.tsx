@@ -1,6 +1,5 @@
 "use client"
 
-import { type Preloaded, usePreloadedQuery } from "convex/react"
 import Form from "next/form"
 import { useActionState, useEffect } from "react"
 import { toast } from "sonner"
@@ -16,16 +15,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button, type ButtonProps } from "@/components/ui/button"
-import type { api } from "@/convex/_generated/api"
 import { disconnectAccount } from "./actions"
 
 export type DisconnectFormProps = {
-  linkedin: Preloaded<typeof api.linkedin.getState>
   variant?: ButtonProps["variant"]
 }
 
-export const DisconnectForm: React.FC<DisconnectFormProps> = ({ linkedin, variant = "ghost" }) => {
-  const { profile } = usePreloadedQuery(linkedin)
+export const DisconnectForm: React.FC<DisconnectFormProps> = ({ variant = "ghost" }) => {
   const [formState, formAction, formLoading] = useActionState(disconnectAccount, {})
 
   useEffect(() => {
@@ -39,10 +35,6 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({ linkedin, varian
       toast.error(formState.error)
     }
   }, [formLoading, formState?.error])
-
-  if (!profile) {
-    return null
-  }
 
   return (
     <AlertDialog>

@@ -32,7 +32,7 @@ export const RefreshForm: React.FC<RefreshFormProps> = ({ className, variant = "
     <Form action={formAction} className={className}>
       <Button type="submit" disabled={formLoading} className="w-fit" variant={variant}>
         <LuRefreshCcw className={cn("size-4", formLoading && "animate-spin")} />
-        {formLoading ? "Refreshing..." : "Refresh"}
+        {formLoading ? "Refreshing..." : "Refresh Profile"}
       </Button>
     </Form>
   )

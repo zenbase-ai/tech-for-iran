@@ -59,10 +59,11 @@ export default async function LinkedinPage({ searchParams }: LinkedinPageProps) 
 
         <Separator className="my-8" />
 
-        <HStack wrap items="center" justify="start" className="gap-4">
-          <RefreshForm />
-          <DisconnectForm linkedin={linkedin} />
-        </HStack>
+        <RefreshForm />
+
+        <Separator className="my-8" />
+
+        <DisconnectForm />
       </VStack>
     </>
   )

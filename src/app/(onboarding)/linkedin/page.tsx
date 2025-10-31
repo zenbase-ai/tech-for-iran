@@ -3,7 +3,6 @@ import { preloadedQueryResult, preloadQuery } from "convex/nextjs"
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { LuOctagonX } from "react-icons/lu"
-import { Box } from "@/components/layout/box"
 import { Nav } from "@/components/layout/nav"
 import { HStack, VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -40,7 +39,7 @@ export default async function LinkedinPage({ searchParams }: LinkedinPageProps) 
   }
 
   return (
-    <Box className="pt-24">
+    <>
       <Nav className="fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" linkedin={linkedin} />
 
       <VStack as="main" className="px-2 w-screen max-w-[640px] gap-8 mx-auto">
@@ -65,6 +64,6 @@ export default async function LinkedinPage({ searchParams }: LinkedinPageProps) 
           <DisconnectForm linkedin={linkedin} />
         </HStack>
       </VStack>
-    </Box>
+    </>
   )
 }

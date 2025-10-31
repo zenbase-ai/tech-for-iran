@@ -1,9 +1,9 @@
-import { Stack } from "@/components/layout/stack"
+import { Box } from "@/components/layout/box"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <Stack as="main" justify="center" items="center" className="min-h-[60vh] mx-auto">
+    <Box as="main" className="pt-24 mx-auto">
       {children}
-    </Stack>
+    </Box>
   )
 }

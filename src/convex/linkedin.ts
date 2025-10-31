@@ -109,7 +109,7 @@ export const upsertAccount = internalMutation({
     status: v.string(),
   },
   handler: async (ctx, args) => {
-    const account = await getOneFromOrThrow(
+    const account = await getOneFrom(
       ctx.db,
       "linkedinAccounts",
       "byAccount",

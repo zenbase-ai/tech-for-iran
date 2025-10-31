@@ -1,5 +1,6 @@
 import { fetchMutation, fetchQuery } from "convex/nextjs"
 import { DateTime } from "luxon"
+import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { unipile } from "@/convex/helpers/unipile"
@@ -11,6 +12,10 @@ export type LinkedinConnectPageParams = {
     account_id?: string
     inviteCode?: string
   }>
+}
+
+export const metadata: Metadata = {
+  title: "Connecting account...",
 }
 
 export default async function LinkedinConnectPage({ searchParams }: LinkedinConnectPageParams) {

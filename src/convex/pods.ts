@@ -2,6 +2,7 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { customQuery } from "convex-helpers/server/customFunctions"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
+import type { Doc } from "./_generated/dataModel"
 import { query } from "./_generated/server"
 import { podMemberCount, podPostCount } from "./aggregates"
 import { requireAuth } from "./helpers/auth"
@@ -59,6 +60,9 @@ export const get = authQuery({
   },
 })
 
+export type MemberProfile = Pick<Doc<"memberships">, "userId" | "joinedAt"> &
+  Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
+
 export const members = memberQuery({
   args: {
     podId: v.id("pods"),
@@ -70,34 +74,30 @@ export const members = memberQuery({
       .withIndex("byPod", (q) => q.eq("podId", args.podId))
       .paginate(args.paginationOpts)
 
-    const profiles = await pmap(
-      memberships.page,
-      async (membership) => {
-        const profile = await getOneFrom(
-          ctx.db,
-          "linkedinProfiles",
-          "byUserAndAccount",
-          membership.userId,
-          "userId",
-        )
+    const members = await pmap(memberships.page, async ({ userId, joinedAt }) => {
+      const profile = await getOneFrom(
+        ctx.db,
+        "linkedinProfiles",
+        "byUserAndAccount",
+        userId,
+        "userId",
+      )
 
-        if (!profile) {
-          return null
-        }
+      if (!profile) {
+        return null
+      }
 
-        return {
-          userId: membership.userId,
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          picture: profile.picture,
-          url: profile.url,
-          joinedAt: membership.joinedAt,
-        }
-      },
-      { concurrency: 20 },
-    )
+      return {
+        userId,
+        joinedAt,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        picture: profile.picture,
+        url: profile.url,
+      }
+    })
 
-    return { ...memberships, page: profiles.filter(Boolean) }
+    return { ...memberships, page: members.filter((m) => m != null) }
   },
 })
 

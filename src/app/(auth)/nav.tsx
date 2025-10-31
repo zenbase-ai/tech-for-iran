@@ -47,7 +47,7 @@ export const Nav: React.FC<NavProps> = ({ className, ...props }) => {
           </ItemMedia>
           <ItemContent>
             {needsReconnection ? (
-              <Link href={new URL("/linkedin/connect")}>
+              <Link href="/linkedin/connect">
                 <ItemTitle className="text-base text-red-700">Reconnect LinkedIn</ItemTitle>
               </Link>
             ) : (

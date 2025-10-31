@@ -14,7 +14,7 @@ export type LinkedinConnectRouteParams = {
   }>
 }
 
-export default async function GET({ searchParams }: LinkedinConnectRouteParams) {
+export default async function LinkedinConnectPage({ searchParams }: LinkedinConnectRouteParams) {
   const [{ userId, token }, { account_id, error, inviteCode }] = await Promise.all([
     tokenAuth(),
     searchParams,

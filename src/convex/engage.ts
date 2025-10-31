@@ -169,51 +169,49 @@ export const availableAccount = internalQuery({
     // Check each candidate for availability in parallel
     const startOfDay = DateTime.utc().startOf("day").toMillis()
 
-    const availableAccounts = (
-      await pmap(members, async ({ userId }) => {
-        if (excludeUserIds.has(userId)) {
-          return null
-        }
+    const availableAccounts = await pmap(members, async ({ userId }) => {
+      if (excludeUserIds.has(userId)) {
+        return null
+      }
 
-        // Check LinkedIn account health status
-        const account = await getOneFrom(
-          ctx.db,
-          "linkedinAccounts",
-          "byUserAndAccount",
-          userId,
-          "userId",
-        )
+      // Check LinkedIn account health status
+      const account = await getOneFrom(
+        ctx.db,
+        "linkedinAccounts",
+        "byUserAndAccount",
+        userId,
+        "userId",
+      )
 
-        if (!account?.userId || needsReconnection(account.status)) {
-          return null
-        }
+      if (!account?.userId || needsReconnection(account.status)) {
+        return null
+      }
 
-        // Already engaged on this post?
-        const alreadyEngaged = await ctx.db
-          .query("engagements")
-          .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", userId))
-          .first()
+      // Already engaged on this post?
+      const alreadyEngaged = await ctx.db
+        .query("engagements")
+        .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", userId))
+        .first()
 
-        if (alreadyEngaged) {
-          return null
-        }
+      if (alreadyEngaged) {
+        return null
+      }
 
-        // Count today's engagements for this user
-        const engagementsToday = await ctx.db
-          .query("engagements")
-          .withIndex("byUser", (q) => q.eq("userId", userId).gte("_creationTime", startOfDay))
-          .collect()
+      // Count today's engagements for this user
+      const engagementsToday = await ctx.db
+        .query("engagements")
+        .withIndex("byUser", (q) => q.eq("userId", userId).gte("_creationTime", startOfDay))
+        .collect()
 
-        // Return candidate if user hasn't hit their daily limit
-        if (engagementsToday.length >= account.maxActions) {
-          return null
-        }
+      // Return candidate if user hasn't hit their daily limit
+      if (engagementsToday.length >= account.maxActions) {
+        return null
+      }
 
-        return account as DeepRequired<DeepNonNullable<typeof account>>
-      })
-    ).filter(Boolean)
+      return account as DeepRequired<DeepNonNullable<typeof account>>
+    })
 
-    const account = sample(availableAccounts)
+    const account = sample(availableAccounts.filter((a) => a != null))
     if (!account) {
       return null
     }

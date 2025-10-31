@@ -15,16 +15,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { FieldError } from "@/components/ui/field"
+import { Button, type ButtonProps } from "@/components/ui/button"
 import type { api } from "@/convex/_generated/api"
 import { disconnectAccount } from "./actions"
 
 export type DisconnectFormProps = {
   linkedin: Preloaded<typeof api.linkedin.getState>
+  variant?: ButtonProps["variant"]
 }
 
-export const DisconnectForm: React.FC<DisconnectFormProps> = ({ linkedin }) => {
+export const DisconnectForm: React.FC<DisconnectFormProps> = ({ linkedin, variant = "ghost" }) => {
   const { profile } = usePreloadedQuery(linkedin)
   const [formState, formAction, formLoading] = useActionState(disconnectAccount, {})
 
@@ -34,6 +34,12 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({ linkedin }) => {
     }
   }, [formLoading, formState.message])
 
+  useEffect(() => {
+    if (!formLoading && formState?.error) {
+      toast.error(formState.error)
+    }
+  }, [formLoading, formState?.error])
+
   if (!profile) {
     return null
   }
@@ -41,14 +47,12 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({ linkedin }) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" className="w-fit">
+        <Button variant={variant} className="w-fit">
           Disconnect
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <Form action={formAction}>
-          {formState?.error && <FieldError>{formState.error}</FieldError>}
-          <input type="hidden" name="unipileId" value={profile.unipileId} />
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>Your fellow alumni are counting on you!</AlertDialogDescription>

@@ -5,13 +5,14 @@ import { redirect } from "next/navigation"
 import { LuOctagonX } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { Nav } from "@/components/layout/nav"
-import { VStack } from "@/components/layout/stack"
+import { HStack, VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/clerk"
-import { AccountForm } from "./account/form"
+import { ConfigForm } from "./config/form"
 import { DisconnectForm } from "./disconnect/form"
+import { RefreshForm } from "./refresh/form"
 
 export const metadata: Metadata = {
   title: "LinkedIn Settings",
@@ -55,11 +56,14 @@ export default async function LinkedinPage({ searchParams }: LinkedinPageProps) 
 
         <h1 className="text-2xl font-bold mb-2 font-serif italic">LinkedIn Settings</h1>
 
-        <AccountForm linkedin={linkedin} />
+        <ConfigForm linkedin={linkedin} />
 
         <Separator className="my-8" />
 
-        <DisconnectForm linkedin={linkedin} />
+        <HStack wrap items="center" justify="start" className="gap-4">
+          <RefreshForm />
+          <DisconnectForm linkedin={linkedin} />
+        </HStack>
       </VStack>
     </Box>
   )

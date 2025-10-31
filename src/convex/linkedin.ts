@@ -1,9 +1,10 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { omit, pick } from "es-toolkit"
+import { api, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation } from "@/convex/_generated/server"
-import { authMutation, authQuery, update } from "@/convex/helpers/convex"
-import { ConflictError } from "@/convex/helpers/errors"
+import { authAction, authMutation, authQuery, update } from "@/convex/helpers/convex"
+import { ConflictError, NotFoundError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { unipile } from "@/convex/helpers/unipile"
 
@@ -23,6 +24,20 @@ export const getState = authQuery({
       profile,
       needsReconnection: needsReconnection(account?.status),
     }
+  },
+})
+
+export const refreshState = authAction({
+  args: {},
+  handler: async (ctx) => {
+    const { account, needsReconnection } = await ctx.runQuery(api.linkedin.getState, {})
+    if (!account) {
+      throw new NotFoundError()
+    }
+    if (needsReconnection) {
+      throw new ConflictError()
+    }
+    await ctx.runAction(internal.linkedin.refreshProfile, { unipileId: account.unipileId })
   },
 })
 
@@ -67,18 +82,31 @@ export const connectAccount = authMutation({
   },
 })
 
-export const disconnectAccount = authMutation({
+export const disconnectAccount = authAction({
   args: {},
   handler: async (ctx) => {
+    const { userId } = ctx
+    const { account } = await ctx.runMutation(internal.linkedin.deleteAccount, { userId })
+    await ctx.runAction(internal.linkedin.deleteUnipileAccount, { accountId: account.unipileId })
+  },
+})
+
+export const deleteAccount = internalMutation({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
     const [account, profile] = await Promise.all([
-      getOneFromOrThrow(ctx.db, "linkedinAccounts", "byUserAndAccount", ctx.userId, "userId"),
-      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", ctx.userId, "userId"),
+      getOneFromOrThrow(ctx.db, "linkedinAccounts", "byUserAndAccount", args.userId, "userId"),
+      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", args.userId, "userId"),
     ])
 
     await Promise.all([
       ctx.db.delete(account._id),
       profile ? ctx.db.delete(profile._id) : Promise.resolve(),
     ])
+
+    return { account, profile }
   },
 })
 
@@ -117,11 +145,12 @@ export const upsertAccount = internalMutation({
       "unipileId",
     )
 
-    if (account) {
-      return await ctx.db.patch(account._id, update(pick(args, ["status"])))
+    if (!account) {
+      return await ctx.db.insert("linkedinAccounts", update({ ...args, maxActions: 25 }))
     }
 
-    await ctx.db.insert("linkedinAccounts", update({ ...args, maxActions: 25 }))
+    await ctx.db.patch(account._id, update(pick(args, ["status"])))
+    return account._id
   },
 })
 
@@ -159,6 +188,24 @@ export const upsertProfile = internalMutation({
   },
 })
 
+export const refreshProfile = internalAction({
+  args: {
+    unipileId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const data = await ctx.runAction(internal.linkedin.getUnipileAccount, {
+      accountId: args.unipileId,
+    })
+    await ctx.runMutation(internal.linkedin.upsertProfile, {
+      unipileId: args.unipileId,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      picture: data.profile_picture_url,
+      url: data.public_profile_url,
+    })
+  },
+})
+
 // ============================================================================
 // Internal Actions (API Calls)
 // ============================================================================
@@ -178,4 +225,12 @@ export const getUnipileAccount = internalAction({
       "GET",
       `/api/v1/users/me?account_id=${encodeURIComponent(args.accountId)}`,
     ),
+})
+
+export const deleteUnipileAccount = internalAction({
+  args: {
+    accountId: v.string(),
+  },
+  handler: async (_ctx, args) =>
+    await unipile<void>("DELETE", `/api/v1/accounts/${args.accountId}`),
 })

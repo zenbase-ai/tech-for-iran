@@ -31,17 +31,7 @@ http.route({
         })
 
         if (message === "SYNC_SUCCESS") {
-          const profile = await ctx.runAction(internal.linkedin.getUnipileAccount, {
-            accountId: account_id,
-          })
-
-          await ctx.runMutation(internal.linkedin.upsertProfile, {
-            unipileId: account_id,
-            firstName: profile.first_name,
-            lastName: profile.last_name,
-            picture: profile.profile_picture_url,
-            url: profile.public_profile_url,
-          })
+          await ctx.runAction(internal.linkedin.refreshProfile, { unipileId: account_id })
         }
 
         return Response.json({ success: true }, { status: 200 })

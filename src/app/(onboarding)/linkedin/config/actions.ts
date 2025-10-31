@@ -5,18 +5,18 @@ import * as z from "zod"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/clerk"
 import { errorMessage } from "@/lib/utils"
-import { AccountUpdateSchema } from "./schema"
+import { ConfigSchema } from "./schema"
 
-export type UpdateAccountState = {
+export type UpdateConfigState = {
   message?: string
   error?: string
 }
 
-export const updateAccount = async (
-  _prevState: UpdateAccountState,
+export const updateConfig = async (
+  _prevState: UpdateConfigState,
   formData: FormData,
-): Promise<UpdateAccountState> => {
-  const { data, success, error } = AccountUpdateSchema.safeParse(Object.fromEntries(formData))
+): Promise<UpdateConfigState> => {
+  const { data, success, error } = ConfigSchema.safeParse(Object.fromEntries(formData))
   if (!success) {
     return { error: z.prettifyError(error) }
   }

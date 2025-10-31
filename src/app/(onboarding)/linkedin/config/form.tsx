@@ -9,16 +9,16 @@ import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/fie
 import { Input } from "@/components/ui/input"
 import { Loading } from "@/components/ui/loading"
 import type { api } from "@/convex/_generated/api"
-import { updateAccount } from "./actions"
+import { updateConfig } from "./actions"
 import { maxActions } from "./schema"
 
-export type AccountFormProps = {
+export type ConfigFormProps = {
   linkedin: Preloaded<typeof api.linkedin.getState>
 }
 
-export const AccountForm: React.FC<AccountFormProps> = ({ linkedin }) => {
+export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin }) => {
   const { account } = usePreloadedQuery(linkedin)
-  const [formState, formAction, formLoading] = useActionState(updateAccount, {})
+  const [formState, formAction, formLoading] = useActionState(updateConfig, {})
 
   useEffect(() => {
     if (!formLoading && formState.message) {

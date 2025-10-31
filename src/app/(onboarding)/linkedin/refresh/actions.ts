@@ -5,19 +5,19 @@ import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/clerk"
 import { errorMessage } from "@/lib/utils"
 
-export type DisconnectAccountState = {
+export type RefreshAccountState = {
   message?: string
   error?: string
 }
 
-export const disconnectAccount = async (
-  _prevState: DisconnectAccountState,
+export const refreshAccount = async (
+  _prevState: RefreshAccountState,
   _formData: FormData,
-): Promise<DisconnectAccountState> => {
+): Promise<RefreshAccountState> => {
   try {
     const { token } = await tokenAuth()
-    await fetchAction(api.linkedin.disconnectAccount, {}, { token })
-    return { message: "Your LinkedIn account has been disconnected." }
+    await fetchAction(api.linkedin.refreshState, {}, { token })
+    return { message: "Your profile has been refreshed." }
   } catch (error: unknown) {
     return { error: errorMessage(error) }
   }

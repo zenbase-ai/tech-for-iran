@@ -7,7 +7,7 @@ export const env = createEnv({
     CLERK_JWT_ISSUER_DOMAIN: z.url(),
     CLERK_SECRET_KEY: z.string().min(1),
     CONVEX_DEPLOYMENT: z.string().min(1),
-    NODE_ENV: z.enum(["development", "production"]),
+    NODE_ENV: z.enum(["development", "production"]).default("development"),
     UNIPILE_API_KEY: z.string().min(1),
     UNIPILE_API_URL: z.url(),
   },

@@ -111,7 +111,7 @@ export const ItemContent: React.FC<React.ComponentProps<"div">> = ({ className, 
 export const ItemTitle: React.FC<React.ComponentProps<"div">> = ({ className, ...props }) => (
   <div
     data-slot="item-title"
-    className={cn("flex w-fit items-center gap-2 text-sm leading-snug font-medium", className)}
+    className={cn("flex w-fit items-center gap-2 text-base leading-snug font-medium", className)}
     {...props}
   />
 )

@@ -1,14 +1,10 @@
 import type { Metadata } from "next"
-import PodsClientPage, { type PodsClientPageParams } from "./page.client"
+import PodsClientPage from "./page.client"
 
 export const metadata: Metadata = {
   title: "Pods | Crackedbook",
 }
 
-export type PodsPageParams = {
-  searchParams: Promise<PodsClientPageParams["searchParams"]>
-}
-
-export default async function PodsPage({ searchParams }: PodsPageParams) {
-  return <PodsClientPage searchParams={await searchParams} />
+export default function PodsPage() {
+  return <PodsClientPage />
 }

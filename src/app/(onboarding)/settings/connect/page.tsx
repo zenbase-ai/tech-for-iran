@@ -38,10 +38,12 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   if (inviteCode) {
     const pod = await fetchMutation(api.pods.join, { inviteCode }, { token })
     if (!pod) {
-      return redirect(`/pods?error=${encodeURIComponent("Invalid invite code.")}`)
+      const flash = "Invalid invite code."
+      return redirect(`/pods?error=${encodeURIComponent(flash)}`)
     }
 
-    return redirect(`/pods?joinedPod=${encodeURIComponent(pod.name)}`, RedirectType.push)
+    const flash = `Joined ${pod.name}!`
+    return redirect(`/pods?success=${encodeURIComponent(flash)}`, RedirectType.push)
   }
 
   return redirect("/pods", RedirectType.push)
@@ -55,7 +57,11 @@ const generateHostedAuthLink = async (userId: string, inviteCode?: string) => {
     successRedirectURL.searchParams.set("inviteCode", inviteCode)
   }
 
-  const failureRedirectURL = new URL("/settings?connectionError=true", env.APP_URL)
+  const failureRedirectURL = new URL("/settings", env.APP_URL)
+  failureRedirectURL.searchParams.set(
+    "error",
+    "Something went wrong while connecting your LinkedIn account. Please try again.",
+  )
   const notifyURL = new URL("/webhooks/unipile", env.APP_URL)
 
   const { url } = await unipile<{ url: string }>("POST", "/api/v1/hosted/accounts/link", {

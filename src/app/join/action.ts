@@ -29,5 +29,6 @@ export const joinPod = async (
     return { error: "Invalid invite code." }
   }
 
-  return redirect(`/pods?joinedPod=${encodeURIComponent(pod.name)}`)
+  const flash = `Joined ${pod.name}!`
+  return redirect(`/pods?success=${encodeURIComponent(flash)}`)
 }

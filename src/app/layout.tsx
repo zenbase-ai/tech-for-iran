@@ -1,7 +1,9 @@
 import type { Viewport } from "next"
+import { Suspense } from "react"
 import "./globals.css"
 import { crimsonPro, inter } from "@/components/assets/fonts"
 import { Container } from "@/components/layout/container"
+import { Flash } from "@/components/layout/flash"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeToggler } from "@/components/ui/theme-toggler"
@@ -27,6 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={cn("antialiased w-screen min-h-screen", inter.variable, crimsonPro.variable)}
       >
         <Providers>
+          <Suspense fallback={null}>
+            <Flash />
+          </Suspense>
           <Container className="my-8 md:my-10 lg:my-12">{children}</Container>
           <Toaster position="top-right" />
           <ThemeToggler className="fixed bottom-4 right-4" duration={0.3} />

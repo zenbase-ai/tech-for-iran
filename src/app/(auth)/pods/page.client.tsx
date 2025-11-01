@@ -3,41 +3,20 @@
 import { useAuth } from "@clerk/nextjs"
 import { usePaginatedQuery } from "convex/react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { useEffect } from "react"
-import { LuOctagonX, LuUsers } from "react-icons/lu"
-import { toast } from "sonner"
+import { LuUsers } from "react-icons/lu"
 import { JoinPodForm } from "@/app/join/form"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 
-export type PodsClientPageParams = {
-  searchParams: {
-    error?: string
-    joinedPod?: string
-  }
-}
-
-export default function PodsClientPage({ searchParams }: PodsClientPageParams) {
-  useEffect(() => {
-    if (searchParams.joinedPod) {
-      toast.success(`Successfully joined ${searchParams.joinedPod}!`)
-    }
-  }, [searchParams.joinedPod])
-
-  useEffect(() => {
-    if (searchParams.error) {
-      toast.error(searchParams.error)
-    }
-  }, [searchParams.error])
-
+export default function PodsClientPage() {
   const auth = useAuth()
-  const pods = usePaginatedQuery(api.user.pods, auth.isSignedIn ? {} : "skip", { initialNumItems: 5 })
+  const pods = usePaginatedQuery(api.user.pods, auth.isSignedIn ? {} : "skip", {
+    initialNumItems: 5,
+  })
 
   // Show loading state while user or pods are loading
   if (!auth.isLoaded || !pods || pods.isLoading) {

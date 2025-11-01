@@ -15,7 +15,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const linkedin = await preloadQuery(api.linkedin.getState, {}, { token })
   const { needsReconnection } = preloadedQueryResult(linkedin)
   if (needsReconnection) {
-    return redirect("/linkedin/connect")
+    return redirect("/settings/connect")
   }
 
   return (

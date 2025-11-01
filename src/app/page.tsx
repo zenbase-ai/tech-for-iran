@@ -1,29 +1,21 @@
 import { auth } from "@clerk/nextjs/server"
-import { Box } from "@/components/layout/box"
-import { Hero } from "@/components/marketing/hero"
-import { Highlighter } from "@/components/ui/highlighter"
+import { HeroCTA, HeroSection, HeroTitle } from "@/components/marketing/hero"
+import { CTALinkButton } from "@/components/ui/cta-link-button"
+import { JoinPodForm } from "./join/form"
 
 export default async function HomePage() {
   const { isAuthenticated } = await auth()
 
-  const lede = isAuthenticated
-    ? ""
-    : "Join a pod, boost each other's posts, and amplify your reach."
-  const ctas: Record<string, string> = isAuthenticated
-    ? { Dashboard: "/pods" }
-    : { "Sign Up": "/sign-up", "Sign In": "/sign-in" }
-
   return (
-    <Box as="main" className="mt-[24vh]">
-      <Hero
-        title={
-          <em>
-            <Highlighter action="underline">Cracked</Highlighter>book.
-          </em>
-        }
-        lede={lede}
-        ctas={ctas}
-      />
-    </Box>
+    <HeroSection as="main" className="mt-[24vh]">
+      <HeroTitle className="italic">Crackedbook.</HeroTitle>
+      {!isAuthenticated ? (
+        <JoinPodForm />
+      ) : (
+        <HeroCTA>
+          <CTALinkButton href="/pods">Dashboard</CTALinkButton>
+        </HeroCTA>
+      )}
+    </HeroSection>
   )
 }

@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { LuOctagonX } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { env } from "@/lib/env.mjs"
 
 const errorMessages = {
   unauthenticated: {
@@ -28,9 +29,15 @@ export type SignInPageProps = {
 
 export default async function SignInPage({ params }: SignInPageProps) {
   const { inviteCode, error } = await params
-  const redirecetURL = inviteCode
-    ? `/linkedin/connect?inviteCode=${inviteCode}`
-    : "/linkedin/connect"
+
+  const redirectURL = new URL("/settings/connect", env.APP_URL)
+  const signUpURL = new URL("/sign-up", env.APP_URL)
+  if (inviteCode) {
+    redirectURL.searchParams.set("inviteCode", inviteCode)
+  }
+  if (inviteCode) {
+    signUpURL.searchParams.set("inviteCode", inviteCode)
+  }
 
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh] gap-4">
@@ -42,7 +49,7 @@ export default async function SignInPage({ params }: SignInPageProps) {
         </Alert>
       )}
 
-      <SignIn forceRedirectUrl={redirecetURL} signUpUrl="/sign-up" />
+      <SignIn forceRedirectUrl={redirectURL.toString()} signUpUrl={signUpURL.toString()} />
     </VStack>
   )
 }

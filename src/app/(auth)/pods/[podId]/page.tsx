@@ -32,7 +32,7 @@ export default async function PodPage({ params }: PodPageProps) {
   ])
 
   return (
-    <VStack className="px-2 w-screen max-w-[640px] gap-8 mx-auto">
+    <VStack className="px-2 w-full max-w-[640px] gap-8 mx-auto">
       {/* Pod Header */}
       <Box>
         <h1 className="text-2xl font-bold mb-2 font-serif italic">{pod.name}</h1>

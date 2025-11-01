@@ -2,6 +2,7 @@
 
 import Form from "next/form"
 import { useActionState, useEffect } from "react"
+import { LuUnplug } from "react-icons/lu"
 import { toast } from "sonner"
 import {
   AlertDialog,
@@ -41,6 +42,7 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({ variant = "ghost
       <AlertDialogTrigger asChild>
         <Button variant={variant} className="w-fit">
           Disconnect
+          <LuUnplug className="size-4" />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

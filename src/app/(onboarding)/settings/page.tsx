@@ -1,11 +1,12 @@
-import { RedirectToSignIn } from "@clerk/nextjs"
+import { RedirectToSignIn, SignOutButton } from "@clerk/nextjs"
 import { preloadedQueryResult, preloadQuery } from "convex/nextjs"
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
-import { LuOctagonX } from "react-icons/lu"
+import {  LuOctagonX } from "react-icons/lu"
 import { Nav } from "@/components/layout/nav"
 import { HStack, VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/clerk"
@@ -35,14 +36,14 @@ export default async function LinkedinPage({ searchParams }: LinkedinPageProps) 
   const linkedin = await preloadQuery(api.linkedin.getState, {}, { token })
   const { needsReconnection } = preloadedQueryResult(linkedin)
   if (needsReconnection) {
-    return redirect("/linkedin/connect")
+    return redirect("/settings/connect")
   }
 
   return (
     <>
       <Nav className="fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" linkedin={linkedin} />
 
-      <VStack as="main" className="px-2 w-screen max-w-[640px] gap-8 mx-auto">
+      <VStack as="main" className="px-2 w-full max-w-[640px] gap-8 mx-auto">
         {connectionError && (
           <Alert variant="destructive">
             <LuOctagonX className="size-4" />
@@ -53,17 +54,23 @@ export default async function LinkedinPage({ searchParams }: LinkedinPageProps) 
           </Alert>
         )}
 
-        <h1 className="text-2xl font-bold mb-2 font-serif italic">LinkedIn Settings</h1>
+        <HStack wrap items="center" justify="between">
+          <h1 className="text-2xl font-bold mb-2 font-serif italic">Settings</h1>
+
+          <SignOutButton>
+            <Button variant="ghost">Sign out</Button>
+          </SignOutButton>
+        </HStack>
 
         <ConfigForm linkedin={linkedin} />
 
-        <Separator className="my-8" />
+        <Separator className="my-3" />
 
-        <RefreshForm />
+        <HStack wrap items="center" justify="between">
+          <RefreshForm />
 
-        <Separator className="my-8" />
-
-        <DisconnectForm />
+          <DisconnectForm />
+        </HStack>
       </VStack>
     </>
   )

@@ -36,7 +36,8 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   }
 
   if (inviteCode) {
-    return redirect(`/join/${inviteCode}`, RedirectType.push)
+    const pod = await fetchMutation(api.pods.join, { inviteCode }, { token })
+    return redirect(`/pods?joinedPod=${encodeURIComponent(pod.name)}`, RedirectType.push)
   }
 
   return redirect("/pods", RedirectType.push)
@@ -45,12 +46,12 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
 const generateHostedAuthLink = async (userId: string, inviteCode?: string) => {
   const expiresOn = DateTime.utc().plus({ minutes: 10 }).toISO()
 
-  const successRedirectURL = new URL("/linkedin/connect", env.APP_URL)
+  const successRedirectURL = new URL("/settings/connect", env.APP_URL)
   if (inviteCode) {
     successRedirectURL.searchParams.set("inviteCode", inviteCode)
   }
 
-  const failureRedirectURL = new URL("/linkedin?connectionError=true", env.APP_URL)
+  const failureRedirectURL = new URL("/settings?connectionError=true", env.APP_URL)
   const notifyURL = new URL("/webhooks/unipile", env.APP_URL)
 
   const { url } = await unipile<{ url: string }>("POST", "/api/v1/hosted/accounts/link", {

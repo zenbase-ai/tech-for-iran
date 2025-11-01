@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation"
 import { useEffect } from "react"
 import { LuOctagonX, LuUsers } from "react-icons/lu"
 import { toast } from "sonner"
-import { JoinPodForm } from "@/app/(auth)/join/form"
+import { JoinPodForm } from "@/app/join/form"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -38,7 +38,7 @@ export default function PodsClientPage() {
   }
 
   return (
-    <VStack className="px-2 w-screen max-w-[640px] gap-8 mx-auto">
+    <VStack className="px-2 w-full max-w-[640px] gap-8 mx-auto">
       {/* Show error alert if invalid invite code */}
       {error === "invalid_invite" && (
         <Alert variant="destructive">

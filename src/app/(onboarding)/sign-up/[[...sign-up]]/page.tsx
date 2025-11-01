@@ -16,7 +16,7 @@ export default async function SignUpPage({ params }: SignUpPageProps) {
   const { inviteCode } = await params
   const redirectURL = inviteCode
     ? `/linkedin/connect?inviteCode=${inviteCode}`
-    : "/linkedin/connect"
+    : "/settings/connect"
 
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh]">

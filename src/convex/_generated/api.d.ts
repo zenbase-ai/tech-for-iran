@@ -10,7 +10,9 @@
 
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
+import type * as clerk from "../clerk.js";
 import type * as helpers_auth from "../helpers/auth.js";
+import type * as helpers_clerk from "../helpers/clerk.js";
 import type * as helpers_collections from "../helpers/collections.js";
 import type * as helpers_convex from "../helpers/convex.js";
 import type * as helpers_errors from "../helpers/errors.js";
@@ -40,7 +42,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   aggregates: typeof aggregates;
   auth: typeof auth;
+  clerk: typeof clerk;
   "helpers/auth": typeof helpers_auth;
+  "helpers/clerk": typeof helpers_clerk;
   "helpers/collections": typeof helpers_collections;
   "helpers/convex": typeof helpers_convex;
   "helpers/errors": typeof helpers_errors;

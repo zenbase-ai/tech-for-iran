@@ -83,7 +83,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ className, children, .
     {...props}
   >
     <aside>
-      <LuGem className="size-42 stroke-[1px]" />
+      <LuGem className="size-32 stroke-[1px]" />
     </aside>
     <VStack className="gap-4 items-center lg:items-start">{children}</VStack>
   </HStack>

@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { customQuery } from "convex-helpers/server/customFunctions"
-import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
+import { getOneFrom } from "convex-helpers/server/relationships"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
 import { podMemberCount, podPostCount } from "@/convex/aggregates"
@@ -34,15 +34,6 @@ const memberQuery = customQuery(query, {
 // ============================================================================
 // Queries
 // ============================================================================
-
-export const lookup = authQuery({
-  args: {
-    inviteCode: v.string(),
-  },
-  handler: async (ctx, args) =>
-    await getOneFromOrThrow(ctx.db, "pods", "byInviteCode", args.inviteCode, "inviteCode"),
-})
-
 export const get = authQuery({
   args: {
     podId: v.id("pods"),
@@ -160,31 +151,35 @@ export const create = authMutation({
 
 export const join = authMutation({
   args: {
-    podId: v.id("pods"),
+    inviteCode: v.string(),
   },
   handler: async (ctx, args) => {
-    const { userId } = ctx
-    const { podId } = args
+    const pod = await getOneFrom(ctx.db, "pods", "byInviteCode", args.inviteCode, "inviteCode")
+    if (!pod) {
+      return null
+    }
 
     // Check if already a member
-    const existing = await ctx.db
+    let membership = await ctx.db
       .query("memberships")
-      .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", podId))
+      .withIndex("byUserAndPod", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
       .first()
 
-    if (existing) {
-      return existing._id
+    if (membership) {
+      return pod
     }
 
     // Add to pod
-    const membershipId = await ctx.db.insert("memberships", { userId, podId })
+    const membershipId = await ctx.db.insert("memberships", { userId: ctx.userId, podId: pod._id })
 
     // Update aggregate
-    const membership = await ctx.db.get(membershipId)
-    if (membership) {
-      await podMemberCount.insert(ctx, membership)
+    membership = await ctx.db.get(membershipId)
+    if (!membership) {
+      throw new NotFoundError()
     }
 
-    return membershipId
+    await podMemberCount.insert(ctx, membership)
+
+    return pod
   },
 })

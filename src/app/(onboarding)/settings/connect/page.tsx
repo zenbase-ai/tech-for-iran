@@ -4,8 +4,8 @@ import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { unipile } from "@/convex/helpers/unipile"
-import { tokenAuth } from "@/lib/clerk"
 import { env } from "@/lib/env.mjs"
+import { tokenAuth } from "@/lib/server/clerk"
 
 export type LinkedinConnectPageParams = {
   searchParams: Promise<{

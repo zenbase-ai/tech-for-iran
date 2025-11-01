@@ -1,13 +1,10 @@
-import { RedirectToSignIn, SignOutButton } from "@clerk/nextjs"
-import { preloadedQueryResult, preloadQuery } from "convex/nextjs"
+import { SignOutButton } from "@clerk/nextjs"
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
 import { Nav } from "@/components/layout/nav"
 import { HStack, VStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { api } from "@/convex/_generated/api"
-import { tokenAuth } from "@/lib/clerk"
+import { linkedinState } from "@/lib/server/linkedin"
 import { ConfigForm } from "./config/form"
 import { DisconnectForm } from "./disconnect/form"
 import { RefreshForm } from "./refresh/form"
@@ -17,16 +14,7 @@ export const metadata: Metadata = {
 }
 
 export default async function LinkedinPage() {
-  const { isAuthenticated, token } = await tokenAuth()
-  if (!isAuthenticated) {
-    return <RedirectToSignIn />
-  }
-
-  const linkedin = await preloadQuery(api.linkedin.getState, {}, { token })
-  const { needsReconnection } = preloadedQueryResult(linkedin)
-  if (needsReconnection) {
-    return redirect("/settings/connect")
-  }
+  const linkedin = await linkedinState()
 
   return (
     <>

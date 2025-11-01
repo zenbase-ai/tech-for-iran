@@ -66,7 +66,7 @@ export const perform = workflow.define({
 
     // Send reactions with delays (schedule each step after a per-iteration jitter)
     for (let i = 0; i < args.targetCount; i++) {
-      // Random delay between minDelayMs and maxDelayMs (randomInt uses exclusive upper bound)
+      // Random delay between minDelay and maxDelay (randomInt uses exclusive upper bound)
       const delayMs = randomInt(args.minDelay, args.maxDelay + 1) * 1000
 
       // Choose a random reaction type from the allowed types

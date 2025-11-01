@@ -201,7 +201,7 @@ export const refreshProfile = internalAction({
       firstName: data.first_name,
       lastName: data.last_name,
       picture: data.profile_picture_url,
-      url: data.public_profile_url,
+      url: data.public_profile_url || `https://www.linkedin.com/in/${data.public_identifier}`,
     })
   },
 })
@@ -214,6 +214,7 @@ export type GetUnipileAccountResult = {
   last_name: string
   profile_picture_url: string
   public_profile_url: string
+  public_identifier: string
 }
 
 export const getUnipileAccount = internalAction({

@@ -2,7 +2,7 @@
 
 import { fetchAction } from "convex/nextjs"
 import { api } from "@/convex/_generated/api"
-import { tokenAuth } from "@/lib/clerk"
+import { tokenAuth } from "@/lib/server/clerk"
 import { errorMessage } from "@/lib/utils"
 
 export type RefreshAccountState = {

@@ -30,14 +30,10 @@ export type SignInPageProps = {
 export default async function SignInPage({ params }: SignInPageProps) {
   const { inviteCode, error } = await params
 
-  const redirectURL = new URL("/settings/connect", env.APP_URL)
-  const signUpURL = new URL("/sign-up", env.APP_URL)
-  if (inviteCode) {
-    redirectURL.searchParams.set("inviteCode", inviteCode)
-  }
-  if (inviteCode) {
-    signUpURL.searchParams.set("inviteCode", inviteCode)
-  }
+  const redirectURL = inviteCode
+    ? `/linkedin/connect?inviteCode=${inviteCode}`
+    : "/settings/connect"
+  const signUpURL = inviteCode ? `/sign-in?inviteCode=${inviteCode}` : "/sign-in"
 
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh] gap-4">
@@ -49,7 +45,7 @@ export default async function SignInPage({ params }: SignInPageProps) {
         </Alert>
       )}
 
-      <SignIn forceRedirectUrl={redirectURL.toString()} signUpUrl={signUpURL.toString()} />
+      <SignIn forceRedirectUrl={redirectURL} signUpUrl={signUpURL} />
     </VStack>
   )
 }

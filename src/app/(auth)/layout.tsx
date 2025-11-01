@@ -1,22 +1,9 @@
-import { RedirectToSignIn } from "@clerk/nextjs"
-import { preloadedQueryResult, preloadQuery } from "convex/nextjs"
-import { redirect } from "next/navigation"
 import { Box } from "@/components/layout/box"
 import { Nav } from "@/components/layout/nav"
-import { api } from "@/convex/_generated/api"
-import { tokenAuth } from "@/lib/clerk"
+import { linkedinState } from "@/lib/server/linkedin"
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, token } = await tokenAuth()
-  if (!isAuthenticated) {
-    return <RedirectToSignIn />
-  }
-
-  const linkedin = await preloadQuery(api.linkedin.getState, {}, { token })
-  const { needsReconnection } = preloadedQueryResult(linkedin)
-  if (needsReconnection) {
-    return redirect("/settings/connect")
-  }
+  const linkedin = await linkedinState()
 
   return (
     <Box className="pt-24">

@@ -3,7 +3,7 @@
 import { fetchMutation } from "convex/nextjs"
 import { redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
-import { tokenAuth } from "@/lib/clerk"
+import { tokenAuth } from "@/lib/server/clerk"
 import { JoinPodSchema } from "./schema"
 
 export type JoinPodState = {

@@ -4,7 +4,7 @@ import { fetchMutation, fetchQuery } from "convex/nextjs"
 import * as z from "zod"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { tokenAuth } from "@/lib/clerk"
+import { tokenAuth } from "@/lib/server/clerk"
 import { errorMessage } from "@/lib/utils"
 import { SubmitPostSchema } from "./schema"
 

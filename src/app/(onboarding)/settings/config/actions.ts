@@ -3,7 +3,7 @@
 import { fetchMutation } from "convex/nextjs"
 import * as z from "zod"
 import { api } from "@/convex/_generated/api"
-import { tokenAuth } from "@/lib/clerk"
+import { tokenAuth } from "@/lib/server/clerk"
 import { errorMessage } from "@/lib/utils"
 import { ConfigSchema } from "./schema"
 

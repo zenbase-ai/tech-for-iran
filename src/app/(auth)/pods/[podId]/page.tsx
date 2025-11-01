@@ -6,7 +6,7 @@ import { VStack } from "@/components/layout/stack"
 import { Separator } from "@/components/ui/separator"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { tokenAuth } from "@/lib/clerk"
+import { tokenAuth } from "@/lib/server/clerk"
 import { Members } from "./members"
 import { PostForm } from "./post/form"
 

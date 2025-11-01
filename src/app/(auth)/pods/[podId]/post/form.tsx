@@ -14,7 +14,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
   Field,
   FieldDescription,
-  FieldError,
   FieldGroup,
   FieldLabel,
   FieldLegend,
@@ -50,6 +49,12 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
     }
   }, [formState?.message, formLoading])
 
+  useEffect(() => {
+    if (!formLoading && formState?.error) {
+      toast.error(formState.error)
+    }
+  }, [formState?.error, formLoading])
+
   // Track selected reaction types for form submission
   const [selectedReactions, setSelectedReactions] =
     useState<LinkedInReactionType[]>(DEFAULT_REACTIONS)
@@ -70,9 +75,6 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
 
   return (
     <Form action={formAction} className="flex flex-col items-center gap-4">
-      {/* Form-level Error */}
-      {formState?.error && <FieldError>{formState.error}</FieldError>}
-
       <input type="hidden" name="podId" value={podId} />
 
       {/* Post URL Input */}

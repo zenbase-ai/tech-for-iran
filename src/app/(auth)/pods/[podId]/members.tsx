@@ -18,9 +18,9 @@ import {
   ItemTitle,
 } from "@/components/ui/item"
 import { Loading } from "@/components/ui/loading"
+import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { Skeleton } from "@/components/ui/skeleton"
 
 export type PodMembersProps = {
   podId: Id<"pods">

@@ -1,7 +1,8 @@
 "use client"
 
-import { usePaginatedQuery } from "convex/react"
+import { usePaginatedQuery, useQuery } from "convex/react"
 import Link from "next/link"
+import plur from "plur"
 import { LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
@@ -19,12 +20,14 @@ import {
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export type PodMembersProps = {
   podId: Id<"pods">
 }
 
 export const Members: React.FC<PodMembersProps> = ({ podId }) => {
+  const stats = useQuery(api.pods.stats, { podId })
   const members = usePaginatedQuery(api.pods.members, { podId }, { initialNumItems: 12 })
 
   // Loading state
@@ -48,6 +51,14 @@ export const Members: React.FC<PodMembersProps> = ({ podId }) => {
 
   return (
     <VStack items="center" className="gap-3">
+      {stats ? (
+        <h2 className="text-lg font-semibold">
+          {stats.memberCount} {plur("member", stats.memberCount)}
+        </h2>
+      ) : (
+        <Skeleton className="w-24 h-9" />
+      )}
+
       <Box className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
         <ItemGroup className="contents">
           {members.results.map((member) => (

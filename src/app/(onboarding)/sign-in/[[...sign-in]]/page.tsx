@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { LuOctagonX } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { env } from "@/lib/env.mjs"
 
 const errorMessages = {
   unauthenticated: {

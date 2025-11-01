@@ -16,21 +16,28 @@ import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/comp
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 
-export default function PodsClientPage() {
-  const auth = useAuth()
-  const isSignedIn = auth.isLoaded && auth.isSignedIn
+export type PodsClientPageParams = {
+  searchParams: {
+    error?: string
+    joinedPod?: string
+  }
+}
 
-  const searchParams = useSearchParams()
-  const error = searchParams.get("error")
-  const joinedPod = searchParams.get("joinedPod")
-  // Show success toast when user successfully joins a pod
+export default function PodsClientPage({ searchParams }: PodsClientPageParams) {
   useEffect(() => {
-    if (joinedPod) {
-      toast.success(`Successfully joined ${joinedPod}!`)
+    if (searchParams.joinedPod) {
+      toast.success(`Successfully joined ${searchParams.joinedPod}!`)
     }
-  }, [joinedPod])
+  }, [searchParams.joinedPod])
 
-  const pods = usePaginatedQuery(api.user.pods, isSignedIn ? {} : "skip", { initialNumItems: 5 })
+  useEffect(() => {
+    if (searchParams.error) {
+      toast.error(searchParams.error)
+    }
+  }, [searchParams.error])
+
+  const auth = useAuth()
+  const pods = usePaginatedQuery(api.user.pods, auth.isSignedIn ? {} : "skip", { initialNumItems: 5 })
 
   // Show loading state while user or pods are loading
   if (!auth.isLoaded || !pods || pods.isLoading) {
@@ -39,18 +46,6 @@ export default function PodsClientPage() {
 
   return (
     <VStack className="px-2 w-full max-w-[640px] gap-8 mx-auto">
-      {/* Show error alert if invalid invite code */}
-      {error === "invalid_invite" && (
-        <Alert variant="destructive">
-          <LuOctagonX className="size-4" />
-          <AlertTitle>Invalid Invite Code</AlertTitle>
-          <AlertDescription>
-            The invite link you followed is invalid or has expired. Please request a new invite
-            link.
-          </AlertDescription>
-        </Alert>
-      )}
-
       <Box>
         <h1 className="text-2xl font-bold mb-2 font-serif italic">Engagement Pods</h1>
         <p className="text-muted-foreground">

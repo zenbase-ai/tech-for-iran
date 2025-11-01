@@ -55,23 +55,21 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
     }
   }, [formState?.error, formLoading])
 
-  // Track selected reaction types for form submission
+  const { value: showOptions, setValue: setShowOptions } = useBoolean(false)
   const [selectedReactions, setSelectedReactions] =
     useState<LinkedInReactionType[]>(DEFAULT_REACTIONS)
-
-  // Fetch pod members to calculate intelligent defaults
-  const pod = useQuery(api.pods.get, { podId })
-  const defaultTargetCount = Math.min(25, pod?.memberCount ?? 0)
 
   const handleReactionChange = useEffectEvent((value: LinkedInReactionType, checked: boolean) => {
     setSelectedReactions((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)))
   })
 
-  const { value: showOptions, setValue: setShowOptions } = useBoolean(false)
-
+  const pod = useQuery(api.pods.get, { podId })
   if (!pod) {
     return <Loading />
   }
+
+  const maxTargetCount = Math.min(pod.memberCount - 1, targetCount.max)
+  const defaultTargetCount = Math.min(25, maxTargetCount)
 
   return (
     <Form action={formAction} className="flex flex-col items-center gap-4">
@@ -129,11 +127,11 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
               name="targetCount"
               type="number"
               min={targetCount.min}
-              max={targetCount.max}
+              max={maxTargetCount}
               defaultValue={defaultTargetCount}
             />
             <FieldDescription>
-              Default: {defaultTargetCount}, Max: {pod?.memberCount}
+              Default: {defaultTargetCount}, Max: {maxTargetCount}
             </FieldDescription>
           </Field>
 

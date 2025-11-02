@@ -18,25 +18,23 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { LINKEDIN_REACTION_TYPES, type LinkedInReactionType } from "@/convex/helpers/linkedin"
 import { useActionToastState } from "@/hooks/use-action-state-toasts"
 import { cn } from "@/lib/utils"
 import { submitPost } from "./actions"
-import { maxDelay, minDelay, targetCount } from "./schema"
+import { type LinkedInReactionType, maxDelay, minDelay, reactionTypes, targetCount } from "./schema"
 
-export type PostFormProps = {
+export type SubmitPostFormProps = {
   podId: Id<"pods">
   className?: string
 }
 
-const DEFAULT_REACTIONS: LinkedInReactionType[] = ["like", "celebrate", "love", "insightful"]
-
-export const PostForm: React.FC<PostFormProps> = ({ podId, className }) => {
+export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
   const [formState, formAction, formLoading] = useActionState(submitPost, {})
   useActionToastState(formState, formLoading)
 
-  const [selectedReactions, setSelectedReactions] =
-    useState<LinkedInReactionType[]>(DEFAULT_REACTIONS)
+  const [selectedReactions, setSelectedReactions] = useState<LinkedInReactionType[]>(
+    reactionTypes.default,
+  )
 
   const handleReactionChange = useEffectEvent((value: LinkedInReactionType, checked: boolean) => {
     setSelectedReactions((prev) => (checked ? [...prev, value] : prev.filter((v) => v !== value)))
@@ -78,7 +76,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId, className }) => {
       <FieldSet className="w-full">
         <FieldLegend variant="label">Reaction types</FieldLegend>
         <FieldGroup className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {LINKEDIN_REACTION_TYPES.map((reaction) => (
+          {reactionTypes.options.map((reaction) => (
             <Field key={reaction} orientation="horizontal">
               <Checkbox
                 id={`reaction-${reaction}`}
@@ -121,7 +119,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId, className }) => {
             type="number"
             min={minDelay.min}
             max={minDelay.max}
-            defaultValue={5}
+            defaultValue={minDelay.default}
           />
         </Field>
         <Field>
@@ -132,7 +130,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId, className }) => {
             type="number"
             min={maxDelay.min}
             max={maxDelay.max}
-            defaultValue={15}
+            defaultValue={maxDelay.default}
           />
         </Field>
       </FieldGroup>

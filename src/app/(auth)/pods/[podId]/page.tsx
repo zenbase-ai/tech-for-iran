@@ -6,7 +6,7 @@ import type { Id } from "@/convex/_generated/dataModel"
 import { tokenAuth } from "@/lib/server/clerk"
 import { Header } from "./header"
 import { Members } from "./members"
-import { PostForm } from "./post/form"
+import { SubmitPostForm } from "@/app/(auth)/posts/submit/form"
 
 export type PodPageProps = {
   params: Promise<{ podId: Id<"pods"> }>
@@ -28,7 +28,7 @@ export default async function PodPage({ params }: PodPageProps) {
     <VStack className="px-2 w-full max-w-[640px] mx-auto">
       <Header podId={podId} />
 
-      <PostForm podId={podId} />
+      <SubmitPostForm podId={podId} />
 
       <Members podId={podId} className="mt-16" />
     </VStack>

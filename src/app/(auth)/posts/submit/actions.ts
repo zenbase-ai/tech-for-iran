@@ -4,14 +4,12 @@ import { fetchMutation, fetchQuery } from "convex/nextjs"
 import * as z from "zod"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import type { ActionToastState } from "@/hooks/use-action-state-toasts"
 import { tokenAuth } from "@/lib/server/clerk"
 import { errorMessage } from "@/lib/utils"
 import { SubmitPostSchema } from "./schema"
 
-type SubmitPostState = {
-  message?: string
-  error?: string
-}
+export type SubmitPostState = ActionToastState
 
 export const submitPost = async (
   _prevState: SubmitPostState,
@@ -48,9 +46,12 @@ export const submitPost = async (
       return { error: "Your LinkedIn connection needs to be refreshed. Please reconnect." }
     }
 
-    await fetchMutation(api.posts.submit, { ...data, podId }, { token })
+    const { error, success } = await fetchMutation(api.posts.submit, { ...data, podId }, { token })
+    if (error) {
+      return { error }
+    }
 
-    return { message: "Keep your eyes peeled for the results!" }
+    return { success }
   } catch (error: unknown) {
     return { error: errorMessage(error) }
   }

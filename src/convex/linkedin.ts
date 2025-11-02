@@ -32,7 +32,7 @@ export const refreshState = authAction({
       throw new NotFoundError()
     }
     if (needsReconnection) {
-      throw new ConflictError()
+      throw new ConflictError("Please reconnect your LinkedIn account.")
     }
     await ctx.runAction(internal.linkedin.refreshProfile, { unipileId: account.unipileId })
   },

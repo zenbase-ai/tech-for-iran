@@ -5,22 +5,11 @@ import { getTargetCount, SubmitPostSchema } from "@/app/(auth)/posts/submit/sche
 import { internal } from "@/convex/_generated/api"
 import { podMemberCount, podPostCount, postEngagementCount } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
-import {
-  BadRequestError,
-  ConflictError,
-  NotFoundError,
-  UnauthorizedError,
-} from "@/convex/helpers/errors"
+import { NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
 import { parsePostURN } from "@/convex/helpers/linkedin"
+import { humanizeDuration, rateLimiter } from "@/convex/limiter"
 import { workflow } from "@/convex/workflows/engagement"
 
-// ============================================================================
-// Queries
-// ============================================================================
-
-/**
- * Get a post by ID with computed status
- */
 export const get = authQuery({
   args: {
     postId: v.id("posts"),
@@ -59,9 +48,6 @@ export const get = authQuery({
   },
 })
 
-/**
- * Get all engagements for a post
- */
 export const engagements = authQuery({
   args: {
     postId: v.id("posts"),
@@ -83,10 +69,6 @@ export const engagements = authQuery({
   },
 })
 
-// ============================================================================
-// Mutations
-// ============================================================================
-
 export const submit = authMutation({
   args: {
     podId: v.id("pods"),
@@ -100,20 +82,27 @@ export const submit = authMutation({
     const { userId } = ctx
     const { podId } = args
 
+    const { ok, retryAfter } = await rateLimiter.limit(ctx, "submitPost", {
+      key: userId,
+    })
+    if (!ok) {
+      return { error: `Too many requests, please try again in ${humanizeDuration(retryAfter)}.` }
+    }
+
     const { data, success, error } = SubmitPostSchema.safeParse(args)
     if (!success) {
-      throw new BadRequestError(z.prettifyError(error))
+      return { error: z.prettifyError(error) }
     }
 
     const { url } = data
     const urn = parsePostURN(data.url)
     if (!urn) {
-      throw new BadRequestError("Invalid LinkedIn post URL")
+      return { error: "Failed to parse URL, please try again." }
     }
 
     const pod = await ctx.db.get(podId)
     if (!pod) {
-      throw new NotFoundError()
+      return { error: "Pod not found, try reloading the page." }
     }
 
     const existing = await ctx.db
@@ -121,7 +110,7 @@ export const submit = authMutation({
       .withIndex("byURL", (q) => q.eq("url", data.url))
       .first()
     if (existing) {
-      throw new ConflictError("Cannot resubmit a post")
+      return { error: "Cannot resubmit a post" }
     }
 
     const postId = await ctx.db.insert("posts", {
@@ -138,7 +127,7 @@ export const submit = authMutation({
       podMemberCount.count(ctx, { namespace: podId }),
     ])
     if (!post) {
-      throw new ConflictError("Failed to create post")
+      return { error: "Failed to create post, please try again." }
     }
 
     const workflowId = await workflow.start(
@@ -159,8 +148,11 @@ export const submit = authMutation({
       },
     )
 
-    await ctx.db.patch(postId, { workflowId, status: "processing" })
+    await Promise.all([
+      podPostCount.insert(ctx, post),
+      ctx.db.patch(postId, { workflowId, status: "processing" }),
+    ])
 
-    return postId
+    return { success: "Watch out for the results!" }
   },
 })

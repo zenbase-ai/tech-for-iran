@@ -8,7 +8,7 @@ import { podMemberCount, podPostCount } from "@/convex/aggregates"
 import { requireAuth } from "@/convex/helpers/auth"
 import { pmap } from "@/convex/helpers/collections"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
-import { NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
+import { ConflictError, NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
 
 const memberQuery = customQuery(query, {
   args: {
@@ -21,7 +21,7 @@ const memberQuery = customQuery(query, {
       .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", args.podId))
       .first()
     if (!membership) {
-      throw new UnauthorizedError()
+      throw new UnauthorizedError("You are not a member of this pod.")
     }
 
     return {
@@ -121,10 +121,6 @@ export const posts = memberQuery({
       .paginate(args.paginationOpts),
 })
 
-// ============================================================================
-// Mutations
-// ============================================================================
-
 export const create = authMutation({
   args: {
     name: v.string(),
@@ -156,12 +152,10 @@ export const join = authMutation({
       return null
     }
 
-    // Check if already a member
     let membership = await ctx.db
       .query("memberships")
       .withIndex("byUserAndPod", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
       .first()
-
     if (membership) {
       return pod
     }
@@ -172,7 +166,7 @@ export const join = authMutation({
     // Update aggregate
     membership = await ctx.db.get(membershipId)
     if (!membership) {
-      throw new NotFoundError()
+      throw new ConflictError()
     }
 
     await podMemberCount.insert(ctx, membership)

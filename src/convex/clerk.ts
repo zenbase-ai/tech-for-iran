@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import { internalAction } from "@/convex/_generated/server"
 import { clerk } from "./helpers/clerk"
 
-export const updateClerkUser = internalAction({
+export const patchUser = internalAction({
   args: {
     userId: v.string(),
     firstName: v.optional(v.string()),

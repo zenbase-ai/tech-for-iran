@@ -63,6 +63,8 @@ export const PodMembers: React.FC<PodMembersProps> = ({
     )
   }
 
+  const canLoadMore = members.status === "CanLoadMore" && members.results.length < stats.memberCount
+
   return (
     <VStack className={cn("gap-3", className)}>
       <h2 className="text-lg font-semibold">
@@ -99,7 +101,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           ))}
         </ItemGroup>
       </Box>
-      {members.status === "CanLoadMore" && (
+      {canLoadMore && (
         <Button variant="outline" onClick={loadMoreMembers} className="max-w-fit">
           Show More
         </Button>

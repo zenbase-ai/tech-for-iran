@@ -110,7 +110,7 @@ export const submit = authMutation({
       .withIndex("byURL", (q) => q.eq("url", data.url))
       .first()
     if (existing) {
-      return { error: "Cannot resubmit a post" }
+      return { error: "Cannot resubmit a post." }
     }
 
     const postId = await ctx.db.insert("posts", {

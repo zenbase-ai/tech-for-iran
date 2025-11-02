@@ -72,13 +72,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
       <Box className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
         <ItemGroup className="contents">
           {members.results.map((member) => (
-            <Item
-              key={member.userId}
-              variant="outline"
-              size="sm"
-              asChild
-              className="overflow-hidden"
-            >
+            <Item key={member.userId} variant="outline" size="sm" asChild>
               <Link href={member.url as any} target="_blank" rel="noopener noreferrer">
                 <ItemMedia variant="image">
                   <Avatar className="size-10">
@@ -92,8 +86,8 @@ export const PodMembers: React.FC<PodMembersProps> = ({
                     </AvatarFallback>
                   </Avatar>
                 </ItemMedia>
-                <ItemContent>
-                  <ItemTitle>
+                <ItemContent className="overflow-hidden">
+                  <ItemTitle className="truncate">
                     {member.firstName} {member.lastName}
                   </ItemTitle>
                   <ItemDescription>

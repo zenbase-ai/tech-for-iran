@@ -30,7 +30,7 @@ export type HeroTitleProps = React.ComponentProps<"h1">
 export const HeroTitle: React.FC<HeroTitleProps> = ({ className, children, ...props }) => (
   <h1
     className={cn(
-      "text-center font-300 text-xl md:text-2xl lg:text-left lg:text-3xl font-serif leading-[0.95]",
+      "text-center font-bold text-xl md:text-2xl lg:text-left lg:text-3xl font-serif leading-[0.95]",
       className,
     )}
     {...props}

@@ -68,6 +68,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
     return <Loading />
   }
 
+  const minTargetCount = Math.min(1, pod.memberCount - 1)
   const maxTargetCount = Math.min(pod.memberCount - 1, targetCount.max)
   const defaultTargetCount = Math.min(25, maxTargetCount)
 
@@ -78,6 +79,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
       {/* Post URL Input */}
       <Field className="flex-row">
         <Input
+          id="url"
           name="url"
           type="url"
           className="h-12"
@@ -127,7 +129,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
               id="targetCount"
               name="targetCount"
               type="number"
-              min={targetCount.min}
+              min={minTargetCount}
               max={maxTargetCount}
               defaultValue={defaultTargetCount}
             />

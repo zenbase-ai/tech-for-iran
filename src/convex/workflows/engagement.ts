@@ -45,7 +45,7 @@ export const workflow = new WorkflowManager(components.workflow, {
  * In handleWorkflowCompletion, we validate the manual count against the aggregate
  * and always store the aggregate count as authoritative in the post document.
  */
-export type PerformResult = { successCount: number; failedCount: number }
+export type Perform = { successCount: number; failedCount: number }
 
 export const perform = workflow.define({
   args: {
@@ -58,9 +58,9 @@ export const perform = workflow.define({
     minDelay: v.number(),
     maxDelay: v.number(),
   },
-  handler: async (step, args): Promise<PerformResult> => {
+  handler: async (step, args): Promise<Perform> => {
     const { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay } = args
-    const performResult: PerformResult = { successCount: 0, failedCount: 0 }
+    const performResult: Perform = { successCount: 0, failedCount: 0 }
 
     // Track users who have already reacted (to prevent duplicates)
     const excludeUserIds = [userId]
@@ -110,7 +110,7 @@ export const getPerformOneParams = internalAction({
 })
 
 // Internal action to send a single reaction via Unipile AND log it in the database atomically
-export type PerformOneResult = { userId: string } | { error: unknown; message?: string }
+export type PerformOne = { userId: string } | { error: unknown; message?: string }
 
 export const performOne = internalAction({
   args: {
@@ -120,7 +120,7 @@ export const performOne = internalAction({
     postId: v.id("posts"),
     excludeUserIds: v.array(v.string()),
   },
-  handler: async (ctx, args): Promise<PerformOneResult> => {
+  handler: async (ctx, args): Promise<PerformOne> => {
     const { podId, urn, reactionType, postId, excludeUserIds } = args
     // Step 1: Select an available pod member
     const account = await ctx.runQuery(internal.workflows.engagement.availableAccount, {

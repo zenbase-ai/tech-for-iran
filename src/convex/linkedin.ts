@@ -194,7 +194,7 @@ export const refreshProfile = internalAction({
   },
 })
 
-export type GetUnipileAccountResult = {
+export type GetUnipileAccount = {
   first_name: string
   last_name: string
   profile_picture_url: string
@@ -207,7 +207,7 @@ export const getUnipileAccount = internalAction({
     unipileId: v.string(),
   },
   handler: async (_ctx, args) =>
-    await unipile<GetUnipileAccountResult>(
+    await unipile<GetUnipileAccount>(
       "GET",
       `/api/v1/users/me?account_id=${encodeURIComponent(args.unipileId)}`,
     ),

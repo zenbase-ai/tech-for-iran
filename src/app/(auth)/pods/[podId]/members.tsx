@@ -3,6 +3,7 @@
 import { usePaginatedQuery, useQuery } from "convex/react"
 import Link from "next/link"
 import plur from "plur"
+import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
@@ -25,11 +26,23 @@ import { cn } from "@/lib/utils"
 export type PodMembersProps = {
   podId: Id<"pods">
   className?: string
+  membersPageSize?: number
 }
 
-export const Members: React.FC<PodMembersProps> = ({ podId, className }) => {
+export const PodMembers: React.FC<PodMembersProps> = ({
+  podId,
+  className,
+  membersPageSize = 12,
+}) => {
   const stats = useQuery(api.pods.stats, { podId })
-  const members = usePaginatedQuery(api.pods.members, { podId }, { initialNumItems: 12 })
+  const members = usePaginatedQuery(
+    api.pods.members,
+    { podId },
+    { initialNumItems: membersPageSize },
+  )
+  const loadMoreMembers = useEffectEvent(() => {
+    members.loadMore(membersPageSize)
+  })
 
   // Loading state
   if (!stats || !members.results) {
@@ -59,7 +72,13 @@ export const Members: React.FC<PodMembersProps> = ({ podId, className }) => {
       <Box className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
         <ItemGroup className="contents">
           {members.results.map((member) => (
-            <Item key={member.userId} variant="outline" size="sm" asChild className="overflow-hidden">
+            <Item
+              key={member.userId}
+              variant="outline"
+              size="sm"
+              asChild
+              className="overflow-hidden"
+            >
               <Link href={member.url as any} target="_blank" rel="noopener noreferrer">
                 <ItemMedia variant="image">
                   <Avatar className="size-10">
@@ -87,7 +106,7 @@ export const Members: React.FC<PodMembersProps> = ({ podId, className }) => {
         </ItemGroup>
       </Box>
       {members.status === "CanLoadMore" && (
-        <Button variant="outline" onClick={() => members.loadMore(12)} className="max-w-fit">
+        <Button variant="outline" onClick={loadMoreMembers} className="max-w-fit">
           Show More
         </Button>
       )}

@@ -9,12 +9,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 
-export type HeaderProps = {
+export type PodHeaderProps = {
   podId: Id<"pods">
   className?: string
 }
 
-export const Header: React.FC<HeaderProps> = ({ podId, className }) => {
+export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
   const pod = useQuery(api.pods.get, { podId })
 
   if (!pod) {

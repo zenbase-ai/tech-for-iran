@@ -48,11 +48,9 @@ export const submitPost = async (
       return { error: "Your LinkedIn connection needs to be refreshed. Please reconnect." }
     }
 
-    // Submit the post with all configuration parameters
     await fetchMutation(api.posts.submit, { ...data, podId }, { token })
 
-    // Redirect to post detail page
-    return { message: "Post submitted!" }
+    return { message: "Keep your eyes peeled for the results!" }
   } catch (error: unknown) {
     return { error: errorMessage(error) }
   }

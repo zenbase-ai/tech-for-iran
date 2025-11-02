@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import * as z from "zod"
-import { SubmitPostSchema } from "@/app/(auth)/posts/submit/schema"
+import { getTargetCount, SubmitPostSchema } from "@/app/(auth)/posts/submit/schema"
 import { internal } from "@/convex/_generated/api"
 import { podMemberCount, podPostCount, postEngagementCount } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
@@ -91,10 +91,10 @@ export const submit = authMutation({
   args: {
     podId: v.id("pods"),
     url: v.string(),
-    reactionTypes: v.optional(v.array(v.string())),
-    targetCount: v.optional(v.number()),
-    minDelay: v.optional(v.number()),
-    maxDelay: v.optional(v.number()),
+    reactionTypes: v.array(v.string()),
+    targetCount: v.number(),
+    minDelay: v.number(),
+    maxDelay: v.number(),
   },
   handler: async (ctx, args) => {
     const { userId } = ctx
@@ -105,30 +105,23 @@ export const submit = authMutation({
       throw new BadRequestError(z.prettifyError(error))
     }
 
-    const { url, reactionTypes, minDelay, maxDelay } = data
-    const urn = parsePostURN(url.toString())
+    const { url } = data
+    const urn = parsePostURN(data.url)
     if (!urn) {
       throw new BadRequestError("Invalid LinkedIn post URL")
     }
 
-    // Get pod to validate targetCount
     const pod = await ctx.db.get(podId)
     if (!pod) {
       throw new NotFoundError()
     }
 
-    const totalMembers = await podMemberCount.count(ctx, { namespace: podId })
-
-    // Clamp targetCount to min(40, totalMembers - 1) where -1 excludes the post author
-    const targetCount = Math.min(args.targetCount ?? 40, Math.max(1, totalMembers - 1))
-
     const existing = await ctx.db
       .query("posts")
       .withIndex("byURL", (q) => q.eq("url", data.url))
       .first()
-
     if (existing) {
-      throw new ConflictError("Post already submitted to this pod")
+      throw new ConflictError("Cannot resubmit a post")
     }
 
     const postId = await ctx.db.insert("posts", {
@@ -140,25 +133,32 @@ export const submit = authMutation({
       status: "pending",
     })
 
-    // Update aggregate
-    const post = await ctx.db.get(postId)
-    if (post) {
-      await podPostCount.insert(ctx, post)
+    const [post, memberCount] = await Promise.all([
+      ctx.db.get(postId),
+      podMemberCount.count(ctx, { namespace: podId }),
+    ])
+    if (!post) {
+      throw new ConflictError("Failed to create post")
     }
 
-    // Start engagement workflow with completion handler
     const workflowId = await workflow.start(
       ctx,
       internal.workflows.engagement.perform,
-      { postId, userId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay },
       {
-        startAsync: true,
+        ...data,
+        postId,
+        userId,
+        podId,
+        urn,
+        targetCount: getTargetCount(args.targetCount, memberCount),
+      },
+      {
         context: { postId },
         onComplete: internal.workflows.engagement.onWorkflowComplete,
+        startAsync: true,
       },
     )
 
-    // Store workflow ID and update status to processing
     await ctx.db.patch(postId, { workflowId, status: "processing" })
 
     return postId

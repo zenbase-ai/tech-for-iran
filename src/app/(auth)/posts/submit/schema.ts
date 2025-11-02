@@ -1,3 +1,4 @@
+import { clamp } from "es-toolkit/math"
 import * as z from "zod"
 import {
   isValidLinkedInPostURL,
@@ -12,7 +13,18 @@ export const reactionTypes = {
   options: LINKEDIN_REACTION_TYPES,
   default: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReactionType[],
 }
-export const targetCount = { min: 1, max: 100 }
+export const targetCount = {
+  min: 1,
+  max: 50,
+}
+
+export const getTargetCount = (inputValue: number, memberCount: number) =>
+  clamp(
+    inputValue,
+    Math.min(memberCount - 1, targetCount.min),
+    Math.min(memberCount - 1, targetCount.max),
+  )
+
 export const minDelay = { min: 1, max: 30, default: 10 }
 export const maxDelay = { min: 1, max: 90, default: 30 }
 

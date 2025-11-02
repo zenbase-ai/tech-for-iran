@@ -66,7 +66,7 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
     <button
       ref={buttonRef}
       onClick={toggleTheme}
-      className={cn("border rounded-full p-2 backdrop-blur-sm", className)}
+      className={cn("border rounded-full p-2 backdrop-blur-md", className)}
       {...props}
     >
       {isDark ? <LuSun /> : <LuMoon />}

@@ -2,13 +2,13 @@
 
 import { type Preloaded, usePreloadedQuery } from "convex/react"
 import Form from "next/form"
-import { useActionState, useEffect } from "react"
-import { toast } from "sonner"
+import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Loading } from "@/components/ui/loading"
 import type { api } from "@/convex/_generated/api"
+import { useActionToastState } from "@/hooks/use-action-state-toasts"
 import { updateConfig } from "./actions"
 import { maxActions } from "./schema"
 
@@ -19,12 +19,7 @@ export type ConfigFormProps = {
 export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin }) => {
   const { account } = usePreloadedQuery(linkedin)
   const [formState, formAction, formLoading] = useActionState(updateConfig, {})
-
-  useEffect(() => {
-    if (!formLoading && formState.message) {
-      toast.success(formState.message)
-    }
-  }, [formLoading, formState.message])
+  useActionToastState(formState, formLoading)
 
   if (!account) {
     return <Loading />

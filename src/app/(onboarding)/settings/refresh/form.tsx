@@ -1,10 +1,10 @@
 "use client"
 
 import Form from "next/form"
-import { useActionState, useEffect } from "react"
+import { useActionState } from "react"
 import { LuRefreshCcw } from "react-icons/lu"
-import { toast } from "sonner"
 import { Button, type ButtonProps } from "@/components/ui/button"
+import { useActionToastState } from "@/hooks/use-action-state-toasts"
 import { cn } from "@/lib/utils"
 import { refreshAccount } from "./actions"
 
@@ -15,18 +15,7 @@ export type RefreshFormProps = {
 
 export const RefreshForm: React.FC<RefreshFormProps> = ({ className, variant = "outline" }) => {
   const [formState, formAction, formLoading] = useActionState(refreshAccount, {})
-
-  useEffect(() => {
-    if (!formLoading && formState.message) {
-      toast.success(formState.message)
-    }
-  }, [formLoading, formState.message])
-
-  useEffect(() => {
-    if (!formLoading && formState?.error) {
-      toast.error(formState.error)
-    }
-  }, [formLoading, formState?.error])
+  useActionToastState(formState, formLoading)
 
   return (
     <Form action={formAction} className={className}>

@@ -17,21 +17,23 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item"
-import { Loading } from "@/components/ui/loading"
+import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { cn } from "@/lib/utils"
 
 export type PodMembersProps = {
   podId: Id<"pods">
+  className?: string
 }
 
-export const Members: React.FC<PodMembersProps> = ({ podId }) => {
+export const Members: React.FC<PodMembersProps> = ({ podId, className }) => {
   const stats = useQuery(api.pods.stats, { podId })
   const members = usePaginatedQuery(api.pods.members, { podId }, { initialNumItems: 12 })
 
   // Loading state
-  if (!stats || members.isLoading) {
-    return <Loading />
+  if (!stats || !members.results) {
+    return <Skeleton className={cn("w-full h-48", className)} />
   }
 
   // Empty state
@@ -49,7 +51,7 @@ export const Members: React.FC<PodMembersProps> = ({ podId }) => {
   }
 
   return (
-    <VStack className="gap-3">
+    <VStack className={cn("gap-3", className)}>
       <h2 className="text-lg font-semibold">
         {stats.memberCount} {plur("member", stats.memberCount)}
       </h2>

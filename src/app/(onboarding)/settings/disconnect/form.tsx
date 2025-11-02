@@ -1,9 +1,8 @@
 "use client"
 
 import Form from "next/form"
-import { useActionState, useEffect } from "react"
+import { useActionState } from "react"
 import { LuUnplug } from "react-icons/lu"
-import { toast } from "sonner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button, type ButtonProps } from "@/components/ui/button"
+import { useActionToastState } from "@/hooks/use-action-state-toasts"
 import { disconnectAccount } from "./actions"
 
 export type DisconnectFormProps = {
@@ -24,18 +24,7 @@ export type DisconnectFormProps = {
 
 export const DisconnectForm: React.FC<DisconnectFormProps> = ({ variant = "ghost" }) => {
   const [formState, formAction, formLoading] = useActionState(disconnectAccount, {})
-
-  useEffect(() => {
-    if (!formLoading && formState.message) {
-      toast.success(formState.message)
-    }
-  }, [formLoading, formState.message])
-
-  useEffect(() => {
-    if (!formLoading && formState?.error) {
-      toast.error(formState.error)
-    }
-  }, [formLoading, formState?.error])
+  useActionToastState(formState, formLoading)
 
   return (
     <AlertDialog>

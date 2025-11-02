@@ -3,9 +3,7 @@
 import { useQuery } from "convex/react"
 import { capitalize } from "es-toolkit/string"
 import Form from "next/form"
-import { useActionState, useEffect, useEffectEvent, useState } from "react"
-import { toast } from "sonner"
-import Loading from "@/app/loading"
+import { useActionState, useEffectEvent, useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
@@ -17,14 +15,18 @@ import {
 } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { LINKEDIN_REACTION_TYPES, type LinkedInReactionType } from "@/convex/helpers/linkedin"
+import { useActionToastState } from "@/hooks/use-action-state-toasts"
+import { cn } from "@/lib/utils"
 import { submitPost } from "./actions"
 import { maxDelay, minDelay, targetCount } from "./schema"
 
 export type PostFormProps = {
   podId: Id<"pods">
+  className?: string
 }
 
 const DEFAULT_REACTIONS: LinkedInReactionType[] = [
@@ -35,20 +37,9 @@ const DEFAULT_REACTIONS: LinkedInReactionType[] = [
   "insightful",
 ]
 
-export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
+export const PostForm: React.FC<PostFormProps> = ({ podId, className }) => {
   const [formState, formAction, formLoading] = useActionState(submitPost, {})
-
-  useEffect(() => {
-    if (!formLoading && formState?.message) {
-      toast.success(formState.message)
-    }
-  }, [formState?.message, formLoading])
-
-  useEffect(() => {
-    if (!formLoading && formState?.error) {
-      toast.error(formState.error)
-    }
-  }, [formState?.error, formLoading])
+  useActionToastState(formState, formLoading)
 
   const [selectedReactions, setSelectedReactions] =
     useState<LinkedInReactionType[]>(DEFAULT_REACTIONS)
@@ -59,7 +50,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
 
   const pod = useQuery(api.pods.get, { podId })
   if (!pod) {
-    return <Loading />
+    return <Skeleton className={cn("w-full h-72", className)} />
   }
 
   const minTargetCount = Math.min(1, pod.memberCount - 1)
@@ -67,7 +58,11 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
   const defaultTargetCount = Math.min(25, maxTargetCount)
 
   return (
-    <Form action={formAction} className="flex flex-col items-center gap-6">
+    <Form action={formAction} className={cn("flex flex-col gap-6", className)}>
+      <p className="text-muted-foreground">
+        Submit a LinkedIn post and watch the engagements roll in.
+      </p>
+
       <input type="hidden" name="podId" value={podId} />
 
       <Field className="flex-row">

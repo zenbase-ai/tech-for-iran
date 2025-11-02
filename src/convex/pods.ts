@@ -8,7 +8,7 @@ import { podMemberCount, podPostCount } from "@/convex/aggregates"
 import { requireAuth } from "@/convex/helpers/auth"
 import { pmap } from "@/convex/helpers/collections"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
-import { ConflictError, NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
+import { NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
 
 const memberQuery = customQuery(query, {
   args: {
@@ -128,24 +128,21 @@ export const posts = memberQuery({
 export const create = authMutation({
   args: {
     name: v.string(),
+    inviteCode: v.string(),
   },
   handler: async (ctx, args) => {
-    const { name } = args
+    const { name, inviteCode } = args
 
     const existing = await ctx.db
       .query("pods")
-      .withIndex("byName", (q) => q.eq("name", name))
+      .withIndex("byInviteCode", (q) => q.eq("inviteCode", inviteCode))
       .first()
     if (existing) {
-      throw new ConflictError()
+      return { error: "That invite code is already in use, please try a different one." }
     }
 
-    const inviteCode = crypto.randomUUID()
-    const pod = { name, inviteCode, createdBy: ctx.userId }
-
-    const podId = await ctx.db.insert("pods", pod)
-
-    return { _id: podId, ...pod }
+    const podId = await ctx.db.insert("pods", { name, inviteCode, createdBy: ctx.userId })
+    return { podId }
   },
 })
 

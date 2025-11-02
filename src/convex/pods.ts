@@ -65,6 +65,7 @@ export const members = memberQuery({
     const memberships = await ctx.db
       .query("memberships")
       .withIndex("byPod", (q) => q.eq("podId", args.podId))
+      .order("desc")
       .paginate(args.paginationOpts)
 
     const members = await pmap(memberships.page, async ({ userId, _creationTime }) => {

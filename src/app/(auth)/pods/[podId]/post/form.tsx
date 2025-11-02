@@ -73,10 +73,9 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
   const defaultTargetCount = Math.min(25, maxTargetCount)
 
   return (
-    <Form action={formAction} className="flex flex-col items-center gap-4">
+    <Form action={formAction} className="flex flex-col items-center gap-6">
       <input type="hidden" name="podId" value={podId} />
 
-      {/* Post URL Input */}
       <Field className="flex-row">
         <Input
           id="url"
@@ -93,7 +92,6 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
         </HoverButton>
       </Field>
 
-      {/* Reaction Types */}
       <FieldSet className="w-full">
         <FieldLegend variant="label">Reaction types</FieldLegend>
         <FieldGroup className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -116,64 +114,45 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
         ))}
       </FieldSet>
 
-      <Collapsible
-        className="w-full flex flex-col gap-4"
-        open={showOptions}
-        onOpenChange={setShowOptions}
-      >
-        <CollapsibleContent className="flex flex-col gap-4">
-          {/* Target Count */}
-          <Field>
-            <FieldLabel htmlFor="targetCount">Target engagement count</FieldLabel>
-            <Input
-              id="targetCount"
-              name="targetCount"
-              type="number"
-              min={minTargetCount}
-              max={maxTargetCount}
-              defaultValue={defaultTargetCount}
-            />
-            <FieldDescription>
-              Default: {defaultTargetCount}, Max: {maxTargetCount}
-            </FieldDescription>
-          </Field>
+      <Field>
+        <FieldLabel htmlFor="targetCount">Target engagement count</FieldLabel>
+        <Input
+          id="targetCount"
+          name="targetCount"
+          type="number"
+          min={minTargetCount}
+          max={maxTargetCount}
+          defaultValue={defaultTargetCount}
+        />
+        <FieldDescription>
+          Default: {defaultTargetCount}, Max: {maxTargetCount}
+        </FieldDescription>
+      </Field>
 
-          {/* Delay Range */}
-          <FieldGroup className="grid grid-cols-2 gap-4">
-            <Field>
-              <FieldLabel htmlFor="minDelay">Min delay between reactions in seconds</FieldLabel>
-              <Input
-                id="minDelay"
-                name="minDelay"
-                type="number"
-                min={minDelay.min}
-                max={minDelay.max}
-                defaultValue={5}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="maxDelay">Max delay between reactions in seconds</FieldLabel>
-              <Input
-                id="maxDelay"
-                name="maxDelay"
-                type="number"
-                min={maxDelay.min}
-                max={maxDelay.max}
-                defaultValue={15}
-              />
-            </Field>
-          </FieldGroup>
-        </CollapsibleContent>
-
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" size="sm" className="w-fit">
-            <LuChevronDown
-              className={cn("size-3 transition-transform", showOptions && "-rotate-180")}
-            />
-            Advanced
-          </Button>
-        </CollapsibleTrigger>
-      </Collapsible>
+      <FieldGroup className="grid grid-cols-2 gap-4">
+        <Field>
+          <FieldLabel htmlFor="minDelay">Min delay between reactions in seconds</FieldLabel>
+          <Input
+            id="minDelay"
+            name="minDelay"
+            type="number"
+            min={minDelay.min}
+            max={minDelay.max}
+            defaultValue={5}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="maxDelay">Max delay between reactions in seconds</FieldLabel>
+          <Input
+            id="maxDelay"
+            name="maxDelay"
+            type="number"
+            min={maxDelay.min}
+            max={maxDelay.max}
+            defaultValue={15}
+          />
+        </Field>
+      </FieldGroup>
     </Form>
   )
 }

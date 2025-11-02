@@ -31,7 +31,7 @@ export const Members: React.FC<PodMembersProps> = ({ podId }) => {
   const members = usePaginatedQuery(api.pods.members, { podId }, { initialNumItems: 12 })
 
   // Loading state
-  if (members.isLoading) {
+  if (!stats || members.isLoading) {
     return <Loading />
   }
 
@@ -50,14 +50,10 @@ export const Members: React.FC<PodMembersProps> = ({ podId }) => {
   }
 
   return (
-    <VStack items="center" className="gap-3">
-      {stats ? (
-        <h2 className="text-lg font-semibold">
-          {stats.memberCount} {plur("member", stats.memberCount)}
-        </h2>
-      ) : (
-        <Skeleton className="w-24 h-9" />
-      )}
+    <VStack className="gap-3">
+      <h2 className="text-lg font-semibold">
+        {stats.memberCount} {plur("member", stats.memberCount)}
+      </h2>
 
       <Box className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
         <ItemGroup className="contents">

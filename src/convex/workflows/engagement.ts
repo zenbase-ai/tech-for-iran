@@ -49,8 +49,8 @@ export type PerformResult = { successCount: number; failedCount: number }
 
 export const perform = workflow.define({
   args: {
-    postId: v.id("posts"),
     userId: v.string(),
+    postId: v.id("posts"),
     podId: v.id("pods"),
     urn: v.string(),
     reactionTypes: v.array(v.string()),
@@ -59,23 +59,24 @@ export const perform = workflow.define({
     maxDelay: v.number(),
   },
   handler: async (step, args): Promise<PerformResult> => {
+    const { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay } = args
     const performResult: PerformResult = { successCount: 0, failedCount: 0 }
 
     // Track users who have already reacted (to prevent duplicates)
-    const excludeUserIds = [args.userId]
+    const excludeUserIds = [userId]
 
     // Send reactions with delays (schedule each step after a per-iteration jitter)
-    for (let i = 0; i < args.targetCount; i++) {
+    for (let i = 0; i < targetCount; i++) {
       // Random delay between minDelay and maxDelay (randomInt uses exclusive upper bound)
-      const delayMs = randomInt(args.minDelay, args.maxDelay + 1) * 1000
-
-      // Choose a random reaction type from the allowed types
-      const reactionType = sample(args.reactionTypes) ?? "like"
+      const [delayMs, reactionType] = await step.runAction(
+        internal.workflows.engagement.getPerformOneParams,
+        { i, minDelay, maxDelay, reactionTypes },
+      )
 
       // Send the reaction via Unipile AND log it in the database atomically
       const result = await step.runAction(
         internal.workflows.engagement.performOne,
-        { podId: args.podId, postUrn: args.urn, reactionType, postId: args.postId, excludeUserIds },
+        { podId, urn, reactionType, postId, excludeUserIds },
         // Because we await each action, runAfter is relative to now; use the per-iteration delay only
         { name: `Send ${reactionType} reaction #${i + 1}`, runAfter: delayMs },
       )
@@ -94,35 +95,50 @@ export const perform = workflow.define({
   },
 })
 
+export const getPerformOneParams = internalAction({
+  args: {
+    minDelay: v.number(),
+    maxDelay: v.number(),
+    reactionTypes: v.array(v.string()),
+    i: v.number(),
+  },
+  handler: async (_ctx, args) => {
+    const delayMs = randomInt(args.minDelay, args.maxDelay + 1) * 1000
+    const reactionType = sample(args.reactionTypes) ?? "like"
+    return [delayMs, reactionType] as const
+  },
+})
+
 // Internal action to send a single reaction via Unipile AND log it in the database atomically
 export type PerformOneResult = { userId: string } | { error: unknown; message?: string }
 
 export const performOne = internalAction({
   args: {
     podId: v.id("pods"),
-    postUrn: v.string(),
+    urn: v.string(),
     reactionType: v.string(),
     postId: v.id("posts"),
     excludeUserIds: v.array(v.string()),
   },
   handler: async (ctx, args): Promise<PerformOneResult> => {
+    const { podId, urn, reactionType, postId, excludeUserIds } = args
     // Step 1: Select an available pod member
     const account = await ctx.runQuery(internal.workflows.engagement.availableAccount, {
-      podId: args.podId,
-      postId: args.postId,
-      excludeUserIds: args.excludeUserIds,
+      podId,
+      postId,
+      excludeUserIds,
     })
-
     if (!account) {
       return { error: "UNAVAILABLE_MEMBER" }
     }
+    const { unipileId } = account
 
     // Step 2: Send reaction via Unipile API
     // Note: internal.linkedin.react throws on transient errors to trigger retry
     const [success, data] = await ctx.runAction(internal.workflows.engagement.react, {
-      accountId: account.unipileId,
-      postUrn: args.postUrn,
-      reactionType: args.reactionType,
+      unipileId,
+      urn,
+      reactionType,
     })
     if (!success) {
       return { error: data, message: "Failed to send reaction to LinkedIn" }
@@ -224,15 +240,15 @@ export const availableAccount = internalQuery({
  */
 export const react = internalAction({
   args: {
-    accountId: v.string(),
-    postUrn: v.string(),
+    unipileId: v.string(),
+    urn: v.string(),
     reactionType: v.string(),
   },
   handler: async (_ctx, args): Promise<[boolean, unknown]> => {
     try {
       const response = await unipile("POST", "/api/v1/posts/reaction", {
-        account_id: args.accountId,
-        post_id: args.postUrn,
+        account_id: args.unipileId,
+        post_id: args.urn,
         reaction_type: args.reactionType.toLowerCase() as LinkedInReactionType,
       })
 

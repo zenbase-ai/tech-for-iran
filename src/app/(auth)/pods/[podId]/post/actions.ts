@@ -17,9 +17,14 @@ export const submitPost = async (
   _prevState: SubmitPostState,
   formData: FormData,
 ): Promise<SubmitPostState> => {
+  const payload = {
+    ...Object.fromEntries(formData),
+    // Arrays aren't handled by fromEntries
+    reactionTypes: formData.getAll("reactionTypes").map((value) => value.toString()),
+  }
   const { token } = await tokenAuth()
 
-  const { data, success, error } = SubmitPostSchema.safeParse(Object.fromEntries(formData))
+  const { data, success, error } = SubmitPostSchema.safeParse(payload)
   if (!success) {
     return { error: z.prettifyError(error) }
   }

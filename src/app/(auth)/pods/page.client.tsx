@@ -50,7 +50,7 @@ export default function PodsClientPage() {
               <Item key={pod._id} variant="outline" asChild>
                 <Link href={`/pods/${pod._id}`}>
                   <ItemContent>
-                    <ItemTitle>{pod.name}</ItemTitle>
+                    <ItemTitle className="font-semibold">{pod.name}</ItemTitle>
                     <ItemDescription>
                       Joined {new Date(pod.joinedAt).toLocaleDateString()}
                     </ItemDescription>

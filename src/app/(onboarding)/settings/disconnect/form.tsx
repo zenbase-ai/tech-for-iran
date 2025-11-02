@@ -16,20 +16,23 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button, type ButtonProps } from "@/components/ui/button"
 import { useActionToastState } from "@/hooks/use-action-state-toasts"
+import { cn } from "@/lib/utils"
 import { disconnectAccount } from "./actions"
 
-export type DisconnectFormProps = {
-  variant?: ButtonProps["variant"]
-}
+export type DisconnectFormProps = ButtonProps
 
-export const DisconnectForm: React.FC<DisconnectFormProps> = ({ variant = "ghost" }) => {
+export const DisconnectForm: React.FC<DisconnectFormProps> = ({
+  variant = "ghost",
+  className,
+  ...props
+}) => {
   const [formState, formAction, formLoading] = useActionState(disconnectAccount, {})
   useActionToastState(formState, formLoading)
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant={variant} className="w-fit">
+        <Button variant={variant} className={cn("w-fit", className)} {...props}>
           Disconnect
           <LuUnplug className="size-4" />
         </Button>

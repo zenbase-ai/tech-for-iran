@@ -13,6 +13,7 @@ export const reactionTypes = {
   options: LINKEDIN_REACTION_TYPES,
   default: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReactionType[],
 }
+
 export const targetCount = {
   min: 1,
   max: 50,

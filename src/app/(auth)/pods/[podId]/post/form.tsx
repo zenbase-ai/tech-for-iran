@@ -4,13 +4,9 @@ import { useQuery } from "convex/react"
 import { capitalize } from "es-toolkit/string"
 import Form from "next/form"
 import { useActionState, useEffect, useEffectEvent, useState } from "react"
-import { LuChevronDown } from "react-icons/lu"
 import { toast } from "sonner"
-import { useBoolean } from "usehooks-ts"
 import Loading from "@/app/loading"
-import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   Field,
   FieldDescription,
@@ -24,7 +20,6 @@ import { Input } from "@/components/ui/input"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { LINKEDIN_REACTION_TYPES, type LinkedInReactionType } from "@/convex/helpers/linkedin"
-import { cn } from "@/lib/utils"
 import { submitPost } from "./actions"
 import { maxDelay, minDelay, targetCount } from "./schema"
 
@@ -55,7 +50,6 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
     }
   }, [formState?.error, formLoading])
 
-  const { value: showOptions, setValue: setShowOptions } = useBoolean(false)
   const [selectedReactions, setSelectedReactions] =
     useState<LinkedInReactionType[]>(DEFAULT_REACTIONS)
 

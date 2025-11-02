@@ -74,7 +74,7 @@ export const Members: React.FC<PodMembersProps> = ({ podId, className }) => {
                   </Avatar>
                 </ItemMedia>
                 <ItemContent>
-                  <ItemTitle>
+                  <ItemTitle className="truncate">
                     {member.firstName} {member.lastName}
                   </ItemTitle>
                   <ItemDescription>

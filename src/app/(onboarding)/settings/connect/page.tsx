@@ -73,6 +73,12 @@ const generateHostedAuthLink = async (userId: string, inviteCode?: string) => {
     success_redirect_url: successRedirectURL.toString(),
     failure_redirect_url: failureRedirectURL.toString(),
     notify_url: notifyURL.toString(),
+    sync_limit: {
+      MESSAGING: {
+        chats: 0,
+        messages: 0,
+      },
+    },
   })
 
   return url

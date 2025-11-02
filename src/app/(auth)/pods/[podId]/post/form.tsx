@@ -29,13 +29,7 @@ export type PostFormProps = {
   className?: string
 }
 
-const DEFAULT_REACTIONS: LinkedInReactionType[] = [
-  "like",
-  "celebrate",
-  "support",
-  "love",
-  "insightful",
-]
+const DEFAULT_REACTIONS: LinkedInReactionType[] = ["like", "celebrate", "love", "insightful"]
 
 export const PostForm: React.FC<PostFormProps> = ({ podId, className }) => {
   const [formState, formAction, formLoading] = useActionState(submitPost, {})

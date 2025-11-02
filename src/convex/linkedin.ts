@@ -8,9 +8,6 @@ import { ConflictError, NotFoundError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { unipile } from "@/convex/helpers/unipile"
 
-// ============================================================================
-// Queries
-// ============================================================================
 export const getState = authQuery({
   args: {},
   handler: async (ctx) => {
@@ -40,10 +37,6 @@ export const refreshState = authAction({
     await ctx.runAction(internal.linkedin.refreshProfile, { unipileId: account.unipileId })
   },
 })
-
-// ============================================================================
-// Mutations
-// ============================================================================
 
 export const connectAccount = authMutation({
   args: {
@@ -87,7 +80,7 @@ export const disconnectAccount = authAction({
   handler: async (ctx) => {
     const { userId } = ctx
     const { account } = await ctx.runMutation(internal.linkedin.deleteAccount, { userId })
-    await ctx.runAction(internal.linkedin.deleteUnipileAccount, { accountId: account.unipileId })
+    await ctx.runAction(internal.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
   },
 })
 
@@ -126,10 +119,6 @@ export const updateAccount = authMutation({
     await ctx.db.patch(account._id, update(args))
   },
 })
-
-// ============================================================================
-// Internal Mutations
-// ============================================================================
 
 export const upsertAccount = internalMutation({
   args: {
@@ -193,11 +182,10 @@ export const refreshProfile = internalAction({
     unipileId: v.string(),
   },
   handler: async (ctx, args) => {
-    const data = await ctx.runAction(internal.linkedin.getUnipileAccount, {
-      accountId: args.unipileId,
-    })
+    const { unipileId } = args
+    const data = await ctx.runAction(internal.linkedin.getUnipileAccount, { unipileId })
     await ctx.runMutation(internal.linkedin.upsertProfile, {
-      unipileId: args.unipileId,
+      unipileId,
       firstName: data.first_name,
       lastName: data.last_name,
       picture: data.profile_picture_url,
@@ -206,9 +194,6 @@ export const refreshProfile = internalAction({
   },
 })
 
-// ============================================================================
-// Internal Actions (API Calls)
-// ============================================================================
 export type GetUnipileAccountResult = {
   first_name: string
   last_name: string
@@ -219,19 +204,19 @@ export type GetUnipileAccountResult = {
 
 export const getUnipileAccount = internalAction({
   args: {
-    accountId: v.string(),
+    unipileId: v.string(),
   },
   handler: async (_ctx, args) =>
     await unipile<GetUnipileAccountResult>(
       "GET",
-      `/api/v1/users/me?account_id=${encodeURIComponent(args.accountId)}`,
+      `/api/v1/users/me?account_id=${encodeURIComponent(args.unipileId)}`,
     ),
 })
 
 export const deleteUnipileAccount = internalAction({
   args: {
-    accountId: v.string(),
+    unipileId: v.string(),
   },
   handler: async (_ctx, args) =>
-    await unipile<void>("DELETE", `/api/v1/accounts/${args.accountId}`),
+    await unipile<void>("DELETE", `/api/v1/accounts/${args.unipileId}`),
 })

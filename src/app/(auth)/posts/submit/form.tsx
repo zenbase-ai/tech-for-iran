@@ -42,7 +42,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
 
   const pod = useQuery(api.pods.get, { podId })
   if (!pod) {
-    return <Skeleton className={cn("w-full h-72", className)} />
+    return <Skeleton className={cn("w-full h-84", className)} />
   }
 
   const minTargetCount = Math.min(1, pod.memberCount - 1)

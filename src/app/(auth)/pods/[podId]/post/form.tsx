@@ -124,6 +124,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
           <Field>
             <FieldLabel htmlFor="targetCount">Target engagement count</FieldLabel>
             <Input
+              id="targetCount"
               name="targetCount"
               type="number"
               min={targetCount.min}
@@ -140,6 +141,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
             <Field>
               <FieldLabel htmlFor="minDelay">Min delay between reactions in seconds</FieldLabel>
               <Input
+                id="minDelay"
                 name="minDelay"
                 type="number"
                 min={minDelay.min}
@@ -150,6 +152,7 @@ export const PostForm: React.FC<PostFormProps> = ({ podId }) => {
             <Field>
               <FieldLabel htmlFor="maxDelay">Max delay between reactions in seconds</FieldLabel>
               <Input
+                id="maxDelay"
                 name="maxDelay"
                 type="number"
                 min={maxDelay.min}

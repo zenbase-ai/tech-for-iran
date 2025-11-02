@@ -37,6 +37,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin }) => {
         <FieldContent>
           <Input
             disabled={formLoading}
+            id="maxActions"
             name="maxActions"
             type="number"
             min={maxActions.min}

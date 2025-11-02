@@ -29,9 +29,9 @@ export const submitPost = async (
     return { error: z.prettifyError(error) }
   }
 
-  const podId = data.podId as Id<"pods">
-
   try {
+    const podId = data.podId as Id<"pods">
+
     // Verify user is a member of this pod
     const [membership, { account, profile, needsReconnection }] = await Promise.all([
       fetchQuery(api.pods.get, { podId }, { token }),
@@ -54,9 +54,6 @@ export const submitPost = async (
     // Redirect to post detail page
     return { message: "Post submitted!" }
   } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
-      throw error
-    }
     return { error: errorMessage(error) }
   }
 }

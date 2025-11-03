@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { cn } from "@/lib/utils"
 
 export type PodHeaderProps = {
   podId: Id<"pods">
@@ -18,11 +19,11 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
   const pod = useQuery(api.pods.get, { podId })
 
   if (!pod) {
-    return <Skeleton className="w-full h-18" />
+    return <Skeleton className={cn("w-full h-18", className)} />
   }
 
   return (
-    <HStack justify="between" items="center" className={className}>
+    <HStack justify="between" items="center" className={cn("w-full", className)}>
       <h1 className="text-2xl font-bold mb-2 font-serif italic">{pod.name}</h1>
       <Tooltip>
         <TooltipTrigger asChild>

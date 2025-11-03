@@ -226,3 +226,35 @@ export const deleteUnipileAccount = internalAction({
   handler: async (_ctx, args) =>
     await unipile<void>("DELETE", `/api/v1/accounts/${args.unipileId}`),
 })
+
+// export type GetUnipilePost = {
+//   object: "Post"
+//   provider: "LINKEDIN"
+//   share_url: string
+//   text: string
+//   parsed_datetime: string
+//   author: {
+//     public_identifier: string
+//     id: string
+//     name: string
+//     is_company: boolean
+//     headline: string
+//   }
+//   mentions: Array<{
+//     url: string
+//     start: number
+//     length: number
+//   }>
+// }
+
+// export const getUnipilePost = internalAction({
+//   args: {
+//     unipileId: v.string(),
+//     postId: v.string(),
+//   },
+//   handler: async (_ctx, args) =>
+//     await unipile<GetUnipilePost>(
+//       "GET",
+//       `/api/v1/posts/${args.postId}?account_id=${encodeURIComponent(args.unipileId)}`,
+//     ),
+// })

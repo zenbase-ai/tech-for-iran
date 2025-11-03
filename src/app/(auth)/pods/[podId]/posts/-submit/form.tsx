@@ -79,9 +79,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)}>
-      <p className="text-muted-foreground">
-        Submit a LinkedIn post and watch the engagements roll in.
-      </p>
+      <h2 className="text-lg font-semibold">New Post</h2>
 
       <Field className="flex-row">
         <Controller

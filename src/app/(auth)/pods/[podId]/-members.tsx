@@ -70,34 +70,36 @@ export const PodMembers: React.FC<PodMembersProps> = ({
         {stats.memberCount} {plur("member", stats.memberCount)}
       </h2>
 
-      <ItemGroup className="contents">
-        {members.results.map((member) => (
-          <Item key={member.userId} variant="outline" size="sm" asChild>
-            <Link href={member.url as any} target="_blank" rel="noopener noreferrer">
-              <ItemMedia variant="image">
-                <Avatar className="size-10">
-                  <AvatarImage
-                    src={member.picture}
-                    alt={`${member.firstName} ${member.lastName}`}
-                  />
-                  <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-                    {member.firstName[0]}
-                    {member.lastName[0]}
-                  </AvatarFallback>
-                </Avatar>
-              </ItemMedia>
-              <ItemContent className="overflow-hidden">
-                <ItemTitle className="truncate">
-                  {member.firstName} {member.lastName}
-                </ItemTitle>
-                <ItemDescription>
-                  Joined {new Date(member.joinedAt).toLocaleDateString()}
-                </ItemDescription>
-              </ItemContent>
-            </Link>
-          </Item>
-        ))}
-      </ItemGroup>
+      <VStack className="gap-3">
+        <ItemGroup className="contents gap-3">
+          {members.results.map((member) => (
+            <Item key={member.userId} variant="outline" size="sm" asChild>
+              <Link href={member.url as any} target="_blank" rel="noopener noreferrer">
+                <ItemMedia variant="image">
+                  <Avatar className="size-10">
+                    <AvatarImage
+                      src={member.picture}
+                      alt={`${member.firstName} ${member.lastName}`}
+                    />
+                    <AvatarFallback className="text-sm font-semibold text-muted-foreground">
+                      {member.firstName[0]}
+                      {member.lastName[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </ItemMedia>
+                <ItemContent className="overflow-hidden">
+                  <ItemTitle className="truncate">
+                    {member.firstName} {member.lastName}
+                  </ItemTitle>
+                  <ItemDescription>
+                    Joined {new Date(member.joinedAt).toLocaleDateString()}
+                  </ItemDescription>
+                </ItemContent>
+              </Link>
+            </Item>
+          ))}
+        </ItemGroup>
+      </VStack>
       {canLoadMore && (
         <Button variant="outline" onClick={loadMore} className="max-w-fit">
           Show More

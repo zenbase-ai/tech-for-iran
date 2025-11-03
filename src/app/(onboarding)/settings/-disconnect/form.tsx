@@ -1,8 +1,9 @@
 "use client"
 
-import Form from "next/form"
-import { useActionState } from "react"
+import { useAction } from "convex/react"
+import { useEffectEvent, useState } from "react"
 import { LuUnplug } from "react-icons/lu"
+import { toast } from "sonner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,9 +16,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button, type ButtonProps } from "@/components/ui/button"
-import { useActionToastState } from "@/hooks/use-action-state-toasts"
-import { cn } from "@/lib/utils"
-import { disconnectAccount } from "./actions"
+import { api } from "@/convex/_generated/api"
+import { cn, errorMessage } from "@/lib/utils"
 
 export type DisconnectFormProps = ButtonProps
 
@@ -26,11 +26,29 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({
   className,
   ...props
 }) => {
-  const [formState, formAction, formLoading] = useActionState(disconnectAccount, {})
-  useActionToastState(formState, formLoading)
+  const disconnectAccount = useAction(api.linkedin.disconnectAccount)
+  const [isLoading, setLoading] = useState(false)
+  const [isDialogOpen, setDialogOpen] = useState(false)
+
+  const handleDisconnect = useEffectEvent(async () => {
+    setLoading(true)
+    try {
+      const result = await disconnectAccount()
+      if (result.success) {
+        toast.success(result.success)
+        setDialogOpen(false)
+      } else if (result.error) {
+        toast.error(result.error)
+      }
+    } catch (error: unknown) {
+      toast.error(errorMessage(error))
+    } finally {
+      setLoading(false)
+    }
+  })
 
   return (
-    <AlertDialog>
+    <AlertDialog open={isDialogOpen} onOpenChange={setDialogOpen}>
       <AlertDialogTrigger asChild>
         <Button variant={variant} className={cn("w-fit", className)} {...props}>
           Disconnect
@@ -38,23 +56,26 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
-        <Form action={formAction}>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>Your fellow alumni are counting on you!</AlertDialogDescription>
-            <AlertDialogDescription className="text-muted-foreground">
-              This will permanently delete your account and remove your data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel type="button" disabled={formLoading}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction type="submit" disabled={formLoading} variant="destructive">
-              Disconnect
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </Form>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>Your fellow alumni are counting on you!</AlertDialogDescription>
+          <AlertDialogDescription className="text-muted-foreground">
+            This will permanently delete your account and remove your data from our servers.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel type="button" disabled={isLoading}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            type="button"
+            disabled={isLoading}
+            variant="destructive"
+            onClick={handleDisconnect}
+          >
+            Disconnect
+          </AlertDialogAction>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   )

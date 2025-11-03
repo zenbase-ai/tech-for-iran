@@ -1,12 +1,13 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
+import { getOneFrom } from "convex-helpers/server/relationships"
 import * as z from "zod"
 import { getTargetCount, SubmitPostSchema } from "@/app/(auth)/pods/[podId]/posts/-submit/schema"
 import { internal } from "@/convex/_generated/api"
 import { podMemberCount, podPostCount, postEngagementCount } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
 import { NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
-import { parsePostURN } from "@/convex/helpers/linkedin"
+import { needsReconnection, parsePostURN } from "@/convex/helpers/linkedin"
 import { humanizeDuration, rateLimiter } from "@/convex/limiter"
 import { workflow } from "@/convex/workflows/engagement"
 
@@ -100,9 +101,27 @@ export const submit = authMutation({
       return { error: "Failed to parse URL, please try again." }
     }
 
-    const pod = await ctx.db.get(podId)
+    const [pod, membership, account, profile] = await Promise.all([
+      ctx.db.get(podId),
+      ctx.db
+        .query("memberships")
+        .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", podId))
+        .first(),
+      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", userId, "userId"),
+      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", userId, "userId"),
+    ])
+
     if (!pod) {
       return { error: "Pod not found, try reloading the page." }
+    }
+    if (!membership) {
+      return { error: "You are not a member of this pod." }
+    }
+    if (!profile || !account) {
+      return { error: "You must connect your LinkedIn account first." }
+    }
+    if (needsReconnection(account.status)) {
+      return { error: "Your LinkedIn connection needs to be refreshed. Please reconnect." }
     }
 
     const existing = await ctx.db

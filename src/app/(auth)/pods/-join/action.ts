@@ -24,11 +24,10 @@ export const joinPod = async (
     redirect(`/sign-in?inviteCode=${encodeURIComponent(data.inviteCode)}` as any)
   })
 
-  const pod = await fetchMutation(api.pods.join, data, { token })
-  if (!pod) {
-    return { error: "Invalid invite code." }
+  const result = await fetchMutation(api.pods.join, data, { token })
+  if ("error" in result) {
+    return { error: result.error }
   }
 
-  const flash = `Joined ${pod.name}!`
-  return redirect(`/pods?success=${encodeURIComponent(flash)}`)
+  return redirect(`/pods?success=${encodeURIComponent(result.success)}`)
 }

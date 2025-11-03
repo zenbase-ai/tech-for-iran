@@ -4,7 +4,7 @@ import { omit, pick } from "es-toolkit"
 import { api, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation } from "@/convex/_generated/server"
 import { authAction, authMutation, authQuery, update } from "@/convex/helpers/convex"
-import { ConflictError, NotFoundError } from "@/convex/helpers/errors"
+import { ConflictError, errorMessage } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { unipile } from "@/convex/helpers/unipile"
 
@@ -29,12 +29,13 @@ export const refreshState = authAction({
   handler: async (ctx) => {
     const { account, needsReconnection } = await ctx.runQuery(api.linkedin.getState, {})
     if (!account) {
-      throw new NotFoundError()
+      return { error: "Account not found" }
     }
     if (needsReconnection) {
-      throw new ConflictError("Please reconnect your LinkedIn account.")
+      return { error: "Please reconnect your LinkedIn account." }
     }
     await ctx.runAction(internal.linkedin.refreshProfile, { unipileId: account.unipileId })
+    return { success: "Your profile has been refreshed." }
   },
 })
 
@@ -80,7 +81,12 @@ export const disconnectAccount = authAction({
   handler: async (ctx) => {
     const { userId } = ctx
     const { account } = await ctx.runMutation(internal.linkedin.deleteAccount, { userId })
-    await ctx.runAction(internal.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
+    try {
+      await ctx.runAction(internal.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
+      return { success: "Your LinkedIn account has been disconnected." }
+    } catch (error) {
+      return { error: errorMessage(error) }
+    }
   },
 })
 

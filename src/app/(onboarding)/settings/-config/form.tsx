@@ -1,17 +1,17 @@
 "use client"
 
-import { type Preloaded, usePreloadedQuery } from "convex/react"
-import Form from "next/form"
-import { useActionState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react"
+import { useEffectEvent } from "react"
+import { Controller, useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { api } from "@/convex/_generated/api"
-import { useActionToastState } from "@/hooks/use-action-state-toasts"
-import { cn } from "@/lib/utils"
-import { updateConfig } from "./actions"
-import { maxActions } from "./schema"
+import { api } from "@/convex/_generated/api"
+import { cn, errorMessage } from "@/lib/utils"
+import { ConfigSchema, type ConfigSchema as ConfigSchemaType, maxActions } from "./schema"
 
 export type ConfigFormProps = {
   linkedin: Preloaded<typeof api.linkedin.getState>
@@ -20,36 +20,59 @@ export type ConfigFormProps = {
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin, className }) => {
   const { account } = usePreloadedQuery(linkedin)
-  const [formState, formAction, formLoading] = useActionState(updateConfig, {})
-  useActionToastState(formState, formLoading)
+  const updateAccount = useMutation(api.linkedin.updateAccount)
+
+  const form = useForm<ConfigSchemaType>({
+    resolver: zodResolver(ConfigSchema),
+    defaultValues: {
+      maxActions: account?.maxActions ?? maxActions.min,
+    },
+  })
+
+  const onSubmit = useEffectEvent(async (data: ConfigSchemaType) => {
+    try {
+      await updateAccount(data)
+      toast.success("Your LinkedIn settings has been updated.")
+    } catch (error: unknown) {
+      toast.error(errorMessage(error))
+    }
+  })
 
   if (!account) {
     return <Skeleton className={cn("w-full h-24", className)} />
   }
 
   return (
-    <Form action={formAction} className={cn("w-full flex flex-col gap-4", className)}>
-      <Field>
-        <FieldLabel htmlFor="maxActions">Daily Like &amp; Comment Limit</FieldLabel>
-        <FieldContent>
-          <Input
-            disabled={formLoading}
-            id="maxActions"
-            name="maxActions"
-            type="number"
-            min={maxActions.min}
-            max={maxActions.max}
-            defaultValue={account.maxActions}
-            required
-          />
-        </FieldContent>
-      </Field>
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className={cn("w-full flex flex-col gap-4", className)}
+    >
+      <Controller
+        name="maxActions"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor={field.name}>Daily Like &amp; Comment Limit</FieldLabel>
+            <FieldContent>
+              <Input
+                {...field}
+                id={field.name}
+                type="number"
+                min={maxActions.min}
+                max={maxActions.max}
+                aria-invalid={fieldState.invalid}
+                disabled={form.formState.isSubmitting}
+                onChange={(e) => field.onChange(e.target.valueAsNumber)}
+              />
+            </FieldContent>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
 
-      <Button type="submit" disabled={formLoading} className="w-fit">
-        {formLoading ? "Updating..." : "Update"}
+      <Button type="submit" disabled={form.formState.isSubmitting} className="w-fit">
+        {form.formState.isSubmitting ? "Updating..." : "Update"}
       </Button>
-
-      {formState?.error && <FieldError>{formState.error}</FieldError>}
-    </Form>
+    </form>
   )
 }

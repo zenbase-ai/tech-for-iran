@@ -1,12 +1,12 @@
 "use client"
 
-import Form from "next/form"
-import { useActionState } from "react"
+import { useAction } from "convex/react"
+import { useEffectEvent, useState } from "react"
 import { LuRefreshCcw } from "react-icons/lu"
+import { toast } from "sonner"
 import { Button, type ButtonProps } from "@/components/ui/button"
-import { useActionToastState } from "@/hooks/use-action-state-toasts"
-import { cn } from "@/lib/utils"
-import { refreshAccount } from "./actions"
+import { api } from "@/convex/_generated/api"
+import { cn, errorMessage } from "@/lib/utils"
 
 export type RefreshFormProps = ButtonProps
 
@@ -15,21 +15,36 @@ export const RefreshForm: React.FC<RefreshFormProps> = ({
   variant = "outline",
   ...props
 }) => {
-  const [formState, formAction, formLoading] = useActionState(refreshAccount, {})
-  useActionToastState(formState, formLoading)
+  const refreshState = useAction(api.linkedin.refreshState)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleRefresh = useEffectEvent(async () => {
+    setIsLoading(true)
+    try {
+      const result = await refreshState()
+      if (result.success) {
+        toast.success(result.success)
+      } else if (result.error) {
+        toast.error(result.error)
+      }
+    } catch (error: unknown) {
+      toast.error(errorMessage(error))
+    } finally {
+      setIsLoading(false)
+    }
+  })
 
   return (
-    <Form action={formAction} className={className}>
-      <Button
-        type="submit"
-        disabled={formLoading}
-        className={cn("w-fit", className)}
-        variant={variant}
-        {...props}
-      >
-        <LuRefreshCcw className={cn("size-4", formLoading && "animate-spin")} />
-        {formLoading ? "Refreshing..." : "Refresh LinkedIn"}
-      </Button>
-    </Form>
+    <Button
+      type="button"
+      disabled={isLoading}
+      className={cn("w-fit", className)}
+      variant={variant}
+      onClick={handleRefresh}
+      {...props}
+    >
+      <LuRefreshCcw className={cn("size-4", isLoading && "animate-spin")} />
+      {isLoading ? "Refreshing..." : "Refresh LinkedIn"}
+    </Button>
   )
 }

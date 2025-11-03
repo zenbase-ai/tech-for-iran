@@ -143,14 +143,16 @@ export const create = authMutation({
   },
 })
 
+export type Join = { pod?: Doc<"pods">; error: string } | { pod: Doc<"pods">; success: string }
+
 export const join = authMutation({
   args: {
     inviteCode: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Join> => {
     const pod = await getOneFrom(ctx.db, "pods", "byInviteCode", args.inviteCode, "inviteCode")
     if (!pod) {
-      return null
+      return { error: "Invalid invite code." }
     }
 
     let membership = await ctx.db
@@ -158,7 +160,7 @@ export const join = authMutation({
       .withIndex("byUserAndPod", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
       .first()
     if (membership) {
-      return pod
+      return { pod, error: "You are already a member of this pod." }
     }
 
     // Add to pod
@@ -172,6 +174,6 @@ export const join = authMutation({
 
     await podMemberCount.insert(ctx, membership)
 
-    return pod
+    return { pod, success: `Welcome to the ${pod.name} pod!` }
   },
 })

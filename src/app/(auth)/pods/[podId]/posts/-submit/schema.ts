@@ -29,6 +29,27 @@ export const getTargetCount = (inputValue: number, memberCount: number) =>
 export const minDelay = { min: 1, max: 30, default: 10 }
 export const maxDelay = { min: 1, max: 90, default: 30 }
 
+// Form schema (client-side validation)
+export const SubmitPostFormSchema = z.object({
+  url: z
+    .string()
+    .url("Enter a valid URL")
+    .refine(isValidLinkedInPostURL, "Invalid LinkedIn post URL"),
+  reactionTypes: z
+    .array(z.string())
+    .min(1, "Select at least one reaction type")
+    .refine(
+      (types) => validateReactionTypes(types).length === types.length,
+      "Invalid reaction types",
+    ),
+  targetCount: z.number().int().min(targetCount.min).max(targetCount.max),
+  minDelay: z.number().int().min(minDelay.min).max(minDelay.max),
+  maxDelay: z.number().int().min(maxDelay.min).max(maxDelay.max),
+})
+
+export type SubmitPostFormData = z.infer<typeof SubmitPostFormSchema>
+
+// Legacy schema for server action (kept for backward compatibility)
 export const SubmitPostSchema = z.object({
   podId: z.string(),
   url: z.url().refine(isValidLinkedInPostURL, "Invalid LinkedIn post URL"),

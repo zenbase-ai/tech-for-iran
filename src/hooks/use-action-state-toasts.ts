@@ -21,3 +21,13 @@ export const useActionToastState = (state: ActionToastState, loading: boolean) =
     }
   }, [state.error, loading])
 }
+
+export const toastResult = (result: ActionToastState) => {
+  if (result.error) {
+    toast.error(result.error)
+    return false
+  } else {
+    toast.success(result.success)
+    return true
+  }
+}

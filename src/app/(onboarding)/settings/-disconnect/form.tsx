@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button, type ButtonProps } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
+import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
 
 export type DisconnectFormProps = ButtonProps
@@ -34,12 +35,8 @@ export const DisconnectForm: React.FC<DisconnectFormProps> = ({
     setLoading(true)
     try {
       const result = await disconnectAccount()
-      if (result.success) {
-        toast.success(result.success)
-        setDialogOpen(false)
-      } else if (result.error) {
-        toast.error(result.error)
-      }
+      toastResult(result)
+      setDialogOpen("success" in result)
     } catch (error: unknown) {
       toast.error(errorMessage(error))
     } finally {

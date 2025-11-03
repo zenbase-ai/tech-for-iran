@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "convex/react"
 import { capitalize } from "es-toolkit/string"
-import { useEffectEvent } from "react"
+import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
 import {
   maxDelay,
@@ -55,13 +56,17 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     },
   })
 
+  useEffect(() => {
+    form.setValue("targetCount", defaultTargetCount)
+  }, [form.setValue, defaultTargetCount])
+
   const onSubmit = useEffectEvent(async (data: SubmitPostFormData) => {
     try {
-      await submitPostMutation({
+      const result = await submitPostMutation({
         podId,
         ...data,
       })
-      toast.success("Post submitted successfully! Engagements will begin shortly.")
+      toastResult(result)
       form.reset()
     } catch (error: unknown) {
       toast.error(errorMessage(error))

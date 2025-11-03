@@ -6,6 +6,7 @@ import { LuRefreshCcw } from "react-icons/lu"
 import { toast } from "sonner"
 import { Button, type ButtonProps } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
+import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
 
 export type RefreshFormProps = ButtonProps
@@ -16,21 +17,17 @@ export const RefreshForm: React.FC<RefreshFormProps> = ({
   ...props
 }) => {
   const refreshState = useAction(api.linkedin.refreshState)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setLoading] = useState(false)
 
   const handleRefresh = useEffectEvent(async () => {
-    setIsLoading(true)
+    setLoading(true)
     try {
       const result = await refreshState()
-      if (result.success) {
-        toast.success(result.success)
-      } else if (result.error) {
-        toast.error(result.error)
-      }
+      toastResult(result)
     } catch (error: unknown) {
       toast.error(errorMessage(error))
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   })
 

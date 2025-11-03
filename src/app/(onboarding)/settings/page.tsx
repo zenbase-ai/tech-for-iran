@@ -4,7 +4,7 @@ import { Nav } from "@/components/layout/nav"
 import { HStack, VStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { linkedinState } from "@/lib/server/linkedin"
+import { preloadLinkedinState } from "@/lib/server/linkedin"
 import { ConfigForm } from "./-config/form"
 import { DisconnectButton } from "./-disconnect-button"
 import { RefreshButton } from "./-refresh-button"
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 }
 
 export default async function LinkedinPage() {
-  const linkedin = await linkedinState()
+  const linkedin = await preloadLinkedinState()
 
   return (
     <>

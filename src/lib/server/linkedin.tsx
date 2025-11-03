@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "./clerk"
 
-export const linkedinState = async () => {
+export const preloadLinkedinState = async () => {
   const { isAuthenticated, token } = await tokenAuth()
   if (!isAuthenticated) {
     return redirect("/sign-in" as any)

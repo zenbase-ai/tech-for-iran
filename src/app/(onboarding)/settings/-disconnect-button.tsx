@@ -20,21 +20,21 @@ import { api } from "@/convex/_generated/api"
 import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
 
-export type DisconnectFormProps = ButtonProps
+export type DisconnectButtonProps = ButtonProps
 
-export const DisconnectForm: React.FC<DisconnectFormProps> = ({
+export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
   variant = "ghost",
   className,
   ...props
 }) => {
-  const disconnectAccount = useAction(api.linkedin.disconnectAccount)
+  const action = useAction(api.linkedin.disconnectAccount)
   const [isLoading, setLoading] = useState(false)
   const [isDialogOpen, setDialogOpen] = useState(false)
 
   const handleDisconnect = useEffectEvent(async () => {
     setLoading(true)
     try {
-      const result = await disconnectAccount()
+      const result = await action()
       toastResult(result)
       setDialogOpen("success" in result)
     } catch (error: unknown) {

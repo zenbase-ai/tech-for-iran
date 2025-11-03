@@ -38,7 +38,7 @@ export type SubmitPostFormProps = {
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
   const pod = useQuery(api.pods.get, { podId })
-  const submitPostMutation = useMutation(api.posts.submit)
+  const mutation = useMutation(api.posts.submit)
 
   const minTargetCount = pod ? Math.min(1, pod.memberCount - 1) : targetCount.min
   const maxTargetCount = pod ? Math.min(pod.memberCount - 1, targetCount.max) : targetCount.max
@@ -61,7 +61,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
 
   const onSubmit = useEffectEvent(async (data: SubmitPostSchema) => {
     try {
-      const result = await submitPostMutation({
+      const result = await mutation({
         podId,
         ...data,
       })

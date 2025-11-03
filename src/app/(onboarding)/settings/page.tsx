@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { linkedinState } from "@/lib/server/linkedin"
 import { ConfigForm } from "./-config/form"
-import { DisconnectForm } from "./-disconnect/form"
-import { RefreshForm } from "./-refresh/form"
+import { DisconnectButton } from "./-disconnect-button"
+import { RefreshButton } from "./-refresh-button"
 
 export const metadata: Metadata = {
   title: "Crackedbook Settings",
@@ -34,9 +34,9 @@ export default async function LinkedinPage() {
         <Separator className="my-3" />
 
         <HStack wrap items="center" justify="between">
-          <RefreshForm />
+          <RefreshButton />
 
-          <DisconnectForm />
+          <DisconnectButton />
         </HStack>
       </VStack>
     </>

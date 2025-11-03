@@ -9,20 +9,20 @@ import { api } from "@/convex/_generated/api"
 import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
 
-export type RefreshFormProps = ButtonProps
+export type RefreshButtonProps = ButtonProps
 
-export const RefreshForm: React.FC<RefreshFormProps> = ({
+export const RefreshButton: React.FC<RefreshButtonProps> = ({
   className,
   variant = "outline",
   ...props
 }) => {
-  const refreshState = useAction(api.linkedin.refreshState)
+  const action = useAction(api.linkedin.refreshState)
   const [isLoading, setLoading] = useState(false)
 
   const handleRefresh = useEffectEvent(async () => {
     setLoading(true)
     try {
-      const result = await refreshState()
+      const result = await action()
       toastResult(result)
     } catch (error: unknown) {
       toast.error(errorMessage(error))

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react"
-import { useEffectEvent } from "react"
+import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ export type ConfigFormProps = {
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin, className }) => {
   const { account } = usePreloadedQuery(linkedin)
-  const updateAccount = useMutation(api.linkedin.updateAccount)
+  const mutation = useMutation(api.linkedin.updateAccount)
 
   const form = useForm<ConfigSchemaType>({
     resolver: zodResolver(ConfigSchema),
@@ -29,9 +29,15 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin, className }) =
     },
   })
 
+  useEffect(() => {
+    if (account?.maxActions) {
+      form.setValue("maxActions", account.maxActions)
+    }
+  }, [account?.maxActions, form.setValue])
+
   const onSubmit = useEffectEvent(async (data: ConfigSchemaType) => {
     try {
-      await updateAccount(data)
+      await mutation(data)
       toast.success("Your LinkedIn settings has been updated.")
     } catch (error: unknown) {
       toast.error(errorMessage(error))

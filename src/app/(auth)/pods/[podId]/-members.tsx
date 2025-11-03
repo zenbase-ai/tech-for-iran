@@ -31,7 +31,7 @@ export type PodMembersProps = {
 export const PodMembers: React.FC<PodMembersProps> = ({
   podId,
   className,
-  membersPageSize = 12,
+  membersPageSize = 5,
 }) => {
   const stats = useQuery(api.pods.stats, { podId })
   const members = usePaginatedQuery(

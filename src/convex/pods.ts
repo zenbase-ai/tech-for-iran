@@ -2,7 +2,6 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { customQuery } from "convex-helpers/server/customFunctions"
 import { getOneFrom } from "convex-helpers/server/relationships"
-import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
 import { podMemberCount, podPostCount } from "@/convex/aggregates"
@@ -130,7 +129,7 @@ export const create = authMutation({
     name: v.string(),
     inviteCode: v.string(),
   },
-  handler: async (ctx, args): Promise<Join> => {
+  handler: async (_ctx, _args): Promise<Join> => {
     throw new UnauthorizedError()
     // const { name, inviteCode } = args
 

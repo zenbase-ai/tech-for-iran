@@ -10,7 +10,8 @@
       "Bash(ls -la /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(auth)/pods/create/)",
       "Bash(ls /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(auth)/pods/[podId]/posts/-submit/)",
       "Bash(ls /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(onboarding)/settings/-disconnect/)",
-      "Bash(ls /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(onboarding)/settings/-refresh/)"
+      "Bash(ls /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(onboarding)/settings/-refresh/)",
+      "Bash(ls -la /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(auth)/pods/-create/)"
     ],
     "deny": [],
     "ask": []

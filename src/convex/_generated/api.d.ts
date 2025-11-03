@@ -21,6 +21,7 @@ import type * as helpers_unipile from "../helpers/unipile.js";
 import type * as http from "../http.js";
 import type * as limiter from "../limiter.js";
 import type * as linkedin from "../linkedin.js";
+import type * as management from "../management.js";
 import type * as pods from "../pods.js";
 import type * as posts from "../posts.js";
 import type * as user from "../user.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   limiter: typeof limiter;
   linkedin: typeof linkedin;
+  management: typeof management;
   pods: typeof pods;
   posts: typeof posts;
   user: typeof user;

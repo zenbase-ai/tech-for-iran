@@ -83,13 +83,6 @@ export const submit = authMutation({
     const { userId } = ctx
     const { podId } = args
 
-    const { ok, retryAfter } = await rateLimiter.limit(ctx, "submitPost", {
-      key: userId,
-    })
-    if (!ok) {
-      return { error: `Too many requests, please try again in ${humanizeDuration(retryAfter)}.` }
-    }
-
     const { data, success, error } = SubmitPostSchema.safeParse(args)
     if (!success) {
       return { error: z.prettifyError(error) }
@@ -130,6 +123,13 @@ export const submit = authMutation({
       .first()
     if (existing) {
       return { error: "Cannot resubmit a post." }
+    }
+
+    const { ok, retryAfter } = await rateLimiter.limit(ctx, "submitPost", {
+      key: userId,
+    })
+    if (!ok) {
+      return { error: `Too many requests, please try again in ${humanizeDuration(retryAfter)}.` }
     }
 
     const postId = await ctx.db.insert("posts", {

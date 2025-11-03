@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import * as z from "zod"
-import { getTargetCount, SubmitPostSchema } from "@/app/(auth)/posts/submit/schema"
+import { getTargetCount, SubmitPostSchema } from "@/app/(auth)/pods/[podId]/posts/-submit/schema"
 import { internal } from "@/convex/_generated/api"
 import { podMemberCount, podPostCount, postEngagementCount } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"

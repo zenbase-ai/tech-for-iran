@@ -4,7 +4,6 @@ import { useAuth } from "@clerk/nextjs"
 import { usePaginatedQuery } from "convex/react"
 import Link from "next/link"
 import { LuPlus, LuUsers } from "react-icons/lu"
-import { JoinPodForm } from "@/app/join/form"
 import { Box } from "@/components/layout/box"
 import { HStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
@@ -19,7 +18,8 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
-import { CreatePodForm } from "./create/form"
+import { CreatePodForm } from "./-create/form"
+import { JoinPodForm } from "./-join/form"
 
 export default function PodsClientPage() {
   const auth = useAuth()

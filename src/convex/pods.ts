@@ -2,6 +2,7 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { customQuery } from "convex-helpers/server/customFunctions"
 import { getOneFrom } from "convex-helpers/server/relationships"
+import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
 import { podMemberCount, podPostCount } from "@/convex/aggregates"
@@ -122,28 +123,29 @@ export const posts = memberQuery({
       .paginate(args.paginationOpts),
 })
 
+export type Join = { pod?: Doc<"pods">; error: string } | { pod: Doc<"pods">; success: string }
+
 export const create = authMutation({
   args: {
     name: v.string(),
     inviteCode: v.string(),
   },
-  handler: async (ctx, args) => {
-    const { name, inviteCode } = args
+  handler: async (ctx, args): Promise<Join> => {
+    throw new UnauthorizedError()
+    // const { name, inviteCode } = args
 
-    const existing = await ctx.db
-      .query("pods")
-      .withIndex("byInviteCode", (q) => q.eq("inviteCode", inviteCode))
-      .first()
-    if (existing) {
-      return { error: "That invite code is already in use, please try a different one." }
-    }
+    // const existing = await ctx.db
+    //   .query("pods")
+    //   .withIndex("byInviteCode", (q) => q.eq("inviteCode", inviteCode))
+    //   .first()
+    // if (existing) {
+    //   return { error: "That invite code is already in use, please try a different one." }
+    // }
 
-    const podId = await ctx.db.insert("pods", { name, inviteCode, createdBy: ctx.userId })
-    return { podId }
+    // await ctx.db.insert("pods", { name, inviteCode, createdBy: ctx.userId })
+    // return await ctx.runMutation(api.pods.join, { inviteCode })
   },
 })
-
-export type Join = { pod?: Doc<"pods">; error: string } | { pod: Doc<"pods">; success: string }
 
 export const join = authMutation({
   args: {

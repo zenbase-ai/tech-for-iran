@@ -31,9 +31,7 @@ export const maxDelay = { min: 1, max: 90, default: 30 }
 
 // Form schema (client-side validation)
 export const SubmitPostSchema = z.object({
-  url: z
-    .url("Enter a valid URL")
-    .refine(isValidLinkedInPostURL, "Invalid LinkedIn post URL"),
+  url: z.url("Enter a valid URL").refine(isValidLinkedInPostURL, "Invalid LinkedIn post URL"),
   reactionTypes: z
     .array(z.string())
     .min(1, "Select at least one reaction type")

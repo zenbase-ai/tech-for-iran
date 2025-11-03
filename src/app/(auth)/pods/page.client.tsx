@@ -36,7 +36,7 @@ export default function PodsClientPage() {
 
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" disabled>
               <LuPlus className="size-4" />
               New
             </Button>

@@ -6,6 +6,7 @@ import * as z from "zod"
 import { api } from "@/convex/_generated/api"
 import type { ActionToastState } from "@/hooks/use-action-state-toasts"
 import { tokenAuth } from "@/lib/server/clerk"
+import { errorMessage } from "@/lib/utils"
 import { CreatePodSchema } from "./schema"
 
 export type CreatePodState = ActionToastState
@@ -22,15 +23,14 @@ export const createPod = async (
     return { error: z.prettifyError(parseError) }
   }
 
-  const { podId, error: createError } = await fetchMutation(api.pods.create, data, { token })
-  if (createError) {
-    return { error: createError }
-  }
+  try {
+    const result = await fetchMutation(api.pods.create, data, { token })
+    if ("error" in result) {
+      return { error: result.error }
+    }
 
-  const pod = await fetchMutation(api.pods.join, { inviteCode: data.inviteCode }, { token })
-  if (!pod) {
-    return { error: "There was an unexpected error joining the pod, please try joining manually." }
+    return redirect(`/pods/${result.pod._id}`)
+  } catch (error: unknown) {
+    return { error: errorMessage(error) }
   }
-
-  return redirect(`/pods/${podId}`)
 }

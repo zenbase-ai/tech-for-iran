@@ -23,13 +23,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
-import {
-  maxDelay,
-  minDelay,
-  reactionTypes,
-  SubmitPostSchema,
-  targetCount,
-} from "./schema"
+import { maxDelay, minDelay, reactionTypes, SubmitPostSchema, targetCount } from "./schema"
 
 export type SubmitPostFormProps = {
   podId: Id<"pods">
@@ -77,7 +71,10 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className={cn("w-full flex flex-col gap-6", className)}>
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className={cn("w-full flex flex-col gap-6", className)}
+    >
       <Field className="flex-row">
         <Controller
           name="url"

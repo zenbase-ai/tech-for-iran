@@ -65,7 +65,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
   const canLoadMore = members.status === "CanLoadMore" && members.results.length < stats.memberCount
 
   return (
-    <VStack className={cn("gap-6", className)}>
+    <VStack className={cn("w-full gap-6", className)}>
       <h2 className="text-lg font-semibold">
         {stats.memberCount} {plur("member", stats.memberCount)}
       </h2>

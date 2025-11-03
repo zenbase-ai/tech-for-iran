@@ -27,8 +27,7 @@ import {
   maxDelay,
   minDelay,
   reactionTypes,
-  type SubmitPostFormData,
-  SubmitPostFormSchema,
+  SubmitPostSchema,
   targetCount,
 } from "./schema"
 
@@ -45,8 +44,8 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   const maxTargetCount = pod ? Math.min(pod.memberCount - 1, targetCount.max) : targetCount.max
   const defaultTargetCount = Math.min(25, maxTargetCount)
 
-  const form = useForm<SubmitPostFormData>({
-    resolver: zodResolver(SubmitPostFormSchema),
+  const form = useForm<SubmitPostSchema>({
+    resolver: zodResolver(SubmitPostSchema),
     defaultValues: {
       url: "",
       reactionTypes: reactionTypes.default,
@@ -60,7 +59,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     form.setValue("targetCount", defaultTargetCount)
   }, [form.setValue, defaultTargetCount])
 
-  const onSubmit = useEffectEvent(async (data: SubmitPostFormData) => {
+  const onSubmit = useEffectEvent(async (data: SubmitPostSchema) => {
     try {
       const result = await submitPostMutation({
         podId,
@@ -78,9 +77,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className={cn("flex flex-col gap-6", className)}>
-      <h2 className="text-lg font-semibold">New Post</h2>
-
+    <form onSubmit={form.handleSubmit(onSubmit)} className={cn("w-full flex flex-col gap-6", className)}>
       <Field className="flex-row">
         <Controller
           name="url"

@@ -8,7 +8,7 @@ export type PostIFrameProps = BoxProps & {
 export const PostIFrame: React.FC<PostIFrameProps> = ({ urn, className, ...props }) => (
   <Box className={cn("min-h-[263px] max-w-[504px] rounded-md shadow-md", className)} {...props}>
     <iframe
-      src={`https://www.linkedin.com/embed/feed/update/urn:li:share:${urn}`}
+      src={`https://www.linkedin.com/embed/feed/update/urn:li:share:${urn.split(":").at(-1)}`}
       width="100%"
       height="263"
       allowFullScreen={false}

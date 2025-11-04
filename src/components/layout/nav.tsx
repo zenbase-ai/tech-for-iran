@@ -1,22 +1,35 @@
 "use client"
 
-import { type Preloaded, usePreloadedQuery } from "convex/react"
+import { useQuery } from "convex/react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { LuSettings } from "react-icons/lu"
+import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { api } from "@/convex/_generated/api"
+import { api } from "@/convex/_generated/api"
 import { cn } from "@/lib/utils"
 
 export type NavProps = {
   className?: string
-  linkedin: Preloaded<typeof api.linkedin.getState>
 }
 
-export const Nav: React.FC<NavProps> = ({ className, linkedin }) => {
-  const { profile, needsReconnection } = usePreloadedQuery(linkedin)
+export const Nav: React.FC<NavProps> = ({ className }) => {
+  const router = useRouter()
+  const linkedin = useQuery(api.linkedin.getState)
+
+  useEffect(() => {
+    if (linkedin?.needsReconnection) {
+      toast.info("Please reconnect your LinkedIn account.")
+      const timeout = setTimeout(() => {
+        router.push("/settings/connect")
+      }, 1000)
+      return () => clearTimeout(timeout)
+    }
+  }, [linkedin?.needsReconnection, router.push])
 
   return (
     <Item
@@ -26,7 +39,7 @@ export const Nav: React.FC<NavProps> = ({ className, linkedin }) => {
       className={cn("rounded-full bg-background/50 backdrop-blur-md shadow-md gap-3", className)}
     >
       <nav>
-        {profile == null ? (
+        {linkedin?.profile == null ? (
           <>
             <Skeleton className="size-9 rounded-full" />
             <Skeleton className="w-36 h-6 flex-1" />
@@ -37,25 +50,25 @@ export const Nav: React.FC<NavProps> = ({ className, linkedin }) => {
               <Link href="/pods">
                 <Avatar className="size-9">
                   <AvatarImage
-                    src={profile.picture}
-                    alt={`${profile.firstName} ${profile.lastName}`}
+                    src={linkedin.profile.picture}
+                    alt={`${linkedin.profile.firstName} ${linkedin.profile.lastName}`}
                   />
                   <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-                    {profile.firstName[0]}
-                    {profile.lastName[0]}
+                    {linkedin.profile.firstName[0]}
+                    {linkedin.profile.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
               </Link>
             </ItemMedia>
             <ItemContent>
-              {needsReconnection ? (
+              {linkedin.needsReconnection ? (
                 <Link href="/settings/connect">
                   <ItemTitle className="text-base text-red-700">Reconnect LinkedIn</ItemTitle>
                 </Link>
               ) : (
                 <Link href="/pods">
                   <ItemTitle className="text-base">
-                    {profile.firstName} {profile.lastName}
+                    {linkedin.profile.firstName} {linkedin.profile.lastName}
                   </ItemTitle>
                 </Link>
               )}

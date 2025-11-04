@@ -1,10 +1,10 @@
 import { SignOutButton } from "@clerk/nextjs"
+import { auth } from "@clerk/nextjs/server"
 import type { Metadata } from "next"
 import { Nav } from "@/components/layout/nav"
 import { HStack, VStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { preloadLinkedinState } from "@/lib/server/linkedin"
 import { ConfigForm } from "./-config/form"
 import { DisconnectButton } from "./-disconnect-button"
 import { RefreshButton } from "./-refresh-button"
@@ -14,11 +14,11 @@ export const metadata: Metadata = {
 }
 
 export default async function LinkedinPage() {
-  const linkedin = await preloadLinkedinState()
+  await auth.protect()
 
   return (
     <>
-      <Nav className="fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" linkedin={linkedin} />
+      <Nav className="fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" />
 
       <VStack as="main" className="px-2 w-full max-w-[640px] mx-auto gap-8">
         <HStack wrap items="center" justify="between">
@@ -29,7 +29,7 @@ export default async function LinkedinPage() {
           </SignOutButton>
         </HStack>
 
-        <ConfigForm linkedin={linkedin} />
+        <ConfigForm />
 
         <Separator className="my-3" />
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -14,26 +14,25 @@ import { cn, errorMessage } from "@/lib/utils"
 import { ConfigSchema, type ConfigSchema as ConfigSchemaType, maxActions } from "./schema"
 
 export type ConfigFormProps = {
-  linkedin: Preloaded<typeof api.linkedin.getState>
   className?: string
 }
 
-export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin, className }) => {
-  const { account } = usePreloadedQuery(linkedin)
+export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
+  const linkedin = useQuery(api.linkedin.getState)
   const mutation = useMutation(api.linkedin.updateAccount)
 
   const form = useForm<ConfigSchemaType>({
     resolver: zodResolver(ConfigSchema),
     defaultValues: {
-      maxActions: account?.maxActions ?? maxActions.min,
+      maxActions: linkedin?.account?.maxActions ?? maxActions.min,
     },
   })
 
   useEffect(() => {
-    if (account?.maxActions) {
-      form.setValue("maxActions", account.maxActions)
+    if (linkedin?.account?.maxActions) {
+      form.setValue("maxActions", linkedin?.account.maxActions)
     }
-  }, [account?.maxActions, form.setValue])
+  }, [linkedin?.account?.maxActions, form.setValue])
 
   const onSubmit = useEffectEvent(async (data: ConfigSchemaType) => {
     try {
@@ -44,7 +43,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ linkedin, className }) =
     }
   })
 
-  if (!account) {
+  if (!linkedin?.account) {
     return <Skeleton className={cn("w-full h-24", className)} />
   }
 

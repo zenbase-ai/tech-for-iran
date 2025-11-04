@@ -37,12 +37,11 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
 
   if (inviteCode) {
     const result = await fetchMutation(api.pods.join, { inviteCode }, { token })
-    if ("error" in result) {
-      return redirect(`/pods?error=${encodeURIComponent(result.error)}`)
+    if ("pod" in result) {
+      return redirect(`/pods/${result.pod._id}`)
     }
 
-    const flash = `Joined ${result.pod.name}!`
-    return redirect(`/pods?success=${encodeURIComponent(flash)}`, RedirectType.push)
+    return redirect(`/pods?error=${encodeURIComponent(result.error)}`, RedirectType.push)
   }
 
   return redirect("/pods", RedirectType.push)

@@ -4,7 +4,7 @@ import { internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation } from "@/convex/_generated/server"
 import { pmap } from "./helpers/collections"
 
-export const dropPod = internalMutation({
+export const deletePod = internalMutation({
   args: {
     podId: v.id("pods"),
   },

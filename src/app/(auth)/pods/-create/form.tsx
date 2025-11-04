@@ -36,8 +36,10 @@ export const CreatePodForm: React.FC<CreatePodFormProps> = ({ className }) => {
     try {
       const result = await mutation(data)
       toastResult(result)
-      if (!("error" in result)) {
-        router.push(`/pods/${result.pod._id}`)
+      if ("pod" in result) {
+        setTimeout(() => {
+          router.push(`/pods/${result.pod._id}`)
+        }, 500)
       }
     } catch (error: unknown) {
       toast.error(errorMessage(error))

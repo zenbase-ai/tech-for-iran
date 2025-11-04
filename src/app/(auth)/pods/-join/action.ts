@@ -25,9 +25,9 @@ export const joinPod = async (
   })
 
   const result = await fetchMutation(api.pods.join, data, { token })
-  if ("error" in result) {
-    return { error: result.error }
+  if ("pod" in result) {
+    return redirect(`/pods/${result.pod._id}`)
   }
 
-  return redirect(`/pods?success=${encodeURIComponent(result.success)}`)
+  return redirect(`/pods?error=${encodeURIComponent(result.error)}`)
 }

@@ -122,7 +122,7 @@ export const posts = memberQuery({
       .paginate(args.paginationOpts),
 })
 
-export type Join = { pod?: Doc<"pods">; error: string } | { pod: Doc<"pods">; success: string }
+export type Join = { error: string } | { pod: Doc<"pods">; success?: string; error?: string }
 
 export const create = authMutation({
   args: {

@@ -30,7 +30,7 @@ export default async function SignInPage({ params }: SignInPageProps) {
   const { inviteCode, error } = await params
 
   const redirectURL = inviteCode
-    ? `/linkedin/connect?inviteCode=${inviteCode}`
+    ? `/settings/connect?inviteCode=${inviteCode}`
     : "/settings/connect"
   const signUpURL = inviteCode ? `/sign-in?inviteCode=${inviteCode}` : "/sign-in"
 

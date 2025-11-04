@@ -15,7 +15,7 @@ export type SignUpPageProps = {
 export default async function SignUpPage({ params }: SignUpPageProps) {
   const { inviteCode } = await params
   const redirectURL = inviteCode
-    ? `/linkedin/connect?inviteCode=${inviteCode}`
+    ? `/settings/connect?inviteCode=${inviteCode}`
     : "/settings/connect"
   const signInURL = inviteCode ? `/sign-in?inviteCode=${inviteCode}` : "/sign-in"
 

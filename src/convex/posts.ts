@@ -126,7 +126,7 @@ export const submit = authMutation({
     }
 
     const { ok, retryAfter } = await rateLimiter.limit(ctx, "submitPost", {
-      key: userId,
+      key: `${podId}-{userId}`,
     })
     if (!ok) {
       return { error: `Too many requests, please try again in ${humanizeDuration(retryAfter)}.` }

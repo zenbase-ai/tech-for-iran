@@ -53,7 +53,7 @@ export const connectAccount = authMutation({
     ])
 
     if (account.userId) {
-      throw new ConflictError()
+      throw new ConflictError("Account has already been connected.")
     }
 
     await ctx.db.patch(account._id, update({ unipileId, userId }))

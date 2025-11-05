@@ -114,7 +114,7 @@ export const posts = memberQuery({
       .paginate(args.paginationOpts),
 })
 
-export type Join = { error: string } | { pod: Doc<"pods">; success?: string; error?: string }
+export type Join = { error: string } | { pod: Doc<"pods">; success?: string; info?: string }
 
 export const create = authMutation({
   args: {
@@ -148,19 +148,19 @@ export const join = authMutation({
       return { error: "Invalid invite code." }
     }
 
-    let membership = await ctx.db
+    const existing = await ctx.db
       .query("memberships")
       .withIndex("byUserAndPod", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
       .first()
-    if (membership) {
-      return { pod, error: "You are already a member of this pod." }
+    if (existing) {
+      return { pod, info: `You are already a member of ${pod.name}.` }
     }
 
     // Add to pod
     const membershipId = await ctx.db.insert("memberships", { userId: ctx.userId, podId: pod._id })
 
     // Update aggregate
-    membership = await ctx.db.get(membershipId)
+    const membership = await ctx.db.get(membershipId)
     if (!membership) {
       throw new ConflictError()
     }

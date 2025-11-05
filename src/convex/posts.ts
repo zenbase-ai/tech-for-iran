@@ -121,11 +121,12 @@ export const submit = authMutation({
       return { error: "Please reconnect your LinkedIn." }
     }
 
-    const existing = await ctx.db
-      .query("posts")
-      .withIndex("byURL", (q) => q.eq("url", data.url))
-      .first()
-    if (existing) {
+    if (
+      await ctx.db
+        .query("posts")
+        .withIndex("byURL", (q) => q.eq("url", data.url))
+        .first()
+    ) {
       return { error: "Cannot resubmit a post." }
     }
 

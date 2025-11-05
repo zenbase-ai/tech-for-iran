@@ -279,9 +279,8 @@ export const log = internalMutation({
       .query("engagements")
       .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", args.userId))
       .first()
-
     if (existing) {
-      throw new ConflictError()
+      return existing._id
     }
 
     const engagementId = await ctx.db.insert("engagements", args)

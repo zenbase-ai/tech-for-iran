@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "convex/react"
 import { capitalize } from "es-toolkit/string"
@@ -17,12 +18,12 @@ import {
 } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useAsyncFn } from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
 import { calculateSchemaTargetCount, SubmitPostSchema, submitPostSchema } from "./schema"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export type SubmitPostFormProps = {
   podId: Id<"pods">
@@ -30,6 +31,7 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
+  const { isSignedIn } = useAuth()
   const form = useForm<SubmitPostSchema>({
     resolver: zodResolver(SubmitPostSchema),
     defaultValues: submitPostSchema.defaultValues,
@@ -40,13 +42,15 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     if (mutation.complete) form.reset()
   }, [mutation.complete, form.reset])
 
-  const stats = useQuery(api.pods.stats, { podId })
+  const stats = useQuery(api.pods.stats, isSignedIn ? { podId } : "skip")
   const submitPostSchemaTargetCount = calculateSchemaTargetCount(stats?.memberCount)
   useEffect(() => {
     form.setValue("targetCount", submitPostSchemaTargetCount.defaultValue)
   }, [form.setValue, submitPostSchemaTargetCount.defaultValue])
 
-  if (!stats) {
+
+  const isLoading = !isSignedIn || !stats
+  if (isLoading) {
     return <Skeleton className={cn("w-full h-84 mt-1", className)} />
   }
 

@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { LuSend } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
@@ -16,10 +17,11 @@ export type PodHeaderProps = {
 }
 
 export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
-  const pod = useQuery(api.pods.get, { podId })
+  const { isSignedIn } = useAuth()
+  const pod = useQuery(api.pods.get, isSignedIn ? { podId } : "skip")
 
   if (!pod) {
-    return <Skeleton className={cn("w-full h-18", className)} />
+    return <Skeleton className={cn("w-full h-15", className)} />
   }
 
   return (

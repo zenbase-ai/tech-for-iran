@@ -1,9 +1,19 @@
 import * as z from "zod"
 
-export const maxActions = { min: 1, max: 50 }
+export const configSchema = {
+  min: {
+    maxActions: 1,
+  },
+  max: {
+    maxActions: 50,
+  },
+  defaultValues: {
+    maxActions: 25,
+  },
+}
 
 export const ConfigSchema = z.object({
-  maxActions: z.number().int().min(maxActions.min).max(maxActions.max),
+  maxActions: z.number().int().min(configSchema.min.maxActions).max(configSchema.max.maxActions),
 })
 
 export type ConfigSchema = z.infer<typeof ConfigSchema>

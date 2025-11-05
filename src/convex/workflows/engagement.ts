@@ -10,7 +10,7 @@ import { internalAction, internalMutation, internalQuery } from "@/convex/_gener
 import { postEngagementCount } from "@/convex/aggregates"
 import { pmap } from "@/convex/helpers/collections"
 import { ConflictError, errorMessage } from "@/convex/helpers/errors"
-import { type LinkedInReactionType, needsReconnection } from "@/convex/helpers/linkedin"
+import { needsReconnection } from "@/convex/helpers/linkedin"
 import { UnipileAPIError, unipile } from "@/convex/helpers/unipile"
 
 export const workflow = new WorkflowManager(components.workflow, {
@@ -249,7 +249,7 @@ export const react = internalAction({
       const response = await unipile("POST", "/api/v1/posts/reaction", {
         account_id: args.unipileId,
         post_id: args.urn,
-        reaction_type: args.reactionType.toLowerCase() as LinkedInReactionType,
+        reaction_type: args.reactionType.toLowerCase(),
       })
 
       return [true, response]

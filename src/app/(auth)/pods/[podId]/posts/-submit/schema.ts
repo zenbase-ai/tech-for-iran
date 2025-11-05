@@ -1,13 +1,7 @@
+import { regex } from "arkregex"
 import { clamp } from "es-toolkit/math"
 import * as z from "zod"
-import {
-  isValidLinkedInPostURL,
-  LINKEDIN_REACTION_TYPES,
-  type LinkedInReactionType,
-  validateReactionTypes,
-} from "@/convex/helpers/linkedin"
-
-export type { LinkedInReactionType }
+import { LINKEDIN_REACTION_TYPES, type LinkedInReactionType } from "@/convex/helpers/linkedin"
 
 export const submitPostSchema = {
   min: {
@@ -46,14 +40,26 @@ export const derivePostTargetCount = (inputValue: number, memberCount: number) =
   return clamp(inputValue, min, max)
 }
 
-// Form schema (client-side validation)
+const activityRegex = regex("activity-(\\d+)")
+const urnRegex = regex("urn:li:activity:(\\d+)")
+
+export const parsePostURN = (url: string): string | undefined => {
+  const activityId = (activityRegex.exec(url) ?? urnRegex.exec(url))?.[1]
+  return activityId && `urn:li:activity:${activityId}`
+}
+
 export const SubmitPostSchema = z.object({
-  url: z.url("Enter a valid URL").refine(isValidLinkedInPostURL, "Invalid LinkedIn post URL"),
+  url: z
+    .url("Please enter a valid URL")
+    .refine(
+      (url) => !!parsePostURN(url),
+      `URL must include ${activityRegex.source} or ${urnRegex.source}`,
+    ),
   reactionTypes: z
     .array(z.string())
     .min(1, "Select at least one reaction type")
     .refine(
-      (types) => validateReactionTypes(types).length === types.length,
+      (types) => types.every((t) => LINKEDIN_REACTION_TYPES.includes(t as LinkedInReactionType)),
       "Invalid reaction types",
     ),
   targetCount: z

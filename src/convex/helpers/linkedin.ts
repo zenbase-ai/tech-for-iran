@@ -1,7 +1,3 @@
-// ============================================================================
-// LinkedIn Account Status Constants
-// ============================================================================
-
 /**
  * LinkedIn account statuses from Unipile webhook
  * @see https://docs.unipile.com/api-reference/webhooks/account-status
@@ -20,9 +16,6 @@ export const LinkedInStatus = {
 
 export type LinkedInStatusType = (typeof LinkedInStatus)[keyof typeof LinkedInStatus]
 
-/**
- * Statuses that indicate the account is healthy and can be used for engagements
- */
 export const HEALTHY_STATUSES = [
   LinkedInStatus.OK,
   LinkedInStatus.SYNC_SUCCESS,
@@ -30,9 +23,6 @@ export const HEALTHY_STATUSES = [
   LinkedInStatus.CREATION_SUCCESS,
 ] as const
 
-/**
- * Statuses that require user action to reconnect
- */
 export const NEEDS_RECONNECTION_STATUSES = [
   LinkedInStatus.CREDENTIALS,
   LinkedInStatus.ERROR,
@@ -57,50 +47,3 @@ export const LINKEDIN_REACTION_TYPES = [
 ] as const
 
 export type LinkedInReactionType = (typeof LINKEDIN_REACTION_TYPES)[number]
-
-export const isValidReactionType = (type: string): type is LinkedInReactionType =>
-  LINKEDIN_REACTION_TYPES.includes(type as LinkedInReactionType)
-
-export const validateReactionTypes = (types: string[]): LinkedInReactionType[] =>
-  types.filter(isValidReactionType)
-
-export const parsePostURN = (url: string): string | null => {
-  try {
-    const urlObj = new URL(url)
-
-    // Method 1: Extract from /posts/ URLs
-    // Format: https://www.linkedin.com/posts/username_activity-1234567890-xyz
-    if (urlObj.pathname.includes("/posts/")) {
-      const match = urlObj.pathname.match(/activity-(\d+)/)
-      if (match) {
-        const activityId = match[1]
-        return `urn:li:activity:${activityId}`
-      }
-    }
-
-    // Method 2: Extract from /feed/update/ URLs
-    // Format: https://www.linkedin.com/feed/update/urn:li:activity:1234567890/
-    if (urlObj.pathname.includes("/feed/update/")) {
-      const match = urlObj.pathname.match(/urn:li:activity:(\d+)/)
-      if (match) {
-        const activityId = match[1]
-        return `urn:li:activity:${activityId}`
-      }
-    }
-
-    // Method 3: Check if URN is in the path directly
-    if (urlObj.pathname.includes("urn:li:activity:")) {
-      const match = urlObj.pathname.match(/urn:li:activity:(\d+)/)
-      if (match) {
-        const activityId = match[1]
-        return `urn:li:activity:${activityId}`
-      }
-    }
-
-    return null
-  } catch (_error: unknown) {
-    return null
-  }
-}
-
-export const isValidLinkedInPostURL = (url: string): boolean => !!parsePostURN(url)

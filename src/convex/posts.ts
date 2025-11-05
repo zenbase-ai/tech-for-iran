@@ -4,13 +4,14 @@ import { getOneFrom } from "convex-helpers/server/relationships"
 import * as z from "zod"
 import {
   derivePostTargetCount,
+  parsePostURN,
   SubmitPostSchema,
 } from "@/app/(auth)/pods/[podId]/posts/-submit/schema"
 import { internal } from "@/convex/_generated/api"
 import { podMemberCount, podPostCount, postEngagementCount } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
 import { NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
-import { needsReconnection, parsePostURN } from "@/convex/helpers/linkedin"
+import { needsReconnection } from "@/convex/helpers/linkedin"
 import { humanizeDuration, rateLimiter } from "@/convex/limiter"
 import { workflow } from "@/convex/workflows/engagement"
 

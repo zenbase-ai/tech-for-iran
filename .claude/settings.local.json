@@ -11,7 +11,11 @@
       "Bash(ls /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(auth)/pods/[podId]/posts/-submit/)",
       "Bash(ls /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(onboarding)/settings/-disconnect/)",
       "Bash(ls /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(onboarding)/settings/-refresh/)",
-      "Bash(ls -la /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(auth)/pods/-create/)"
+      "Bash(ls -la /Users/knrz/Git/zenbase-ai/engagement-pod/src/app/(auth)/pods/-create/)",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "WebFetch(domain:stack.convex.dev)",
+      "WebFetch(domain:www.convex.dev)"
     ],
     "deny": [],
     "ask": []

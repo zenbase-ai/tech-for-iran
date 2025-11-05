@@ -18,27 +18,30 @@ export type UseAsyncFn<TArgs extends unknown[], TReturn> = {
 export default function useAsyncFn<TArgs extends unknown[], TReturn>(
   fn: AsyncFn<TArgs, TReturn>,
 ): UseAsyncFn<TArgs, TReturn> {
+  const isMounted = useMounted()
+
   const [pending, setPending] = useState(false)
   const [data, setData] = useState<TReturn | null>(null)
   const [complete, setComplete] = useState<boolean | null>(null)
   const [error, setError] = useState<Error | null>(null)
-  const isMounted = useMounted()
 
   const execute = useEffectEvent(async (...args: TArgs): Promise<TReturn | undefined> => {
     if (!isMounted) return undefined
 
     startTransition(() => {
-      setPending(true)
-      setError(null)
       setComplete(null)
+      setData(null)
+      setError(null)
+      setPending(true)
     })
 
     try {
       const result = await fn(...args)
       startTransition(() => {
         if (isMounted) {
-          setData(result)
           setComplete(true)
+          setData(result)
+          setError(null)
           setPending(false)
         }
       })
@@ -47,8 +50,9 @@ export default function useAsyncFn<TArgs extends unknown[], TReturn>(
       const errorObj = error instanceof Error ? error : new Error(String(error))
       if (isMounted) {
         startTransition(() => {
-          setError(errorObj)
           setComplete(false)
+          setData(null)
+          setError(errorObj)
           setPending(false)
         })
       }
@@ -56,9 +60,10 @@ export default function useAsyncFn<TArgs extends unknown[], TReturn>(
   })
 
   const reset = useEffectEvent(() => {
-    setPending(false)
-    setError(null)
     setComplete(null)
+    setData(null)
+    setError(null)
+    setPending(false)
   })
 
   useEffect(() => {
@@ -73,5 +78,5 @@ export default function useAsyncFn<TArgs extends unknown[], TReturn>(
     }
   }, [data])
 
-  return { execute, pending, complete: complete, error, data, reset }
+  return { execute, pending, complete, error, data, reset }
 }

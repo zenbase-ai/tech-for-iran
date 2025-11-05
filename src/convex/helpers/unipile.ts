@@ -32,3 +32,30 @@ export const unipile = async <T = any>(
 
   return (await response.json()) as T
 }
+
+export type AccountStatusPayload = {
+  AccountStatus: {
+    account_id: string
+    account_type: "LINKEDIN"
+    message: string
+  }
+}
+
+export const isAccountStatusPayload = (payload: any): payload is AccountStatusPayload => {
+  return (
+    payload !== null &&
+    typeof payload === "object" &&
+    "AccountStatus" in payload &&
+    "account_type" in payload.AccountStatus &&
+    payload.AccountStatus.account_type === "LINKEDIN" &&
+    "account_id" in payload.AccountStatus &&
+    typeof payload.AccountStatus.account_id === "string"
+  )
+}
+
+export const getAccountStatus = ({
+  AccountStatus: { account_id, message },
+}: AccountStatusPayload) => ({
+  unipileId: account_id,
+  status: message,
+})

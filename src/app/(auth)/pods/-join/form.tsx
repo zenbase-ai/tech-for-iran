@@ -3,16 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { useRouter } from "next/navigation"
-import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
-import { toast } from "sonner"
+import { useTimeout } from "usehooks-ts"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
-import { toastResult } from "@/hooks/use-action-state-toasts"
-import { cn, errorMessage } from "@/lib/utils"
+import { useAsyncFn } from "@/hooks/use-async-fn"
+import { cn } from "@/lib/utils"
 import { JoinPodSchema, type JoinPodSchema as JoinPodSchemaType } from "./schema"
 
 export type JoinPodFormProps = {
@@ -21,33 +20,20 @@ export type JoinPodFormProps = {
 }
 
 export const JoinPodForm: React.FC<JoinPodFormProps> = ({ autoFocus, className }) => {
-  const router = useRouter()
-  const mutation = useMutation(api.pods.join)
-
   const form = useForm<JoinPodSchemaType>({
     resolver: zodResolver(JoinPodSchema),
-    defaultValues: {
-      inviteCode: "",
-    },
+    defaultValues: { inviteCode: "" },
   })
 
-  const onSubmit = useEffectEvent(async (data: JoinPodSchemaType) => {
-    try {
-      const result = await mutation(data)
-      toastResult(result)
-      if ("pod" in result) {
-        setTimeout(() => {
-          router.push(`/pods/${result.pod._id}`)
-        }, 500)
-      }
-    } catch (error: unknown) {
-      toast.error(errorMessage(error))
-    }
-  })
+  const router = useRouter()
+  const mutation = useAsyncFn(useMutation(api.pods.join))
+
+  const podId = mutation.data && "pod" in mutation.data ? mutation.data.pod._id : null
+  useTimeout(() => podId && router.push(`/pods/${podId}`), podId ? 1000 : null)
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(mutation.execute)}
       className={cn("flex flex-row items-center gap-3", className)}
     >
       <Controller

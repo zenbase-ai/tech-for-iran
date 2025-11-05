@@ -114,15 +114,19 @@ export const updateAccount = authMutation({
     maxActions: v.number(),
   },
   handler: async (ctx, args) => {
-    const account = await getOneFromOrThrow(
+    const account = await getOneFrom(
       ctx.db,
       "linkedinAccounts",
       "byUserAndAccount",
       ctx.userId,
       "userId",
     )
+    if (!account) {
+      return { error: "Account not found, please try reloading." }
+    }
 
     await ctx.db.patch(account._id, update(args))
+    return { success: "Your LinkedIn settings has been updated." }
   },
 })
 

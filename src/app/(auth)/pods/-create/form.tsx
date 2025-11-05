@@ -3,18 +3,17 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { useRouter } from "next/navigation"
-import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
-import { toast } from "sonner"
+import { useTimeout } from "usehooks-ts"
 import { HStack } from "@/components/layout/stack"
 import { Field } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
-import { toastResult } from "@/hooks/use-action-state-toasts"
-import { cn, errorMessage } from "@/lib/utils"
+import { useAsyncFn } from "@/hooks/use-async-fn"
+import { cn } from "@/lib/utils"
 import type { CreatePodData } from "./schema"
 import { CreatePodSchema } from "./schema"
 
@@ -23,34 +22,20 @@ export type CreatePodFormProps = {
 }
 
 export const CreatePodForm: React.FC<CreatePodFormProps> = ({ className }) => {
-  const router = useRouter()
-  const mutation = useMutation(api.pods.create)
-
   const form = useForm<CreatePodData>({
     resolver: zodResolver(CreatePodSchema),
-    defaultValues: {
-      name: "",
-      inviteCode: "",
-    },
+    defaultValues: { name: "", inviteCode: "" },
   })
 
-  const onSubmit = useEffectEvent(async (data: CreatePodData) => {
-    try {
-      const result = await mutation(data)
-      toastResult(result)
-      if ("pod" in result) {
-        setTimeout(() => {
-          router.push(`/pods/${result.pod._id}`)
-        }, 500)
-      }
-    } catch (error: unknown) {
-      toast.error(errorMessage(error))
-    }
-  })
+  const router = useRouter()
+  const mutation = useAsyncFn(useMutation(api.pods.create))
+
+  const podId = mutation.data && "pod" in mutation.data ? mutation.data.pod._id : null
+  useTimeout(() => podId && router.push(`/pods/${podId}`), podId ? 1000 : null)
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(mutation.execute)}
       className={cn("flex flex-col gap-6 w-full", className)}
     >
       <HStack wrap justify="between" items="center" className="gap-6">

@@ -2,17 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "convex/react"
-import { useEffect, useEffectEvent } from "react"
+import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
-import { cn, errorMessage } from "@/lib/utils"
+import { useAsyncFn } from "@/hooks/use-async-fn"
+import { cn } from "@/lib/utils"
 import { ConfigSchema, type ConfigSchema as ConfigSchemaType, maxActions } from "./schema"
 
 export type ConfigFormProps = {
@@ -21,7 +21,7 @@ export type ConfigFormProps = {
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
   const linkedin = useQuery(api.linkedin.getState)
-  const mutation = useMutation(api.linkedin.updateAccount)
+  const mutation = useAsyncFn(useMutation(api.linkedin.updateAccount))
 
   const form = useForm<ConfigSchemaType>({
     resolver: zodResolver(ConfigSchema),
@@ -36,22 +36,13 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
     }
   }, [linkedin?.account?.maxActions, form.setValue])
 
-  const onSubmit = useEffectEvent(async (data: ConfigSchemaType) => {
-    try {
-      await mutation(data)
-      toast.success("Your LinkedIn settings has been updated.")
-    } catch (error: unknown) {
-      toast.error(errorMessage(error))
-    }
-  })
-
   if (!linkedin?.account) {
     return <Skeleton className={cn("w-full h-24", className)} />
   }
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(mutation.execute)}
       className={cn("w-full flex flex-col gap-4", className)}
     >
       <Controller

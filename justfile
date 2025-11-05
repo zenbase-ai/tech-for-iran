@@ -28,8 +28,8 @@ preview: build
   bun --bun next start
 
 fmt:
-  biome check --write && \
-  biome format --write
+  bun --bun biome check --write && \
+  bun --bun biome format --write
 
 lint:
-  biome check
+  bun --bun biome check

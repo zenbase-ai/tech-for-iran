@@ -25,8 +25,7 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ authLink }) => {
     countStart: 5,
   })
 
-  const goBack = useEffectEvent(() => router.push("/pods"))
-  const goToAuthLink = useEffectEvent(() => {
+  const connect = useEffectEvent(() => {
     window.location.href = authLink
   })
 
@@ -39,7 +38,7 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ authLink }) => {
 
   useEffect(() => {
     if (countdown === 0) {
-      goToAuthLink()
+      connect()
     }
   }, [countdown])
 
@@ -55,8 +54,8 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ authLink }) => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={goBack}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={goToAuthLink} disabled={countdown === 0}>
+          <AlertDialogCancel onClick={router.back}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={connect} disabled={countdown <= 1}>
             Connect
           </AlertDialogAction>
         </AlertDialogFooter>

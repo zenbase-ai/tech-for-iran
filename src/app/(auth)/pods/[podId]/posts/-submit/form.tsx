@@ -5,7 +5,6 @@ import { useMutation, useQuery } from "convex/react"
 import { capitalize } from "es-toolkit/string"
 import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
@@ -21,8 +20,8 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { toastResult } from "@/hooks/use-action-state-toasts"
-import { cn, errorMessage } from "@/lib/utils"
+import { useAsyncFn } from "@/hooks/use-async-fn"
+import { cn } from "@/lib/utils"
 import { maxDelay, minDelay, reactionTypes, SubmitPostSchema, targetCount } from "./schema"
 
 export type SubmitPostFormProps = {
@@ -32,7 +31,6 @@ export type SubmitPostFormProps = {
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
   const pod = useQuery(api.pods.get, { podId })
-  const mutation = useMutation(api.posts.submit)
 
   const minTargetCount = pod ? Math.min(1, pod.memberCount - 1) : targetCount.min
   const maxTargetCount = pod ? Math.min(pod.memberCount - 1, targetCount.max) : targetCount.max
@@ -53,18 +51,14 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     form.setValue("targetCount", defaultTargetCount)
   }, [form.setValue, defaultTargetCount])
 
-  const onSubmit = useEffectEvent(async (data: SubmitPostSchema) => {
-    try {
-      const result = await mutation({
-        podId,
-        ...data,
-      })
-      toastResult(result)
-      form.reset()
-    } catch (error: unknown) {
-      toast.error(errorMessage(error))
-    }
-  })
+  const mutation = useAsyncFn(useMutation(api.posts.submit))
+  useEffect(() => {
+    if (mutation.complete) form.reset()
+  }, [mutation.complete, form.reset])
+
+  const onSubmit = useEffectEvent(
+    async (data: SubmitPostSchema) => await mutation.execute({ podId, ...data }),
+  )
 
   if (!pod) {
     return <Skeleton className={cn("w-full h-84 mt-1", className)} />

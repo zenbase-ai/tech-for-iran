@@ -16,7 +16,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
@@ -38,9 +37,9 @@ export const SignUpGate: React.FC<React.PropsWithChildren> = ({ children }) => {
 
   const onSubmit = useEffectEvent(async (data: SignUpGateSchema) => {
     try {
-      const isValid = await validateAccessCode(data.code)
-      setValidated(isValid)
-      if (!isValid) {
+      if (await validateAccessCode(data.code)) {
+        setValidated(true)
+      } else {
         form.setError("code", { message: "Invalid access code." })
       }
     } catch {
@@ -83,25 +82,21 @@ export const SignUpGate: React.FC<React.PropsWithChildren> = ({ children }) => {
           />
 
           <AlertDialogFooter>
-            <AlertDialogCancel asChild>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={form.formState.isSubmitting}
-                asChild
-              >
-                <Link href="/">Cancel</Link>
-              </Button>
+            <AlertDialogCancel
+              type="button"
+              disabled={form.formState.isSubmitting}
+              variant="outline"
+              asChild
+            >
+              <Link href="/">Cancel</Link>
             </AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                Continue
-                {form.formState.isSubmitting ? (
-                  <Spinner variant="ellipsis" />
-                ) : (
-                  <LuArrowRight className="size-4" />
-                )}
-              </Button>
+            <AlertDialogAction type="submit" disabled={form.formState.isSubmitting}>
+              Continue
+              {form.formState.isSubmitting ? (
+                <Spinner variant="ellipsis" />
+              ) : (
+                <LuArrowRight className="size-4" />
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </form>

@@ -1,9 +1,8 @@
 "use client"
 
 import { useAction } from "convex/react"
-import { useEffectEvent, useState } from "react"
+import { useState } from "react"
 import { LuUnplug } from "react-icons/lu"
-import { toast } from "sonner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,8 +16,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button, type ButtonProps } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
-import { toastResult } from "@/hooks/use-action-state-toasts"
-import { cn, errorMessage } from "@/lib/utils"
+import { useAsyncFn } from "@/hooks/use-async-fn"
+import { cn } from "@/lib/utils"
 
 export type DisconnectButtonProps = ButtonProps
 
@@ -27,25 +26,11 @@ export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
   className,
   ...props
 }) => {
-  const action = useAction(api.linkedin.disconnectAccount)
-  const [isLoading, setLoading] = useState(false)
-  const [isDialogOpen, setDialogOpen] = useState(false)
-
-  const handleDisconnect = useEffectEvent(async () => {
-    setLoading(true)
-    try {
-      const result = await action()
-      toastResult(result)
-      setDialogOpen("success" in result)
-    } catch (error: unknown) {
-      toast.error(errorMessage(error))
-    } finally {
-      setLoading(false)
-    }
-  })
+  const action = useAsyncFn(useAction(api.linkedin.disconnectAccount))
+  const [isOpen, setOpen] = useState(false)
 
   return (
-    <AlertDialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+    <AlertDialog open={isOpen} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant={variant} className={cn("w-fit", className)} {...props}>
           Disconnect
@@ -61,14 +46,14 @@ export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel type="button" disabled={isLoading}>
+          <AlertDialogCancel type="button" disabled={action.pending}>
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             type="button"
-            disabled={isLoading}
+            disabled={action.pending}
             variant="destructive"
-            onClick={handleDisconnect}
+            onClick={() => action.execute()}
           >
             Disconnect
           </AlertDialogAction>

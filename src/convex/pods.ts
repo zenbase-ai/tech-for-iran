@@ -9,6 +9,7 @@ import { requireAuth } from "@/convex/helpers/auth"
 import { pmap } from "@/convex/helpers/collections"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
 import { ConflictError, NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
+import { humanizeDuration, rateLimiter } from "./limiter"
 
 const memberQuery = customQuery(query, {
   args: {
@@ -31,9 +32,6 @@ const memberQuery = customQuery(query, {
   },
 })
 
-// ============================================================================
-// Queries
-// ============================================================================
 export const get = authQuery({
   args: {
     podId: v.id("pods"),
@@ -50,11 +48,6 @@ export const get = authQuery({
     return { ...pod, memberCount }
   },
 })
-
-export type MemberProfile = {
-  userId: string
-  joinedAt: number
-} & Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
 
 export const members = memberQuery({
   args: {

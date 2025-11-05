@@ -10,4 +10,9 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
     rate: 2,
     period: 24 * HOUR,
   },
+  isValidInviteCode: {
+    kind: "fixed window",
+    rate: 3,
+    period: 24 * HOUR,
+  },
 })

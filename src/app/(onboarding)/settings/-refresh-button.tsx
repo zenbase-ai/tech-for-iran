@@ -5,6 +5,7 @@ import { useEffectEvent, useState } from "react"
 import { LuRefreshCcw } from "react-icons/lu"
 import { toast } from "sonner"
 import { Button, type ButtonProps } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
 import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
@@ -40,8 +41,8 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       onClick={handleRefresh}
       {...props}
     >
-      <LuRefreshCcw className={cn("size-4", isLoading && "animate-spin")} />
-      {isLoading ? "Refreshing..." : "Refresh LinkedIn"}
+      {isLoading ? <Spinner variant="ellipsis" /> : <LuRefreshCcw className="size-4" />}
+      Refresh LinkedIn
     </Button>
   )
 }

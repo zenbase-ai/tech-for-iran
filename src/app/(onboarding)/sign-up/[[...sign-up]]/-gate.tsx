@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { LuArrowRight } from "react-icons/lu"
 import { useSessionStorage } from "usehooks-ts"
 import * as z from "zod"
 import {
@@ -18,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { validateAccessCode } from "./-actions"
 
 const SignUpGateSchema = z.object({
@@ -93,7 +95,12 @@ export const SignUpGate: React.FC<React.PropsWithChildren> = ({ children }) => {
             </AlertDialogCancel>
             <AlertDialogAction asChild>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Checking..." : "Continue"}
+                Continue
+                {form.formState.isSubmitting ? (
+                  <Spinner variant="ellipsis" />
+                ) : (
+                  <LuArrowRight className="size-4" />
+                )}
               </Button>
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -4,11 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "convex/react"
 import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { LuArrowRight } from "react-icons/lu"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
 import { cn, errorMessage } from "@/lib/utils"
 import { ConfigSchema, type ConfigSchema as ConfigSchemaType, maxActions } from "./schema"
@@ -76,7 +78,12 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
       />
 
       <Button type="submit" disabled={form.formState.isSubmitting} className="w-fit">
-        {form.formState.isSubmitting ? "Updating..." : "Update"}
+        Update
+        {form.formState.isSubmitting ? (
+          <Spinner variant="ellipsis" />
+        ) : (
+          <LuArrowRight className="size-4" />
+        )}
       </Button>
     </form>
   )

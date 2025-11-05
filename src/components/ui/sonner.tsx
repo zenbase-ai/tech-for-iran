@@ -1,9 +1,10 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { LuCircleCheck, LuInfo, LuLoader, LuOctagonX, LuTriangleAlert } from "react-icons/lu"
+import { LuCircleCheck, LuInfo, LuOctagonX, LuTriangleAlert } from "react-icons/lu"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { cn, css } from "@/lib/utils"
+import { Spinner } from "./spinner"
 
 export const Toaster: React.FC<ToasterProps> = ({ className, ...props }) => {
   const { theme = "system" } = useTheme()
@@ -17,7 +18,7 @@ export const Toaster: React.FC<ToasterProps> = ({ className, ...props }) => {
         info: <LuInfo className="size-5" />,
         warning: <LuTriangleAlert className="size-5" />,
         error: <LuOctagonX className="size-5" />,
-        loading: <LuLoader className="size-5 animate-spin" />,
+        loading: <Spinner variant="ellipsis" className="size-5" />,
       }}
       style={css({
         "--normal-bg": "var(--popover)",

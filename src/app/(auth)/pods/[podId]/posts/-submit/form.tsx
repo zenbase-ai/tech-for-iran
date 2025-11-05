@@ -94,7 +94,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
         />
 
         <HoverButton type="submit" disabled={form.formState.isSubmitting} className="max-w-fit">
-          {form.formState.isSubmitting ? "Submitting..." : "Submit"}
+          Submit
         </HoverButton>
       </Field>
 

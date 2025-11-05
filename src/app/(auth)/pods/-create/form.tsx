@@ -5,11 +5,13 @@ import { useMutation } from "convex/react"
 import { useRouter } from "next/navigation"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { LuArrowRight } from "react-icons/lu"
 import { toast } from "sonner"
 import { HStack } from "@/components/layout/stack"
 import { Field } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
 import { toastResult } from "@/hooks/use-action-state-toasts"
 import { cn, errorMessage } from "@/lib/utils"
@@ -89,7 +91,12 @@ export const CreatePodForm: React.FC<CreatePodFormProps> = ({ className }) => {
       </HStack>
 
       <HoverButton type="submit" disabled={form.formState.isSubmitting} className="max-w-fit">
-        {form.formState.isSubmitting ? "Creating..." : "Create"}
+        Create
+        {form.formState.isSubmitting ? (
+          <Spinner variant="ellipsis" />
+        ) : (
+          <LuArrowRight className="size-4" />
+        )}
       </HoverButton>
     </form>
   )

@@ -18,12 +18,12 @@ import {
 } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useAsyncFn } from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
 import { calculateSchemaTargetCount, SubmitPostSchema, submitPostSchema } from "./schema"
-import { Skeleton } from "@/components/ui/skeleton"
 
 export type SubmitPostFormProps = {
   podId: Id<"pods">
@@ -47,7 +47,6 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   useEffect(() => {
     form.setValue("targetCount", submitPostSchemaTargetCount.defaultValue)
   }, [form.setValue, submitPostSchemaTargetCount.defaultValue])
-
 
   const isLoading = !isSignedIn || !stats
   if (isLoading) {

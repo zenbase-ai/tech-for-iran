@@ -83,7 +83,7 @@ export const disconnectAccount = authAction({
     const { account } = await ctx.runMutation(internal.linkedin.deleteAccount, { userId })
     try {
       await ctx.runAction(internal.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
-      return { success: "Your LinkedIn account has been disconnected." }
+      return { success: "LinkedIn disconnected." }
     } catch (error) {
       return { error: errorMessage(error) }
     }
@@ -126,7 +126,7 @@ export const updateAccount = authMutation({
     }
 
     await ctx.db.patch(account._id, update(args))
-    return { success: "Your LinkedIn settings has been updated." }
+    return { success: "Settings updated." }
   },
 })
 

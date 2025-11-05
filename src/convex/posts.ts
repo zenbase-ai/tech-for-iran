@@ -115,10 +115,10 @@ export const submit = authMutation({
       return { error: "You are not a member of this pod." }
     }
     if (!profile || !account) {
-      return { error: "You must connect your LinkedIn account first." }
+      return { error: "Please connect your LinkedIn." }
     }
     if (needsReconnection(account.status)) {
-      return { error: "Your LinkedIn connection needs to be refreshed. Please reconnect." }
+      return { error: "Please reconnect your LinkedIn." }
     }
 
     const existing = await ctx.db

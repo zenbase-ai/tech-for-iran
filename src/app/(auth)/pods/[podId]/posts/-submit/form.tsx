@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "convex/react"
 import { capitalize } from "es-toolkit/string"
-import { useEffect, useEffectEvent } from "react"
+import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -22,7 +22,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useAsyncFn } from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
-import { maxDelay, minDelay, reactionTypes, SubmitPostSchema, targetCount } from "./schema"
+import { calculateSchemaTargetCount, SubmitPostSchema, submitPostSchema } from "./schema"
 
 export type SubmitPostFormProps = {
   podId: Id<"pods">
@@ -30,43 +30,29 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const pod = useQuery(api.pods.get, { podId })
-
-  const minTargetCount = pod ? Math.min(1, pod.memberCount - 1) : targetCount.min
-  const maxTargetCount = pod ? Math.min(pod.memberCount - 1, targetCount.max) : targetCount.max
-  const defaultTargetCount = Math.min(25, maxTargetCount)
-
   const form = useForm<SubmitPostSchema>({
     resolver: zodResolver(SubmitPostSchema),
-    defaultValues: {
-      url: "",
-      reactionTypes: reactionTypes.default,
-      targetCount: defaultTargetCount,
-      minDelay: minDelay.default,
-      maxDelay: maxDelay.default,
-    },
+    defaultValues: submitPostSchema.defaultValues,
   })
-
-  useEffect(() => {
-    form.setValue("targetCount", defaultTargetCount)
-  }, [form.setValue, defaultTargetCount])
 
   const mutation = useAsyncFn(useMutation(api.posts.submit))
   useEffect(() => {
     if (mutation.complete) form.reset()
   }, [mutation.complete, form.reset])
 
-  const onSubmit = useEffectEvent(
-    async (data: SubmitPostSchema) => await mutation.execute({ podId, ...data }),
-  )
+  const stats = useQuery(api.pods.stats, { podId })
+  const submitPostSchemaTargetCount = calculateSchemaTargetCount(stats?.memberCount)
+  useEffect(() => {
+    form.setValue("targetCount", submitPostSchemaTargetCount.defaultValue)
+  }, [form.setValue, submitPostSchemaTargetCount.defaultValue])
 
-  if (!pod) {
+  if (!stats) {
     return <Skeleton className={cn("w-full h-84 mt-1", className)} />
   }
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit((data) => mutation.execute({ podId, ...data }))}
       className={cn("w-full flex flex-col gap-6", className)}
     >
       <Field className="flex-row">
@@ -102,7 +88,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
               className="grid grid-cols-2 sm:grid-cols-3 gap-2"
               data-slot="checkbox-group"
             >
-              {reactionTypes.options.map((reaction) => (
+              {submitPostSchema.options.reactionTypes.map((reaction) => (
                 <Field key={reaction} orientation="horizontal" data-invalid={fieldState.invalid}>
                   <Checkbox
                     id={`reaction-${reaction}`}
@@ -138,14 +124,15 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
               {...field}
               id={field.name}
               type="number"
-              min={minTargetCount}
-              max={maxTargetCount}
+              min={submitPostSchemaTargetCount.min}
+              max={submitPostSchemaTargetCount.max}
               aria-invalid={fieldState.invalid}
               disabled={form.formState.isSubmitting}
               onChange={(e) => field.onChange(e.target.valueAsNumber)}
             />
             <FieldDescription>
-              Default: {defaultTargetCount}, Max: {maxTargetCount}
+              Default: {submitPostSchemaTargetCount.defaultValue}, Min:{" "}
+              {submitPostSchemaTargetCount.min}, Max: {submitPostSchemaTargetCount.max}
             </FieldDescription>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
@@ -163,8 +150,8 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
                 {...field}
                 id={field.name}
                 type="number"
-                min={minDelay.min}
-                max={minDelay.max}
+                min={submitPostSchema.min.minDelay}
+                max={submitPostSchema.max.minDelay}
                 aria-invalid={fieldState.invalid}
                 disabled={form.formState.isSubmitting}
                 onChange={(e) => field.onChange(e.target.valueAsNumber)}
@@ -183,8 +170,8 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
                 {...field}
                 id={field.name}
                 type="number"
-                min={maxDelay.min}
-                max={maxDelay.max}
+                min={submitPostSchema.min.maxDelay}
+                max={submitPostSchema.max.maxDelay}
                 aria-invalid={fieldState.invalid}
                 disabled={form.formState.isSubmitting}
                 onChange={(e) => field.onChange(e.target.valueAsNumber)}

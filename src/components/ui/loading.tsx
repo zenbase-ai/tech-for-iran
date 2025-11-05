@@ -3,7 +3,7 @@
 import { motion } from "motion/react"
 import { Spinner, type SpinnerProps } from "@/components/ui/spinner"
 import { TextShimmer } from "@/components/ui/text-shimmer"
-import { useMounted } from "@/hooks/use-mounted"
+import useMounted from "@/hooks/use-mounted"
 import { cn } from "@/lib/utils"
 
 export type LoadingProps = {

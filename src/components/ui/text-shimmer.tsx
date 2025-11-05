@@ -4,7 +4,7 @@ import { type MotionProps, motion, type Transition } from "motion/react"
 import { useMemo } from "react"
 import { onlyText } from "react-children-utilities"
 
-import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import useReducedMotion from "@/hooks/use-reduced-motion"
 import { cn, css } from "@/lib/utils"
 
 export type TextShimmerProps = {

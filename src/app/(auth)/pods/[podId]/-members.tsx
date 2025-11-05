@@ -1,7 +1,5 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
-import { usePaginatedQuery, useQuery } from "convex/react"
 import Link from "next/link"
 import plur from "plur"
 import { useEffectEvent } from "react"
@@ -21,6 +19,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import useAuthPaginatedQuery from "@/hooks/use-auth-paginated-query"
+import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
 export type PodMembersProps = {
@@ -34,11 +34,14 @@ export const PodMembers: React.FC<PodMembersProps> = ({
   className,
   membersPageSize = 5,
 }) => {
-  const { isSignedIn } = useAuth()
-  const stats = useQuery(api.pods.stats, isSignedIn ? { podId } : "skip")
-  const members = usePaginatedQuery(api.pods.members, isSignedIn ? { podId } : "skip", {
-    initialNumItems: membersPageSize,
-  })
+  const stats = useAuthQuery(api.pods.stats, { podId })
+  const members = useAuthPaginatedQuery(
+    api.pods.members,
+    { podId },
+    {
+      initialNumItems: membersPageSize,
+    },
+  )
 
   const loadMore = useEffectEvent(() => members.loadMore(membersPageSize))
   const canLoadMore =

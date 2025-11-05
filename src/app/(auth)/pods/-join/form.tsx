@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
-import { useAsyncFn } from "@/hooks/use-async-fn"
+import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
 import { JoinPodSchema, type JoinPodSchema as JoinPodSchemaType } from "./schema"
 

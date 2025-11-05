@@ -1,3 +1,5 @@
 import { useMediaQuery } from "usehooks-ts"
 
-export const useReducedMotion = () => !useMediaQuery("(prefers-reduced-motion: no-preference)")
+export default function useReducedMotion() {
+  return !useMediaQuery("(prefers-reduced-motion: no-preference)")
+}

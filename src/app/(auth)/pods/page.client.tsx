@@ -1,7 +1,5 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
-import { usePaginatedQuery } from "convex/react"
 import Link from "next/link"
 import { LuPlus, LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
@@ -18,16 +16,13 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
+import useAuthPaginatedQuery from "@/hooks/use-auth-paginated-query"
 import { CreatePodForm } from "./-create/form"
 import { JoinPodForm } from "./-join/form"
 
 export default function PodsClientPage() {
-  const auth = useAuth()
-  const pods = usePaginatedQuery(api.user.pods, auth.isSignedIn ? {} : "skip", {
-    initialNumItems: 12,
-  })
-
-  const isLoading = !auth.isLoaded || !pods || pods.isLoading
+  const pods = useAuthPaginatedQuery(api.user.pods, {}, { initialNumItems: 12 })
+  const isLoading = !pods || pods.isLoading
 
   return (
     <Box className="px-2 w-full max-w-[640px] mx-auto">

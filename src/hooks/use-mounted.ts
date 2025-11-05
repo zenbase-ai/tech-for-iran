@@ -4,7 +4,7 @@ export type UseMountedProps = {
   delay?: number
 }
 
-export const useMounted = ({ delay = 0 }: UseMountedProps = {}) => {
+export default function useMounted({ delay = 0 }: UseMountedProps = {}) {
   const { value, setTrue } = useBoolean(false)
 
   useTimeout(setTrue, delay)

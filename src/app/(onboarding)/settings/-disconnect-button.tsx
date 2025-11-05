@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button, type ButtonProps } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
-import { useAsyncFn } from "@/hooks/use-async-fn"
+import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
 
 export type DisconnectButtonProps = ButtonProps

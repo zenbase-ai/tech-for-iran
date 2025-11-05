@@ -1,7 +1,5 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
 import { LuSend } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
 import { CopyButton } from "@/components/ui/copy-button"
@@ -9,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
 export type PodHeaderProps = {
@@ -17,8 +16,7 @@ export type PodHeaderProps = {
 }
 
 export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
-  const { isSignedIn } = useAuth()
-  const pod = useQuery(api.pods.get, isSignedIn ? { podId } : "skip")
+  const pod = useAuthQuery(api.pods.get, { podId })
 
   if (!pod) {
     return <Skeleton className={cn("w-full h-15", className)} />

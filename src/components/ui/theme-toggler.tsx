@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import { LuMoon, LuSun } from "react-icons/lu"
 
-import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import useReducedMotion from "@/hooks/use-reduced-motion"
 import { cn } from "@/lib/utils"
 
 export type ThemeTogglerProps = React.ComponentPropsWithoutRef<"button"> & {

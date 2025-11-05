@@ -1,6 +1,5 @@
 "use client"
 
-import { useQuery } from "convex/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
@@ -12,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
+import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
 export type NavProps = {
@@ -21,7 +21,7 @@ export type NavProps = {
 export const Nav: React.FC<NavProps> = ({ className }) => {
   const router = useRouter()
 
-  const { profile, needsReconnection } = useQuery(api.linkedin.getState) ?? {}
+  const { profile, needsReconnection } = useAuthQuery(api.linkedin.getState) ?? {}
 
   useEffect(() => {
     if (needsReconnection) {

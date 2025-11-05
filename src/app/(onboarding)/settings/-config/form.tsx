@@ -1,17 +1,18 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery } from "convex/react"
+import { useMutation } from "convex/react"
 import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
-import { useAsyncFn } from "@/hooks/use-async-fn"
+import useAsyncFn from "@/hooks/use-async-fn"
+import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 import { ConfigSchema, type ConfigSchema as ConfigSchemaType, configSchema } from "./schema"
 
@@ -20,20 +21,24 @@ export type ConfigFormProps = {
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
-  const { isSignedIn } = useAuth()
-  const linkedin = useQuery(api.linkedin.getState, isSignedIn ? {} : "skip")
+  const linkedin = useAuthQuery(api.linkedin.getState)
   const mutation = useAsyncFn(useMutation(api.linkedin.updateAccount))
 
-  const maxActions = linkedin?.account?.maxActions
   const form = useForm<ConfigSchemaType>({
     resolver: zodResolver(ConfigSchema),
-    defaultValues: {
-      maxActions: maxActions ?? configSchema.min.maxActions,
-    },
+    defaultValues: configSchema.defaultValues,
   })
+
+  const maxActions = linkedin?.account?.maxActions
+
   useEffect(() => {
     if (maxActions != null) form.setValue("maxActions", maxActions)
   }, [maxActions, form.setValue])
+
+  const isLoading = maxActions == null
+  if (isLoading) {
+    return <Skeleton className={cn("w-full h-29", className)} />
+  }
 
   return (
     <form

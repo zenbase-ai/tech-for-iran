@@ -1,10 +1,9 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQuery } from "convex/react"
+import { useMutation } from "convex/react"
 import { capitalize } from "es-toolkit/string"
-import { useEffect } from "react"
+import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -21,7 +20,8 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { useAsyncFn } from "@/hooks/use-async-fn"
+import useAsyncFn from "@/hooks/use-async-fn"
+import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 import { calculateSchemaTargetCount, SubmitPostSchema, submitPostSchema } from "./schema"
 
@@ -31,31 +31,32 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const { isSignedIn } = useAuth()
   const form = useForm<SubmitPostSchema>({
     resolver: zodResolver(SubmitPostSchema),
     defaultValues: submitPostSchema.defaultValues,
   })
+  const handleSubmit = useEffectEvent(
+    async (data: SubmitPostSchema) => await mutation.execute({ podId, ...data }),
+  )
 
   const mutation = useAsyncFn(useMutation(api.posts.submit))
   useEffect(() => {
     if (mutation.complete) form.reset()
   }, [mutation.complete, form.reset])
 
-  const stats = useQuery(api.pods.stats, isSignedIn ? { podId } : "skip")
-  const submitPostSchemaTargetCount = calculateSchemaTargetCount(stats?.memberCount)
+  const stats = useAuthQuery(api.pods.stats, { podId })
+  const submitPostTargetCount = calculateSchemaTargetCount(stats?.memberCount)
   useEffect(() => {
-    form.setValue("targetCount", submitPostSchemaTargetCount.defaultValue)
-  }, [form.setValue, submitPostSchemaTargetCount.defaultValue])
+    form.setValue("targetCount", submitPostTargetCount.defaultValue)
+  }, [form.setValue, submitPostTargetCount.defaultValue])
 
-  const isLoading = !isSignedIn || !stats
-  if (isLoading) {
+  if (!stats) {
     return <Skeleton className={cn("w-full h-84 mt-1", className)} />
   }
 
   return (
     <form
-      onSubmit={form.handleSubmit((data) => mutation.execute({ podId, ...data }))}
+      onSubmit={form.handleSubmit(handleSubmit)}
       className={cn("w-full flex flex-col gap-6", className)}
     >
       <Field className="flex-row">
@@ -127,15 +128,15 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
               {...field}
               id={field.name}
               type="number"
-              min={submitPostSchemaTargetCount.min}
-              max={submitPostSchemaTargetCount.max}
+              min={submitPostTargetCount.min}
+              max={submitPostTargetCount.max}
               aria-invalid={fieldState.invalid}
               disabled={form.formState.isSubmitting}
               onChange={(e) => field.onChange(e.target.valueAsNumber)}
             />
             <FieldDescription>
-              Default: {submitPostSchemaTargetCount.defaultValue}, Min:{" "}
-              {submitPostSchemaTargetCount.min}, Max: {submitPostSchemaTargetCount.max}
+              Default: {submitPostTargetCount.defaultValue}, Min: {submitPostTargetCount.min}, Max:{" "}
+              {submitPostTargetCount.max}
             </FieldDescription>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>

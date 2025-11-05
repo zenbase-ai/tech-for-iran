@@ -40,11 +40,11 @@ export const derivePostTargetCount = (inputValue: number, memberCount: number) =
   return clamp(inputValue, min, max)
 }
 
-const activityRegex = regex("activity-(\\d+)")
-const urnRegex = regex("urn:li:activity:(\\d+)")
+export const urlRegex = regex("activity-(\\d+)")
+export const urnRegex = regex("urn:li:activity:(\\d+)")
 
 export const parsePostURN = (url: string): string | undefined => {
-  const activityId = (activityRegex.exec(url) ?? urnRegex.exec(url))?.[1]
+  const activityId = (urlRegex.exec(url) ?? urnRegex.exec(url))?.[1]
   return activityId && `urn:li:activity:${activityId}`
 }
 
@@ -53,7 +53,7 @@ export const SubmitPostSchema = z.object({
     .url("Please enter a valid URL")
     .refine(
       (url) => !!parsePostURN(url),
-      `URL must include ${activityRegex.source} or ${urnRegex.source}`,
+      `URL must include ${urlRegex.source} or ${urnRegex.source}`,
     ),
   reactionTypes: z
     .array(z.string())

@@ -31,7 +31,7 @@ http.route({
         })
 
         if (message === "SYNC_SUCCESS") {
-          await ctx.runAction(internal.linkedin.refreshProfile, { unipileId: account_id })
+          await ctx.scheduler.runAfter(0, internal.linkedin.refreshProfile, { unipileId: account_id })
         }
 
         return Response.json({ success: true }, { status: 200 })

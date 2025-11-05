@@ -5,8 +5,6 @@ import { errorMessage } from "@/convex/helpers/errors"
 
 const http = httpRouter()
 
-// Unipile Webhook - Handle LinkedIn account connection and status updates
-// ============================================================================
 http.route({
   path: "/webhooks/unipile",
   method: "POST",

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useActionToastState } from "@/hooks/use-action-state-toasts"
 import { cn } from "@/lib/utils"
-import { joinPod } from "./action"
+import { joinPod } from "./-actions"
 
 export type JoinPodFormProps = {
   autoFocus?: boolean

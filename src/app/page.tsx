@@ -13,7 +13,7 @@ export default async function HomePage() {
   const { isAuthenticated } = await auth()
 
   return (
-    <HeroSection as="main" className="mt-[24vh]">
+    <HeroSection as="main" className="pt-[24vh]">
       <HeroTitle className="italic">Crackedbook.</HeroTitle>
       <HeroCTA>
         {!isAuthenticated ? (

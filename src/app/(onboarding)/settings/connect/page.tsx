@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/server/clerk"
+import { unipileHostedAuthURL } from "./-actions"
 import { ConnectDialog } from "./-dialog"
-import { unipileHostedAuthURL } from "./actions"
 
 export type LinkedinConnectPageParams = {
   searchParams: Promise<{

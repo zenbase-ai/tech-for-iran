@@ -6,11 +6,11 @@ import { HStack, VStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ConfigForm } from "./-config/form"
-import { DisconnectButton } from "./-disconnect-button"
-import { RefreshButton } from "./-refresh-button"
+import { DisconnectButton } from "./-disconnect"
+import { RefreshButton } from "./-refresh"
 
 export const metadata: Metadata = {
-  title: "Crackedbook Settings",
+  title: "Settings | Crackedbook",
 }
 
 export default async function LinkedinPage() {

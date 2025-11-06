@@ -6,5 +6,7 @@ export const metadata: Metadata = {
 }
 
 export default function PodsPage() {
+  "use memo"
+
   return <PodsClientPage />
 }

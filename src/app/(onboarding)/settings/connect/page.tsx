@@ -14,7 +14,7 @@ export type LinkedinConnectPageParams = {
 }
 
 export const metadata: Metadata = {
-  title: "Connect your LinkedIn | Crackedbook",
+  title: "Connect LinkedIn | Crackedbook",
 }
 
 export default async function LinkedinConnectPage({ searchParams }: LinkedinConnectPageParams) {

@@ -4,6 +4,7 @@ import Link from "next/link"
 import plur from "plur"
 import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
+import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -32,17 +33,16 @@ export type PodMembersProps = {
 export const PodMembers: React.FC<PodMembersProps> = ({
   podId,
   className,
-  membersPageSize = 5,
+  membersPageSize = 8,
 }) => {
   const stats = useAuthQuery(api.pods.stats, { podId })
   const members = useAuthPaginatedQuery(
     api.pods.members,
     { podId },
-    {
-      initialNumItems: membersPageSize,
-    },
+    { initialNumItems: membersPageSize },
   )
 
+  const isLoading = members.isLoading && members.results.length === 0
   const loadMore = useEffectEvent(() => members.loadMore(membersPageSize))
   const canLoadMore =
     stats?.memberCount != null &&
@@ -59,7 +59,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
         </h2>
       )}
 
-      {members.isLoading ? (
+      {isLoading ? (
         <Skeleton className="w-full h-20" />
       ) : members.results.length === 0 ? (
         <Empty className="text-muted-foreground">
@@ -67,12 +67,12 @@ export const PodMembers: React.FC<PodMembersProps> = ({
             <EmptyMedia>
               <LuUsers className="size-8" />
             </EmptyMedia>
-            <EmptyTitle>No members connected yet</EmptyTitle>
+            <EmptyTitle>No members&hellip; yet.</EmptyTitle>
           </EmptyHeader>
         </Empty>
       ) : (
-        <VStack className="gap-3">
-          <ItemGroup className="contents gap-3">
+        <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ItemGroup className="contents">
             {members.results.map((member) => (
               <Item key={member.userId} variant="outline" size="sm" asChild>
                 <Link href={member.url as any} target="_blank" rel="noopener noreferrer">
@@ -105,7 +105,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
               Show More
             </Button>
           )}
-        </VStack>
+        </Box>
       )}
     </VStack>
   )

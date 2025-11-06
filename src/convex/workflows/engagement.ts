@@ -9,7 +9,7 @@ import { components, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
 import { postEngagementCount } from "@/convex/aggregates"
 import { pmap } from "@/convex/helpers/collections"
-import { ConflictError, errorMessage } from "@/convex/helpers/errors"
+import { errorMessage } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { UnipileAPIError, unipile } from "@/convex/helpers/unipile"
 

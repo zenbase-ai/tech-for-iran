@@ -39,9 +39,11 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
   return (
     <Item
       asChild
-      size="xs"
       variant="outline"
-      className={cn("rounded-full bg-background/50 backdrop-blur-md shadow-md gap-3", className)}
+      className={cn(
+        "p-2 gap-1 rounded-full bg-background/50 backdrop-blur-md shadow-md",
+        className,
+      )}
     >
       <nav>
         {profile == null ? (
@@ -50,9 +52,9 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
             <Skeleton className="w-36 h-6 flex-1" />
           </>
         ) : (
-          <>
-            <ItemMedia variant="image">
-              <Link href="/pods">
+          <Button variant="ghost" asChild className="pl-0 pr-3 flex flex-row items-center gap-3">
+            <Link href="/pods">
+              <ItemMedia variant="image">
                 <Avatar className="size-9">
                   <AvatarImage
                     src={profile.picture}
@@ -63,22 +65,18 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
                     {profile.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
-              </Link>
-            </ItemMedia>
-            <ItemContent>
-              {needsReconnection ? (
-                <Link href="/settings/connect">
-                  <ItemTitle className="text-base text-red-700">Reconnect LinkedIn</ItemTitle>
-                </Link>
-              ) : (
-                <Link href="/pods">
+              </ItemMedia>
+              <ItemContent>
+                {needsReconnection ? (
+                  <ItemTitle className="text-base text-red-700">Reconnect</ItemTitle>
+                ) : (
                   <ItemTitle className="text-base">
                     {profile.firstName} {profile.lastName}
                   </ItemTitle>
-                </Link>
-              )}
-            </ItemContent>
-          </>
+                )}
+              </ItemContent>
+            </Link>
+          </Button>
         )}
 
         <ItemActions>

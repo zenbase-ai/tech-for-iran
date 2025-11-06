@@ -5,6 +5,8 @@ import { useMutation } from "convex/react"
 import { capitalize } from "es-toolkit/string"
 import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { Box } from "@/components/layout/box"
+import { HStack } from "@/components/layout/stack"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
@@ -31,18 +33,18 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
+  const mutation = useAsyncFn(useMutation(api.posts.submit))
   const form = useForm<SubmitPostSchema>({
     resolver: zodResolver(SubmitPostSchema),
     defaultValues: submitPostSchema.defaultValues,
   })
-  const handleSubmit = useEffectEvent(
-    async (data: SubmitPostSchema) => await mutation.execute({ podId, ...data }),
-  )
 
-  const mutation = useAsyncFn(useMutation(api.posts.submit))
-  useEffect(() => {
-    if (mutation.complete) form.reset()
-  }, [mutation.complete, form.reset])
+  const handleSubmit = useEffectEvent(async (data: SubmitPostSchema) => {
+    const result = await mutation.execute({ podId, ...data })
+    if (result && "success" in result) {
+      form.reset()
+    }
+  })
 
   const stats = useAuthQuery(api.pods.stats, { podId })
   const submitPostTargetCount = calculateSchemaTargetCount(stats?.memberCount)
@@ -59,28 +61,33 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
       onSubmit={form.handleSubmit(handleSubmit)}
       className={cn("w-full flex flex-col gap-6", className)}
     >
-      <Field className="flex-row">
+      <HStack className="gap-4">
         <Controller
           name="url"
           control={form.control}
           render={({ field, fieldState }) => (
-            <Input
-              {...field}
-              id={field.name}
-              type="url"
-              className="h-12"
-              placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
-              aria-invalid={fieldState.invalid}
-              disabled={form.formState.isSubmitting}
-              autoFocus
-            />
+            <Field data-invalid={fieldState.invalid}>
+              <Input
+                {...field}
+                id={field.name}
+                type="url"
+                className="h-11"
+                placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                aria-invalid={fieldState.invalid}
+                disabled={form.formState.isSubmitting}
+                autoFocus
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
           )}
         />
 
-        <HoverButton type="submit" disabled={form.formState.isSubmitting} className="max-w-fit">
-          Submit
-        </HoverButton>
-      </Field>
+        <Box>
+          <HoverButton type="submit" disabled={form.formState.isSubmitting} className="max-w-fit">
+            Submit
+          </HoverButton>
+        </Box>
+      </HStack>
 
       <Controller
         name="reactionTypes"

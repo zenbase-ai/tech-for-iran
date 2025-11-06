@@ -21,8 +21,8 @@ export type ConfigFormProps = {
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
-  const linkedin = useAuthQuery(api.linkedin.getState)
   const mutation = useAsyncFn(useMutation(api.linkedin.updateAccount))
+  const linkedin = useAuthQuery(api.linkedin.getState)
 
   const form = useForm<ConfigSchemaType>({
     resolver: zodResolver(ConfigSchema),
@@ -30,9 +30,10 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
   })
 
   const maxActions = linkedin?.account?.maxActions
-
   useEffect(() => {
-    if (maxActions != null) form.setValue("maxActions", maxActions)
+    if (maxActions != null) {
+      form.setValue("maxActions", maxActions)
+    }
   }, [maxActions, form.setValue])
 
   const isLoading = maxActions == null

@@ -29,9 +29,15 @@ export const CreatePodForm: React.FC<CreatePodFormProps> = ({ className }) => {
 
   const router = useRouter()
   const mutation = useAsyncFn(useMutation(api.pods.create))
-
   const podId = mutation.data && "pod" in mutation.data ? mutation.data.pod._id : null
-  useTimeout(() => podId && router.push(`/pods/${podId}`), podId ? 1000 : null)
+  useTimeout(
+    () => {
+      if (podId) {
+        router.push(`/pods/${podId}`)
+      }
+    },
+    podId ? 1000 : null,
+  )
 
   return (
     <form

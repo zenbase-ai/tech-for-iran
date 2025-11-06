@@ -5,7 +5,7 @@ import { Box } from "@/components/layout/box"
 import { cn } from "@/lib/utils"
 
 const hoverButtonVariants = cva(
-  "group relative w-auto cursor-pointer overflow-hidden border border-transparent border-1 rounded-full p-2 px-4 sm:px-6 text-center text-sm sm:text-base font-semibold",
+  "group relative w-auto cursor-pointer overflow-hidden border border-transparent border-2 rounded-full p-2 px-4 sm:px-6 text-center text-sm sm:text-base font-semibold",
   {
     variants: {
       variant: {

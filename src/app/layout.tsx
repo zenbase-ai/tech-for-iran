@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Suspense fallback={null}>
             <Flash position="top-right" />
           </Suspense>
-          <Container className="py-8 md:py-10 lg:py-12">{children}</Container>
+          <Container className="py-26 md:py-32">{children}</Container>
           <ThemeToggler className="fixed bottom-4 right-4" duration={0.3} />
         </Providers>
       </body>

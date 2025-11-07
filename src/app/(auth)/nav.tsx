@@ -1,44 +1,42 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { redirect, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import { LuSettings } from "react-icons/lu"
 import { toast } from "sonner"
-import { useTimeout } from "usehooks-ts"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemMedia,
+  type ItemProps,
+  ItemTitle,
+} from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
-export type NavProps = {
-  className?: string
-}
+export type NavProps = Omit<ItemProps, "asChild" | "variant">
 
-export const Nav: React.FC<NavProps> = ({ className }) => {
+export const Nav: React.FC<NavProps> = ({ className, ...props }) => {
+  const isConnectPage = usePathname() === "/settings/connect"
   const { profile, needsReconnection } = useAuthQuery(api.linkedin.getState) ?? {}
 
-  const pathname = usePathname()
-  const mustReconnect = needsReconnection && pathname !== "/settings/connect"
-
   useEffect(() => {
-    if (mustReconnect) {
+    if (needsReconnection && !isConnectPage) {
       toast.info("Please reconnect your LinkedIn.")
+      const timeout = setTimeout(() => {
+        redirect("/settings/connect")
+      }, 1000)
+      return () => clearTimeout(timeout)
     }
-  }, [mustReconnect])
+  }, [needsReconnection, isConnectPage])
 
-  const router = useRouter()
-  useTimeout(
-    () => {
-      router.push("/settings/connect")
-    },
-    mustReconnect ? 1000 : null,
-  )
-
-  return (
+  return isConnectPage ? null : (
     <Item
       asChild
       variant="outline"
@@ -46,13 +44,11 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
         "p-2 gap-1 rounded-full bg-background/50 backdrop-blur-md shadow-md",
         className,
       )}
+      {...props}
     >
       <nav>
         {profile == null ? (
-          <>
-            <Skeleton className="size-9 rounded-full" />
-            <Skeleton className="w-36 h-6 flex-1" />
-          </>
+          <Skeleton className="w-42 h-9 rounded-full flex-1" />
         ) : (
           <Button variant="ghost" asChild className="pl-0 pr-3 flex flex-row items-center gap-3">
             <Link href="/pods">

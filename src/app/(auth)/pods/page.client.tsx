@@ -4,6 +4,7 @@ import Link from "next/link"
 import { LuPlus, LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { HStack } from "@/components/layout/stack"
+import { PageSubtitle, PageTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,8 +27,8 @@ export default function PodsClientPage() {
 
   return (
     <Box className="px-2 w-full max-w-[640px] mx-auto">
-      <HStack justify="between" items="center">
-        <h1 className="text-2xl font-bold mb-2 font-serif italic">Engagement Pods</h1>
+      <HStack justify="between" items="center" className="gap-2">
+        <PageTitle>Engagement Pods</PageTitle>
 
         <Dialog>
           <DialogTrigger asChild>
@@ -46,9 +47,9 @@ export default function PodsClientPage() {
         </Dialog>
       </HStack>
 
-      <p className="text-muted-foreground">
+      <PageSubtitle>
         Pods are groups that engage with each other&apos;s LinkedIn posts.
-      </p>
+      </PageSubtitle>
 
       <Box className="my-8">
         {isLoading ? (

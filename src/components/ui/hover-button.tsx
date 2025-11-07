@@ -12,7 +12,9 @@ const hoverButtonVariants = cva(
         primary: "bg-primary text-background hover:text-primary-foreground",
       },
     },
-    defaultVariants: { variant: "primary" },
+    defaultVariants: {
+      variant: "primary",
+    },
   },
 )
 
@@ -24,7 +26,9 @@ const dotVariants = cva(
         primary: "bg-background border-primary",
       },
     },
-    defaultVariants: { variant: "primary" },
+    defaultVariants: {
+      variant: "primary",
+    },
   },
 )
 
@@ -36,7 +40,9 @@ const overlayVariants = cva(
         primary: "text-primary",
       },
     },
-    defaultVariants: { variant: "primary" },
+    defaultVariants: {
+      variant: "primary",
+    },
   },
 )
 

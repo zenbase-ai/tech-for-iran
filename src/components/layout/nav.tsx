@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { LuSettings } from "react-icons/lu"
 import { toast } from "sonner"
@@ -19,21 +19,23 @@ export type NavProps = {
 }
 
 export const Nav: React.FC<NavProps> = ({ className }) => {
-  const router = useRouter()
-
   const { profile, needsReconnection } = useAuthQuery(api.linkedin.getState) ?? {}
 
-  useEffect(() => {
-    if (needsReconnection) {
-      toast.info("Please reconnect your LinkedIn account.")
-    }
-  }, [needsReconnection])
+  const pathname = usePathname()
+  const mustReconnect = needsReconnection && pathname !== "/settings/connect"
 
+  useEffect(() => {
+    if (mustReconnect) {
+      toast.info("Please reconnect your LinkedIn.")
+    }
+  }, [mustReconnect])
+
+  const router = useRouter()
   useTimeout(
     () => {
       router.push("/settings/connect")
     },
-    needsReconnection ? 1000 : null,
+    mustReconnect ? 1000 : null,
   )
 
   return (

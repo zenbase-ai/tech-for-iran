@@ -7,6 +7,10 @@ export const PageTitle: React.FC<React.ComponentProps<"h1">> = ({ className, ...
   />
 )
 
-export const PageSubtitle: React.FC<React.ComponentProps<"p">> = ({ className, ...props }) => (
+export const PageDescription: React.FC<React.ComponentProps<"p">> = ({ className, ...props }) => (
   <p className={cn("text-muted-foreground", className)} {...props} />
+)
+
+export const SectionTitle: React.FC<React.ComponentProps<"h2">> = ({ className, ...props }) => (
+  <h2 className={cn("text-lg font-semibold", className)} {...props} />
 )

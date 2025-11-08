@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import plur from "plur"
 import { useEffect, useEffectEvent } from "react"
 import { useCountdown } from "usehooks-ts"
@@ -16,25 +16,23 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export type ConnectDialogProps = {
-  authLink: string
+  url: string
 }
 
-export const ConnectDialog: React.FC<ConnectDialogProps> = ({ authLink }) => {
-  const router = useRouter()
+export const ConnectDialog: React.FC<ConnectDialogProps> = ({ url }) => {
   const [countdown, { startCountdown, stopCountdown, resetCountdown }] = useCountdown({
     countStart: 5,
   })
 
-  const connect = useEffectEvent(() => {
-    window.location.href = authLink
+  const connect = useEffectEvent(async () => {
+    window.location.href = url
   })
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: we want to reset the countdown when the auth link changes
   useEffect(() => {
     resetCountdown()
     startCountdown()
     return stopCountdown
-  }, [resetCountdown, startCountdown, stopCountdown, authLink])
+  }, [resetCountdown, startCountdown, stopCountdown])
 
   useEffect(() => {
     if (countdown === 0) {
@@ -49,12 +47,15 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ authLink }) => {
           <AlertDialogTitle>Let's connect your LinkedIn</AlertDialogTitle>
           <AlertDialogDescription>
             This lets us handle engagements for you automatically.
-            <br />
+          </AlertDialogDescription>
+          <AlertDialogDescription className="text-muted-foreground">
             We&apos;ll redirect you in {countdown} {plur("second", countdown)}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={router.back}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel asChild>
+            <Link href="/">Cancel</Link>
+          </AlertDialogCancel>
           <AlertDialogAction onClick={connect} disabled={countdown <= 1}>
             Connect
           </AlertDialogAction>

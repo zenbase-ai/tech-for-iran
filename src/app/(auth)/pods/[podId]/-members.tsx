@@ -6,6 +6,7 @@ import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
+import { SectionTitle } from "@/components/layout/text"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -54,9 +55,9 @@ export const PodMembers: React.FC<PodMembersProps> = ({
       {stats?.memberCount == null ? (
         <Skeleton className="w-full h-8" />
       ) : (
-        <h2 className="text-lg font-semibold">
+        <SectionTitle>
           {stats.memberCount} {plur("member", stats.memberCount)}
-        </h2>
+        </SectionTitle>
       )}
 
       {isLoading ? (

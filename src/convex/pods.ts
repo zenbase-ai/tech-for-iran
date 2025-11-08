@@ -170,3 +170,11 @@ export const join = authMutation({
     return { pod, success: `Welcome to the ${pod.name} pod!` }
   },
 })
+
+export const validate = authQuery({
+  args: {
+    inviteCode: v.string(),
+  },
+  handler: async (ctx, args) =>
+    !!(await getOneFrom(ctx.db, "pods", "byInviteCode", args.inviteCode, "inviteCode")),
+})

@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
-import { getAccountStatus, isAccountStatusPayload } from "./helpers/unipile"
+import { getAccountStatus, isAccountStatusPayload } from "@/convex/helpers/unipile"
 
 const http = httpRouter()
 

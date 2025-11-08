@@ -1,11 +1,11 @@
 "use client"
 
+import { SignOutButton } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
-import { useSessionStorage } from "usehooks-ts"
 import * as z from "zod"
 import {
   AlertDialog,
@@ -19,48 +19,44 @@ import {
 import { Field, FieldContent, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
-import { validateAccessCode } from "./-actions"
 
-const SignUpGateSchema = z.object({
-  code: z.string().min(1, "Access code is required"),
+const ConnectGateSchema = z.object({
+  inviteCode: z.string().min(1, "Access code is required"),
 })
 
-type SignUpGateSchema = z.infer<typeof SignUpGateSchema>
+type ConnectGateSchema = z.infer<typeof ConnectGateSchema>
 
-export const SignUpGate: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [isValidated, setValidated] = useSessionStorage("accessCodeValidated", false)
+type ConnectGateProps = {
+  inviteCode?: string
+  validatedInviteCode?: boolean
+}
 
+export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode, validatedInviteCode }) => {
   const form = useForm({
-    resolver: zodResolver(SignUpGateSchema),
-    defaultValues: { code: "" },
+    resolver: zodResolver(ConnectGateSchema),
+    defaultValues: { inviteCode: inviteCode ?? "" },
+    errors:
+      validatedInviteCode === false
+        ? { inviteCode: { message: "Invalid invite code.", type: "value" } }
+        : undefined,
   })
 
-  const onSubmit = useEffectEvent(async (data: SignUpGateSchema) => {
-    try {
-      if (await validateAccessCode(data.code)) {
-        setValidated(true)
-      } else {
-        form.setError("code", { message: "Invalid access code." })
-      }
-    } catch {
-      form.setError("code", { message: "An error occurred. Please try again." })
-    }
+  const router = useRouter()
+  const onSubmit = useEffectEvent(async (data: ConnectGateSchema) => {
+    form.clearErrors("inviteCode")
+    router.replace(`/settings/connect?inviteCode=${encodeURIComponent(data.inviteCode)}`)
   })
-
-  if (isValidated) {
-    return <>{children}</>
-  }
 
   return (
     <AlertDialog open>
       <AlertDialogContent className="max-w-md">
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <AlertDialogHeader>
-            <AlertDialogTitle>Enter access code</AlertDialogTitle>
+            <AlertDialogTitle>Enter invite code</AlertDialogTitle>
           </AlertDialogHeader>
 
           <Controller
-            name="code"
+            name="inviteCode"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
@@ -82,15 +78,16 @@ export const SignUpGate: React.FC<React.PropsWithChildren> = ({ children }) => {
           />
 
           <AlertDialogFooter>
-            <AlertDialogCancel
-              type="button"
-              disabled={form.formState.isSubmitting}
-              variant="outline"
-              asChild
-            >
-              <Link href="/">Cancel</Link>
-            </AlertDialogCancel>
-            <AlertDialogAction type="submit" disabled={form.formState.isSubmitting}>
+            <SignOutButton>
+              <AlertDialogCancel
+                type="button"
+                disabled={form.formState.isSubmitting}
+                variant="ghost"
+              >
+                Sign out
+              </AlertDialogCancel>
+            </SignOutButton>
+            <AlertDialogAction type="submit" disabled={form.formState.isSubmitting} size="default">
               Continue
               {form.formState.isSubmitting ? (
                 <Spinner variant="ellipsis" />

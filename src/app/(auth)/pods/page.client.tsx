@@ -1,18 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { LuPlus, LuUsers } from "react-icons/lu"
+import { LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { HStack } from "@/components/layout/stack"
-import { PageSubtitle, PageTitle } from "@/components/layout/text"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { PageDescription, PageTitle } from "@/components/layout/text"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -23,33 +15,19 @@ import { JoinPodForm } from "./-join/form"
 
 export default function PodsClientPage() {
   const pods = useAuthPaginatedQuery(api.user.pods, {}, { initialNumItems: 12 })
-  const isLoading = !pods || pods.isLoading
+  const isLoading = pods.isLoading && pods.results.length === 0
 
   return (
     <Box className="px-2 w-full max-w-[640px] mx-auto">
       <HStack justify="between" items="center" className="gap-2">
         <PageTitle>Engagement Pods</PageTitle>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" disabled>
-              <LuPlus className="size-4" />
-              New
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[640px]">
-            <DialogHeader>
-              <DialogTitle>Start an engagement ring</DialogTitle>
-            </DialogHeader>
-
-            <CreatePodForm className="mt-2" />
-          </DialogContent>
-        </Dialog>
+        <CreatePodForm />
       </HStack>
 
-      <PageSubtitle>
+      <PageDescription>
         Pods are groups that engage with each other&apos;s LinkedIn posts.
-      </PageSubtitle>
+      </PageDescription>
 
       <Box className="my-8">
         {isLoading ? (
@@ -84,7 +62,7 @@ export default function PodsClientPage() {
         )}
       </Box>
 
-      <JoinPodForm autoFocus={!isLoading && pods.results.length === 0} />
+      <JoinPodForm autoFocus={!pods.isLoading && pods.results.length === 0} />
     </Box>
   )
 }

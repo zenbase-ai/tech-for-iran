@@ -1,8 +1,11 @@
 "use server"
 
+import { fetchQuery } from "convex/nextjs"
 import { DateTime } from "luxon"
+import { api } from "@/convex/_generated/api"
 import { unipile } from "@/convex/helpers/unipile"
 import { env } from "@/lib/env.mjs"
+import { tokenAuth } from "@/lib/server/clerk"
 
 export const unipileHostedAuthURL = async (userId: string, inviteCode?: string) => {
   const expiresOn = DateTime.utc().plus({ minutes: 10 }).toISO()
@@ -37,4 +40,9 @@ export const unipileHostedAuthURL = async (userId: string, inviteCode?: string) 
   })
 
   return url
+}
+
+export const validateInviteCode = async (inviteCode: string) => {
+  const { token } = await tokenAuth()
+  return await fetchQuery(api.pods.validate, { inviteCode }, { token })
 }

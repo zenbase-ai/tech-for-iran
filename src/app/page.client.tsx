@@ -19,8 +19,8 @@ export default function HomeClientPage() {
         ) : isSignedIn ? (
           <Button asChild>
             <Link href="/pods">
-              Dashboard
-              <LuArrowRight className="size-3.5" />
+              Open App
+              <LuArrowRight className="size-4" />
             </Link>
           </Button>
         ) : (
@@ -28,13 +28,13 @@ export default function HomeClientPage() {
             <SignInButton>
               <Button variant="outline">
                 Sign In
-                <LuArrowRight className="size-3.5" />
+                <LuArrowRight className="size-4" />
               </Button>
             </SignInButton>
             <SignUpButton>
               <Button variant="outline">
                 Sign Up
-                <LuArrowRight className="size-3.5" />
+                <LuArrowRight className="size-4" />
               </Button>
             </SignUpButton>
           </>

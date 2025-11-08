@@ -1,7 +1,6 @@
 import { SignUp } from "@clerk/nextjs"
 import type { Metadata } from "next"
 import { VStack } from "@/components/layout/stack"
-import { SignUpGate } from "./-gate"
 
 export const metadata: Metadata = {
   title: "Sign Up",
@@ -16,15 +15,15 @@ export type SignUpPageProps = {
 export default async function SignUpPage({ params }: SignUpPageProps) {
   const { inviteCode } = await params
   const redirectURL = inviteCode
-    ? `/settings/connect?inviteCode=${inviteCode}`
+    ? `/settings/connect?inviteCode=${encodeURIComponent(inviteCode)}`
     : "/settings/connect"
-  const signInURL = inviteCode ? `/sign-in?inviteCode=${inviteCode}` : "/sign-in"
+  const signInURL = inviteCode
+    ? `/sign-in?inviteCode=${encodeURIComponent(inviteCode)}`
+    : "/sign-in"
 
   return (
-    <SignUpGate>
-      <VStack as="main" justify="center" items="center" className="min-h-[60vh]">
-        <SignUp forceRedirectUrl={redirectURL} signInUrl={signInURL} />
-      </VStack>
-    </SignUpGate>
+    <VStack as="main" justify="center" items="center" className="min-h-[60vh]">
+      <SignUp forceRedirectUrl={redirectURL} signInUrl={signInURL} />
+    </VStack>
   )
 }

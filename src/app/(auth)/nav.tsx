@@ -1,10 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { redirect, usePathname } from "next/navigation"
-import { useEffect } from "react"
 import { LuSettings } from "react-icons/lu"
-import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,20 +20,9 @@ import { cn } from "@/lib/utils"
 export type NavProps = Omit<ItemProps, "asChild" | "variant">
 
 export const Nav: React.FC<NavProps> = ({ className, ...props }) => {
-  const isConnectPage = usePathname() === "/settings/connect"
   const { profile, needsReconnection } = useAuthQuery(api.linkedin.getState) ?? {}
 
-  useEffect(() => {
-    if (needsReconnection && !isConnectPage) {
-      toast.info("Please reconnect your LinkedIn.")
-      const timeout = setTimeout(() => {
-        redirect("/settings/connect")
-      }, 1000)
-      return () => clearTimeout(timeout)
-    }
-  }, [needsReconnection, isConnectPage])
-
-  return isConnectPage ? null : (
+  return (
     <Item
       asChild
       variant="outline"

@@ -53,7 +53,7 @@ const schema = defineSchema({
     url: v.string(), // LinkedIn post URL
     urn: v.string(), // LinkedIn post URN (extracted from URL)
     workflowId: v.optional(v.string()),
-    submittedAt: v.number(),
+    submittedAt: v.optional(v.number()),
     // Workflow completion tracking
     status: v.optional(
       v.union(

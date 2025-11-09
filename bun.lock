@@ -9,6 +9,7 @@
         "@clerk/themes": "^2.4.32",
         "@convex-dev/aggregate": "^0.1.25",
         "@convex-dev/auth": "^0.0.90",
+        "@convex-dev/migrations": "^0.2.9",
         "@convex-dev/rate-limiter": "^0.2.14",
         "@convex-dev/workflow": "^0.2.7",
         "@hookform/resolvers": "^5.2.2",
@@ -121,6 +122,8 @@
     "@convex-dev/aggregate": ["@convex-dev/aggregate@0.1.25", "", { "peerDependencies": { "convex": "~1.16.5 || >=1.17.0 <1.35.0" } }, "sha512-HNO4Ft/mNvVnnXT4W+CLCcD5LH0r8x8bY77w0CmdVx9GRmU3SaLICP87GQzonnHHalgTelq8HQB04RzdmygzqQ=="],
 
     "@convex-dev/auth": ["@convex-dev/auth@0.0.90", "", { "dependencies": { "@oslojs/crypto": "^1.0.1", "@oslojs/encoding": "^1.1.0", "cookie": "^1.0.1", "is-network-error": "^1.1.0", "jose": "^5.2.2", "jwt-decode": "^4.0.0", "lucia": "^3.2.0", "oauth4webapi": "^3.1.2", "path-to-regexp": "^6.3.0", "server-only": "^0.0.1" }, "peerDependencies": { "@auth/core": "^0.37.0", "convex": "^1.17.0", "react": "^18.2.0 || ^19.0.0-0" }, "optionalPeers": ["react"], "bin": { "auth": "dist/bin.cjs" } }, "sha512-aqw88EB042HvnaF4wcf/f/wTocmT2Bus2VDQRuV79cM0+8kORM0ICK/ByZ6XsHgQ9qr6TmidNbXm6QAgndrdpQ=="],
+
+    "@convex-dev/migrations": ["@convex-dev/migrations@0.2.9", "", { "peerDependencies": { "convex": "~1.16.5 || >=1.17.0 <1.35.0" } }, "sha512-HfIv6/F8VbtJ1NVT2bQRTumJGdaqROl/+s5IOnubHm7vvgie0RjcfO6YiB7JoLFWwS19vjDQDKl63ihoA08zOA=="],
 
     "@convex-dev/rate-limiter": ["@convex-dev/rate-limiter@0.2.14", "", { "peerDependencies": { "convex": ">=1.17.0 <1.35.0", "react": "^18.2.0 || ^19.0.0" }, "optionalPeers": ["react"] }, "sha512-6dQ2ceHFcU8HVXT0QdcgWXCahasMcjne/bWvLZ6qyyk5gZDP4JtjZyidy9HflAOCo1Nc428pgrROnbQBM0QPCQ=="],
 

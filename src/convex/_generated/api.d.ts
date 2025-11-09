@@ -22,6 +22,7 @@ import type * as http from "../http.js";
 import type * as limiter from "../limiter.js";
 import type * as linkedin from "../linkedin.js";
 import type * as management from "../management.js";
+import type * as migrations from "../migrations.js";
 import type * as pods from "../pods.js";
 import type * as posts from "../posts.js";
 import type * as user from "../user.js";
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   limiter: typeof limiter;
   linkedin: typeof linkedin;
   management: typeof management;
+  migrations: typeof migrations;
   pods: typeof pods;
   posts: typeof posts;
   user: typeof user;
@@ -73,6 +75,225 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
+  migrations: {
+    lib: {
+      cancel: FunctionReference<
+        "mutation",
+        "internal",
+        { name: string },
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }
+      >;
+      cancelAll: FunctionReference<
+        "mutation",
+        "internal",
+        { sinceTs?: number },
+        Array<{
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }>
+      >;
+      clearAll: FunctionReference<
+        "mutation",
+        "internal",
+        { before?: number },
+        null
+      >;
+      getStatus: FunctionReference<
+        "query",
+        "internal",
+        { limit?: number; names?: Array<string> },
+        Array<{
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }>
+      >;
+      migrate: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          dryRun: boolean;
+          fnHandle: string;
+          name: string;
+          next?: Array<{ fnHandle: string; name: string }>;
+        },
+        {
+          batchSize?: number;
+          cursor?: string | null;
+          error?: string;
+          isDone: boolean;
+          latestEnd?: number;
+          latestStart: number;
+          name: string;
+          next?: Array<string>;
+          processed: number;
+          state: "inProgress" | "success" | "failed" | "canceled" | "unknown";
+        }
+      >;
+    };
+  };
+  rateLimiter: {
+    lib: {
+      checkRateLimit: FunctionReference<
+        "query",
+        "internal",
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          count?: number;
+          key?: string;
+          name: string;
+          reserve?: boolean;
+          throws?: boolean;
+        },
+        { ok: true; retryAfter?: number } | { ok: false; retryAfter: number }
+      >;
+      clearAll: FunctionReference<
+        "mutation",
+        "internal",
+        { before?: number },
+        null
+      >;
+      getServerTime: FunctionReference<"mutation", "internal", {}, number>;
+      getValue: FunctionReference<
+        "query",
+        "internal",
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          key?: string;
+          name: string;
+          sampleShards?: number;
+        },
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          shard: number;
+          ts: number;
+          value: number;
+        }
+      >;
+      rateLimit: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          count?: number;
+          key?: string;
+          name: string;
+          reserve?: boolean;
+          throws?: boolean;
+        },
+        { ok: true; retryAfter?: number } | { ok: false; retryAfter: number }
+      >;
+      resetRateLimit: FunctionReference<
+        "mutation",
+        "internal",
+        { key?: string; name: string },
+        null
+      >;
+    };
+    time: {
+      getServerTime: FunctionReference<"mutation", "internal", {}, number>;
+    };
+  };
   workflow: {
     journal: {
       load: FunctionReference<
@@ -266,140 +487,6 @@ export declare const components: {
           };
         }
       >;
-    };
-  };
-  rateLimiter: {
-    lib: {
-      checkRateLimit: FunctionReference<
-        "query",
-        "internal",
-        {
-          config:
-            | {
-                capacity?: number;
-                kind: "token bucket";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: null;
-              }
-            | {
-                capacity?: number;
-                kind: "fixed window";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: number;
-              };
-          count?: number;
-          key?: string;
-          name: string;
-          reserve?: boolean;
-          throws?: boolean;
-        },
-        { ok: true; retryAfter?: number } | { ok: false; retryAfter: number }
-      >;
-      clearAll: FunctionReference<
-        "mutation",
-        "internal",
-        { before?: number },
-        null
-      >;
-      getServerTime: FunctionReference<"mutation", "internal", {}, number>;
-      getValue: FunctionReference<
-        "query",
-        "internal",
-        {
-          config:
-            | {
-                capacity?: number;
-                kind: "token bucket";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: null;
-              }
-            | {
-                capacity?: number;
-                kind: "fixed window";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: number;
-              };
-          key?: string;
-          name: string;
-          sampleShards?: number;
-        },
-        {
-          config:
-            | {
-                capacity?: number;
-                kind: "token bucket";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: null;
-              }
-            | {
-                capacity?: number;
-                kind: "fixed window";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: number;
-              };
-          shard: number;
-          ts: number;
-          value: number;
-        }
-      >;
-      rateLimit: FunctionReference<
-        "mutation",
-        "internal",
-        {
-          config:
-            | {
-                capacity?: number;
-                kind: "token bucket";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: null;
-              }
-            | {
-                capacity?: number;
-                kind: "fixed window";
-                maxReserved?: number;
-                period: number;
-                rate: number;
-                shards?: number;
-                start?: number;
-              };
-          count?: number;
-          key?: string;
-          name: string;
-          reserve?: boolean;
-          throws?: boolean;
-        },
-        { ok: true; retryAfter?: number } | { ok: false; retryAfter: number }
-      >;
-      resetRateLimit: FunctionReference<
-        "mutation",
-        "internal",
-        { key?: string; name: string },
-        null
-      >;
-    };
-    time: {
-      getServerTime: FunctionReference<"mutation", "internal", {}, number>;
     };
   };
   aggregatePodMembers: {

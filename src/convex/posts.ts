@@ -36,7 +36,7 @@ export const get = authQuery({
     } else {
       // Fallback to dynamic computation for legacy posts without status field
       const engagementCount = await postEngagementCount.count(ctx, { namespace: args.postId })
-      const postAge = Date.now() - post.submittedAt
+      const postAge = Date.now() - post._creationTime
 
       if (!post.workflowId) {
         status = "pending"
@@ -142,7 +142,6 @@ export const submit = authMutation({
       podId,
       url,
       urn,
-      submittedAt: Date.now(),
       status: "pending",
     })
 

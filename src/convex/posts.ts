@@ -1,6 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
+import { omit, zip } from "es-toolkit"
 import * as z from "zod"
 import {
   derivePostTargetCount,
@@ -10,10 +11,11 @@ import {
 import { internal } from "@/convex/_generated/api"
 import { podMemberCount, podPostCount, postEngagementCount } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
-import { NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
+import { BadRequestError, NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { humanizeDuration, rateLimiter } from "@/convex/limiter"
 import { workflow } from "@/convex/workflows/engagement"
+import { pmap } from "./helpers/collections"
 
 export const get = authQuery({
   args: {
@@ -71,6 +73,35 @@ export const engagements = authQuery({
       .query("engagements")
       .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId))
       .paginate(args.paginationOpts)
+  },
+})
+
+export const latest = authQuery({
+  args: {
+    podId: v.id("pods"),
+    take: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (args.take <= 0 || 6 <= args.take) {
+      throw new BadRequestError("Invalid take value, must be between 1 and 6.")
+    }
+
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("byPod", (q) => q.eq("podId", args.podId))
+      .order("desc")
+      .filter((q) => q.eq(q.field("status"), "completed"))
+      .take(args.take)
+
+    const profiles = await pmap(posts, async ({ userId }) =>
+      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", userId, "userId"),
+    )
+
+    return zip(posts, profiles)
+      .map(([post, profile]) =>
+        profile ? { ...post, profile: omit(profile, ["unipileId"]) } : null,
+      )
+      .filter((p) => p != null)
   },
 })
 

@@ -2,7 +2,9 @@
 
 import { toast } from "sonner"
 import { HStack, VStack } from "@/components/layout/stack"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item"
 
 export default function TestToastPage() {
   return (
@@ -10,6 +12,28 @@ export default function TestToastPage() {
       <h1 className="text-2xl font-bold">Toast Test Page</h1>
 
       <HStack wrap items="center" className="gap-4">
+        <Button
+          onClick={() =>
+            toast(
+              <a href="https://www.google.com" target="_blank" rel="noopener noreferrer">
+                <Item className="p-0">
+                  <ItemMedia>
+                    <Avatar>
+                      <AvatarFallback>TM</AvatarFallback>
+                    </Avatar>
+                  </ItemMedia>
+                  <ItemContent>
+                    <ItemTitle>Toasty McToastface</ItemTitle>
+                    <ItemDescription>Posted 2 days ago</ItemDescription>
+                  </ItemContent>
+                </Item>
+              </a>,
+            )
+          }
+        >
+          Post
+        </Button>
+
         <Button
           onClick={() => toast("Default toast message")}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"

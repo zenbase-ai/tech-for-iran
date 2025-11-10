@@ -102,6 +102,7 @@ export const latest = authQuery({
         profile ? { ...post, profile: omit(profile, ["unipileId"]) } : null,
       )
       .filter((p) => p != null)
+      .reverse()
   },
 })
 

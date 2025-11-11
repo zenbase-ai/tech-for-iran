@@ -39,6 +39,7 @@
     "hamburger-react": "^2.5.2",
     "humanize-duration": "^3.33.1",
     "javascript-time-ago": "^2.5.12",
+    "ky": "^1.14.0",
     "lucide-react": "^0.552.0",
     "luxon": "^3.7.2",
     "motion": "^12.23.24",

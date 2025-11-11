@@ -217,18 +217,16 @@ export const getUnipileAccount = internalAction({
     unipileId: v.string(),
   },
   handler: async (_ctx, args) =>
-    await unipile<GetUnipileAccount>(
-      "GET",
-      `/api/v1/users/me?account_id=${encodeURIComponent(args.unipileId)}`,
-    ),
+    await unipile
+      .get<GetUnipileAccount>(`/api/v1/users/me?account_id=${encodeURIComponent(args.unipileId)}`)
+      .json(),
 })
 
 export const deleteUnipileAccount = internalAction({
   args: {
     unipileId: v.string(),
   },
-  handler: async (_ctx, args) =>
-    await unipile<void>("DELETE", `/api/v1/accounts/${args.unipileId}`),
+  handler: async (_ctx, args) => await unipile.delete<void>(`/api/v1/accounts/${args.unipileId}`),
 })
 
 // export type GetUnipilePost = {

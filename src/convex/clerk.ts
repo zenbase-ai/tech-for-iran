@@ -1,6 +1,6 @@
 import { v } from "convex/values"
 import { internalAction } from "@/convex/_generated/server"
-import { clerk } from "./helpers/clerk"
+import { clerk } from "@/convex/helpers/clerk"
 
 export const patchUser = internalAction({
   args: {
@@ -11,9 +11,11 @@ export const patchUser = internalAction({
   },
   handler: async (_ctx, args) => {
     const { userId, firstName, lastName } = args
-    await clerk("PATCH", `/v1/users/${userId}`, {
-      first_name: firstName,
-      last_name: lastName,
+    await clerk.patch(`/v1/users/${userId}`, {
+      json: {
+        first_name: firstName,
+        last_name: lastName,
+      },
     })
   },
 })

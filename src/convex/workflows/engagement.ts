@@ -246,11 +246,15 @@ export const react = internalAction({
   },
   handler: async (_ctx, args): Promise<[boolean, unknown]> => {
     try {
-      const response = await unipile("POST", "/api/v1/posts/reaction", {
-        account_id: args.unipileId,
-        post_id: args.urn,
-        reaction_type: args.reactionType.toLowerCase(),
-      })
+      const response = await unipile
+        .post("/api/v1/posts/reaction", {
+          json: {
+            account_id: args.unipileId,
+            post_id: args.urn,
+            reaction_type: args.reactionType.toLowerCase(),
+          },
+        })
+        .json()
 
       return [true, response]
     } catch (error: unknown) {

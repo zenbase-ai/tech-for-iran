@@ -46,7 +46,8 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   if (inviteCode) {
     const result = await fetchMutation(api.pods.join, { inviteCode }, { token })
     if ("error" in result) {
-      return redirect(`/pods?${queryString(result)}`, RedirectType.replace)
+      const { error } = result
+      return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
     }
 
     const { pod, success } = result

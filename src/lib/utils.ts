@@ -27,3 +27,19 @@ export const queryString = (params: Record<string, string | undefined>) => {
   }
   return searchParams.toString()
 }
+
+export type PathOptions = {
+  searchParams?: Record<string, string | undefined>
+  prefixURL?: string
+}
+
+export const path = (path: string, { searchParams, prefixURL }: PathOptions = {}) => {
+  let result = path
+  if (searchParams) {
+    result = `${result}?${queryString(searchParams)}`
+  }
+  if (prefixURL) {
+    result = `${prefixURL}${result}`
+  }
+  return result
+}

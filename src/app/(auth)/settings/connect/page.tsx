@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { tokenAuth } from "@/lib/server/clerk"
+import { queryString } from "@/lib/utils"
 import { unipileHostedAuthURL } from "./-actions"
 import { ConnectDialog } from "./-dialog"
 import { ConnectGate } from "./-gate"
@@ -45,12 +46,11 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   if (inviteCode) {
     const result = await fetchMutation(api.pods.join, { inviteCode }, { token })
     if ("error" in result) {
-      return redirect(`/pods?error=${encodeURIComponent(result.error)}`, RedirectType.push)
+      return redirect(`/pods?${queryString(result)}`, RedirectType.push)
     }
 
     const { pod, ...toasts } = result
-    const searchParams = new URLSearchParams(toasts).toString()
-    return redirect(`/pods/${pod._id}?${searchParams}`, RedirectType.push)
+    return redirect(`/pods/${pod._id}?${queryString(toasts)}`, RedirectType.push)
   }
 
   return redirect("/pods", RedirectType.push)

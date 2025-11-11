@@ -19,6 +19,7 @@ import {
 import { Field, FieldContent, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
+import { queryString } from "@/lib/utils"
 
 const ConnectGateSchema = z.object({
   inviteCode: z.string().min(1, "Access code is required"),
@@ -44,7 +45,7 @@ export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode, validatedI
   const router = useRouter()
   const onSubmit = useEffectEvent(async (data: ConnectGateSchema) => {
     form.clearErrors("inviteCode")
-    router.replace(`/settings/connect?inviteCode=${encodeURIComponent(data.inviteCode)}`)
+    router.replace(`/settings/connect?${queryString(data)}`)
   })
 
   return (

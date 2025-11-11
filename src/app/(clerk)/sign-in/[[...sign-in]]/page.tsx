@@ -1,6 +1,7 @@
 import { SignIn } from "@clerk/nextjs"
 import type { Metadata } from "next"
 import { VStack } from "@/components/layout/stack"
+import { queryString } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Sign In | Crackedbook",
@@ -14,16 +15,13 @@ export type SignInPageProps = {
 
 export default async function SignInPage({ params }: SignInPageProps) {
   const { inviteCode } = await params
-  const redirectURL = inviteCode
-    ? `/settings/connect?inviteCode=${encodeURIComponent(inviteCode)}`
-    : "/settings/connect"
-  const signUpURL = inviteCode
-    ? `/sign-in?inviteCode=${encodeURIComponent(inviteCode)}`
-    : "/sign-in"
 
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh] mx-auto">
-      <SignIn forceRedirectUrl={redirectURL} signUpUrl={signUpURL} />
+      <SignIn
+        forceRedirectUrl={`/settings/connect?${queryString({ inviteCode })}`}
+        signUpUrl={`/sign-up?${queryString({ inviteCode })}`}
+      />
     </VStack>
   )
 }

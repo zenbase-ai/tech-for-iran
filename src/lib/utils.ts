@@ -17,3 +17,13 @@ export const css = (styles: CSS) => styles as React.CSSProperties
 
 export const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : String(error)
+
+export const queryString = (params: Record<string, string | undefined>) => {
+  const searchParams = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) {
+      searchParams.set(key, value)
+    }
+  }
+  return searchParams.toString()
+}

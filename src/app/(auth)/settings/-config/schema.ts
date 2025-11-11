@@ -5,10 +5,10 @@ export const configSchema = {
     maxActions: 1,
   },
   max: {
-    maxActions: 50,
+    maxActions: 25,
   },
   defaultValues: {
-    maxActions: 25,
+    maxActions: 10,
   },
 }
 

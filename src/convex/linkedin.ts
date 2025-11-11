@@ -1,6 +1,7 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { omit, pick } from "es-toolkit"
+import { configSchema } from "@/app/(auth)/settings/-config/schema"
 import { api, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation } from "@/convex/_generated/server"
 import { authAction, authMutation, authQuery, update } from "@/convex/helpers/convex"
@@ -145,7 +146,10 @@ export const upsertAccount = internalMutation({
     )
 
     if (!account) {
-      return await ctx.db.insert("linkedinAccounts", update({ ...args, maxActions: 25 }))
+      return await ctx.db.insert(
+        "linkedinAccounts",
+        update({ ...args, ...configSchema.defaultValues }),
+      )
     }
 
     await ctx.db.patch(account._id, update(pick(args, ["status"])))

@@ -10,7 +10,7 @@ import {
 import { internal } from "@/convex/_generated/api"
 import { aggregateMembers, aggregatePosts } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
-import { BadRequestError } from "@/convex/helpers/errors"
+import { BadRequestError, NotFoundError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { workflow } from "@/convex/workflows/engagement"
 import { pmap } from "./helpers/collections"
@@ -81,12 +81,15 @@ export const submit = authMutation({
     ])
 
     if (!pod) {
-      return { error: "Pod not found, try reloading the page." }
+      throw new NotFoundError()
     }
-    if (!profile || !account) {
+    if (!membership) {
+      return { error: "You are not a member of this pod." }
+    }
+    if (!profile) {
       return { error: "Please connect your LinkedIn." }
     }
-    if (needsReconnection(account.status)) {
+    if (needsReconnection(account?.status)) {
       return { error: "Please reconnect your LinkedIn." }
     }
 
@@ -129,21 +132,16 @@ export const submit = authMutation({
     }
 
     const targetCount = derivePostTargetCount(args.targetCount, membersCount)
-    const workflowId = await workflow.start(
+    const context = { postId }
+    const onComplete = internal.workflows.engagement.onWorkflowComplete
+    await workflow.start(
       ctx,
       internal.workflows.engagement.perform,
       { ...data, postId, userId, podId, urn, targetCount },
-      {
-        context: { postId },
-        onComplete: internal.workflows.engagement.onWorkflowComplete,
-        startAsync: true,
-      },
+      { context, onComplete, startAsync: true },
     )
 
-    await Promise.all([
-      aggregatePosts.insert(ctx, post),
-      ctx.db.patch(postId, { workflowId, status: "processing" }),
-    ])
+    await aggregatePosts.insert(ctx, post)
 
     return { success: "Watch out for the results!" }
   },

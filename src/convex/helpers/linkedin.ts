@@ -16,26 +16,14 @@ export const LinkedInStatus = {
 
 export type LinkedInStatusType = (typeof LinkedInStatus)[keyof typeof LinkedInStatus]
 
-export const HEALTHY_STATUSES = [
-  LinkedInStatus.OK,
-  LinkedInStatus.SYNC_SUCCESS,
-  LinkedInStatus.RECONNECTED,
-  LinkedInStatus.CREATION_SUCCESS,
-] as const
-
-export const NEEDS_RECONNECTION_STATUSES = [
-  LinkedInStatus.CREDENTIALS,
-  LinkedInStatus.ERROR,
-  LinkedInStatus.STOPPED,
-  LinkedInStatus.DELETED,
-] as const
-
-export const needsReconnection = (status?: string | null): boolean => {
-  if (status == null) {
-    return true
-  }
-  return NEEDS_RECONNECTION_STATUSES.includes(status as any)
-}
+export const needsReconnection = (status?: string | null): boolean =>
+  status == null ||
+  [
+    LinkedInStatus.CREDENTIALS,
+    LinkedInStatus.ERROR,
+    LinkedInStatus.STOPPED,
+    LinkedInStatus.DELETED,
+  ].includes(status as any)
 
 export const LINKEDIN_REACTION_TYPES = [
   "like",

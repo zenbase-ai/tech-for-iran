@@ -9,7 +9,7 @@ import { components, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
 import { aggregateEngagements } from "@/convex/aggregates"
 import { pmap } from "@/convex/helpers/collections"
-import { ConflictError, errorMessage } from "@/convex/helpers/errors"
+import { errorMessage, NotFoundError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { UnipileAPIError, unipile } from "@/convex/helpers/unipile"
 
@@ -61,6 +61,11 @@ export const perform = workflow.define({
   handler: async (step, args): Promise<Perform> => {
     const { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay } = args
     const workflowResult: Perform = { successCount: 0, failedCount: 0 }
+
+    await step.runMutation(internal.workflows.engagement.setPostStatus, {
+      postId,
+      status: "processing",
+    })
 
     // Track users who have already reacted (to prevent duplicates)
     const excludeUserIds = [userId]
@@ -291,13 +296,26 @@ export const log = internalMutation({
 
     const engagement = await ctx.db.get(engagementId)
     if (!engagement) {
-      throw new ConflictError()
+      throw new NotFoundError()
     }
 
     await aggregateEngagements.insert(ctx, engagement)
 
     return engagementId
   },
+})
+
+export const setPostStatus = internalMutation({
+  args: {
+    postId: v.id("posts"),
+    status: v.union(
+      v.literal("processing"),
+      v.literal("completed"),
+      v.literal("failed"),
+      v.literal("canceled"),
+    ),
+  },
+  handler: async (ctx, args) => await ctx.db.patch(args.postId, { status: args.status }),
 })
 
 // Internal mutation to handle workflow completion

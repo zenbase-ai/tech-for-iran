@@ -1,8 +1,8 @@
+import { v } from "convex/values"
 import { customAction, customMutation, customQuery } from "convex-helpers/server/customFunctions"
 import { action, mutation, query } from "@/convex/_generated/server"
 import { requireAuth } from "./auth"
 import { UnauthorizedError } from "./errors"
-import { v } from "convex/values"
 
 export const authQuery = customQuery(query, {
   args: {},

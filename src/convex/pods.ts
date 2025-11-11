@@ -1,11 +1,12 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
+import { pick } from "es-toolkit"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { aggregateMembers, aggregatePosts } from "@/convex/aggregates"
 import { pmap } from "@/convex/helpers/collections"
 import { authMutation, authQuery, memberQuery } from "@/convex/helpers/convex"
-import { ConflictError, NotFoundError } from "@/convex/helpers/errors"
+import { NotFoundError } from "@/convex/helpers/errors"
 
 export const get = memberQuery({
   args: {
@@ -52,10 +53,7 @@ export const members = memberQuery({
       return {
         userId,
         joinedAt: _creationTime,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        picture: profile.picture,
-        url: profile.url,
+        ...pick(profile, ["firstName", "lastName", "picture", "url"]),
       }
     })
 
@@ -104,7 +102,7 @@ export const join = authMutation({
     // Update aggregate
     const membership = await ctx.db.get(membershipId)
     if (!membership) {
-      throw new ConflictError()
+      throw new NotFoundError()
     }
 
     await aggregateMembers.insert(ctx, membership)

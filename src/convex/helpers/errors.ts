@@ -1,4 +1,5 @@
 import { ConvexError, type Value } from "convex/values"
+import * as z from "zod"
 
 type ErrorData = {
   message: string
@@ -30,6 +31,9 @@ export class BadRequestError extends ConvexError<ErrorData> {
 }
 
 export const errorMessage = (error: unknown): string => {
+  if (error instanceof z.ZodError) {
+    return z.prettifyError(error)
+  }
   if (error instanceof ConvexError) {
     return error.data ?? errorMessage(error)
   }

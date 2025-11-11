@@ -198,7 +198,7 @@ export const refreshProfile = internalAction({
   },
   handler: async (ctx, args) => {
     const { unipileId } = args
-    const data = await ctx.runAction(internal.fns.linkedin.getUnipileAccount, { unipileId })
+    const data = await ctx.runAction(internal.fns.linkedin.fetchUnipileAccount, { unipileId })
     await ctx.runMutation(internal.fns.linkedin.upsertProfile, {
       unipileId,
       firstName: data.first_name,
@@ -209,7 +209,7 @@ export const refreshProfile = internalAction({
   },
 })
 
-export type GetUnipileAccount = {
+export type FetchUnipileAccount = {
   first_name: string
   last_name: string
   profile_picture_url: string
@@ -217,13 +217,13 @@ export type GetUnipileAccount = {
   public_identifier: string
 }
 
-export const getUnipileAccount = internalAction({
+export const fetchUnipileAccount = internalAction({
   args: {
     unipileId: v.string(),
   },
   handler: async (_ctx, args) =>
     await unipile
-      .get<GetUnipileAccount>(`/api/v1/users/me?account_id=${encodeURIComponent(args.unipileId)}`)
+      .get<FetchUnipileAccount>(`api/v1/users/me?account_id=${encodeURIComponent(args.unipileId)}`)
       .json(),
 })
 
@@ -231,37 +231,5 @@ export const deleteUnipileAccount = internalAction({
   args: {
     unipileId: v.string(),
   },
-  handler: async (_ctx, args) => await unipile.delete<void>(`/api/v1/accounts/${args.unipileId}`),
+  handler: async (_ctx, args) => await unipile.delete<void>(`api/v1/accounts/${args.unipileId}`),
 })
-
-// export type GetUnipilePost = {
-//   object: "Post"
-//   provider: "LINKEDIN"
-//   share_url: string
-//   text: string
-//   parsed_datetime: string
-//   author: {
-//     public_identifier: string
-//     id: string
-//     name: string
-//     is_company: boolean
-//     headline: string
-//   }
-//   mentions: Array<{
-//     url: string
-//     start: number
-//     length: number
-//   }>
-// }
-
-// export const getUnipilePost = internalAction({
-//   args: {
-//     unipileId: v.string(),
-//     postId: v.string(),
-//   },
-//   handler: async (_ctx, args) =>
-//     await unipile<GetUnipilePost>(
-//       "GET",
-//       `/api/v1/posts/${args.postId}?account_id=${encodeURIComponent(args.unipileId)}`,
-//     ),
-// })

@@ -69,7 +69,8 @@ const schema = defineSchema({
   })
     .index("byUser", ["userId"])
     .index("byPod", ["podId"])
-    .index("byURL", ["url"]),
+    .index("byURL", ["url"])
+    .index("byURN", ["urn"]),
 
   // Engagement log (tracks reactions on posts)
   engagements: defineTable({

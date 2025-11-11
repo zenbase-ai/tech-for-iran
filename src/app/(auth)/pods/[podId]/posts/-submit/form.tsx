@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "convex/react"
+import { useAction, useMutation } from "convex/react"
 import { capitalize } from "es-toolkit/string"
 import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -33,16 +33,22 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const mutation = useAsyncFn(useMutation(api.fns.posts.submit))
+  const validate = useAsyncFn(useAction(api.fns.posts.validateURL))
+  const mutate = useAsyncFn(useMutation(api.fns.posts.submit))
   const form = useForm<SubmitPostSchema>({
     resolver: zodResolver(SubmitPostSchema),
     defaultValues: submitPostSchema.defaultValues,
   })
 
   const handleSubmit = useEffectEvent(async (data: SubmitPostSchema) => {
-    const result = await mutation.execute({ podId, ...data })
-    if (result && "success" in result) {
-      form.reset()
+    const validation = await validate.execute({ url: data.url })
+    if (validation?.error) {
+      form.setError("url", { message: validation.error })
+    } else {
+      const mutation = await mutate.execute({ podId, ...data })
+      if (mutation?.success) {
+        form.reset()
+      }
     }
   })
 

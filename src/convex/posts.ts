@@ -12,9 +12,9 @@ import { aggregateMembers, aggregatePosts } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
 import { BadRequestError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
-import { humanizeDuration, rateLimiter } from "@/convex/limiter"
 import { workflow } from "@/convex/workflows/engagement"
 import { pmap } from "./helpers/collections"
+import { rateLimitMessage, ratelimits } from "./ratelimits"
 
 export const latest = authQuery({
   args: {
@@ -102,11 +102,13 @@ export const submit = authMutation({
       return { error: "Cannot resubmit a post." }
     }
 
-    const { ok, retryAfter } = await rateLimiter.limit(ctx, "submitPost", {
-      key: `[podId:${podId}]-[userId:${userId}]`,
-    })
-    if (!ok) {
-      return { error: `Too many requests, please try again in ${humanizeDuration(retryAfter)}.` }
+    {
+      const { ok, retryAfter } = await ratelimits.check(ctx, "submitPost", {
+        key: `[podId:${podId}]-[userId:${userId}]`,
+      })
+      if (!ok) {
+        return { error: rateLimitMessage(retryAfter) }
+      }
     }
 
     const postId = await ctx.db.insert("posts", {
@@ -123,6 +125,15 @@ export const submit = authMutation({
     ])
     if (!post) {
       return { error: "Failed to create post, please try again." }
+    }
+
+    {
+      const { ok, retryAfter } = await ratelimits.limit(ctx, "submitPost", {
+        key: `[podId:${podId}]-[userId:${userId}]`,
+      })
+      if (!ok) {
+        return { error: rateLimitMessage(retryAfter) }
+      }
     }
 
     const workflowId = await workflow.start(

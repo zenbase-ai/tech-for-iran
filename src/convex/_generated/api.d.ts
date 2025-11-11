@@ -17,7 +17,7 @@ import type * as helpers_errors from "../helpers/errors.js";
 import type * as helpers_linkedin from "../helpers/linkedin.js";
 import type * as helpers_unipile from "../helpers/unipile.js";
 import type * as http from "../http.js";
-import type * as limiter from "../limiter.js";
+import type * as limiter from "../ratelimits.js";
 import type * as linkedin from "../linkedin.js";
 import type * as migrations from "../migrations.js";
 import type * as moderation from "../moderation.js";

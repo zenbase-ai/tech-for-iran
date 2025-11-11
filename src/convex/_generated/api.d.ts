@@ -10,9 +10,7 @@
 
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as clerk from "../clerk.js";
 import type * as helpers_auth from "../helpers/auth.js";
-import type * as helpers_clerk from "../helpers/clerk.js";
 import type * as helpers_collections from "../helpers/collections.js";
 import type * as helpers_convex from "../helpers/convex.js";
 import type * as helpers_errors from "../helpers/errors.js";
@@ -21,8 +19,8 @@ import type * as helpers_unipile from "../helpers/unipile.js";
 import type * as http from "../http.js";
 import type * as limiter from "../limiter.js";
 import type * as linkedin from "../linkedin.js";
-import type * as management from "../management.js";
 import type * as migrations from "../migrations.js";
+import type * as moderation from "../moderation.js";
 import type * as pods from "../pods.js";
 import type * as posts from "../posts.js";
 import type * as user from "../user.js";
@@ -34,20 +32,10 @@ import type {
   FunctionReference,
 } from "convex/server";
 
-/**
- * A utility for referencing Convex functions in your app's API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
 declare const fullApi: ApiFromModules<{
   aggregates: typeof aggregates;
   auth: typeof auth;
-  clerk: typeof clerk;
   "helpers/auth": typeof helpers_auth;
-  "helpers/clerk": typeof helpers_clerk;
   "helpers/collections": typeof helpers_collections;
   "helpers/convex": typeof helpers_convex;
   "helpers/errors": typeof helpers_errors;
@@ -56,21 +44,37 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   limiter: typeof limiter;
   linkedin: typeof linkedin;
-  management: typeof management;
   migrations: typeof migrations;
+  moderation: typeof moderation;
   pods: typeof pods;
   posts: typeof posts;
   user: typeof user;
   "workflows/engagement": typeof workflows_engagement;
 }>;
-declare const fullApiWithMounts: typeof fullApi;
 
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
 export declare const api: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "public">
 >;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
 export declare const internal: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "internal">
 >;
 
@@ -617,17 +621,17 @@ export declare const components: {
         { maxNodeSize?: number; namespace?: any; rootLazy?: boolean },
         null
       >;
-      deleteIfExists: FunctionReference<
-        "mutation",
-        "internal",
-        { key: any; namespace?: any },
-        any
-      >;
       delete_: FunctionReference<
         "mutation",
         "internal",
         { key: any; namespace?: any },
         null
+      >;
+      deleteIfExists: FunctionReference<
+        "mutation",
+        "internal",
+        { key: any; namespace?: any },
+        any
       >;
       init: FunctionReference<
         "mutation",
@@ -803,17 +807,17 @@ export declare const components: {
         { maxNodeSize?: number; namespace?: any; rootLazy?: boolean },
         null
       >;
-      deleteIfExists: FunctionReference<
-        "mutation",
-        "internal",
-        { key: any; namespace?: any },
-        any
-      >;
       delete_: FunctionReference<
         "mutation",
         "internal",
         { key: any; namespace?: any },
         null
+      >;
+      deleteIfExists: FunctionReference<
+        "mutation",
+        "internal",
+        { key: any; namespace?: any },
+        any
       >;
       init: FunctionReference<
         "mutation",
@@ -989,17 +993,17 @@ export declare const components: {
         { maxNodeSize?: number; namespace?: any; rootLazy?: boolean },
         null
       >;
-      deleteIfExists: FunctionReference<
-        "mutation",
-        "internal",
-        { key: any; namespace?: any },
-        any
-      >;
       delete_: FunctionReference<
         "mutation",
         "internal",
         { key: any; namespace?: any },
         null
+      >;
+      deleteIfExists: FunctionReference<
+        "mutation",
+        "internal",
+        { key: any; namespace?: any },
+        any
       >;
       init: FunctionReference<
         "mutation",

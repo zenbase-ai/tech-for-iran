@@ -3,7 +3,7 @@ import { components } from "@/convex/_generated/api"
 import type { DataModel } from "@/convex/_generated/dataModel"
 
 // Aggregate for counting pod members
-export const podMemberCount = new TableAggregate<{
+export const aggregateMembers = new TableAggregate<{
   Namespace: string
   Key: number
   DataModel: DataModel
@@ -14,7 +14,7 @@ export const podMemberCount = new TableAggregate<{
 })
 
 // Aggregate for counting posts per pod
-export const podPostCount = new TableAggregate<{
+export const aggregatePosts = new TableAggregate<{
   Namespace: string
   Key: number
   DataModel: DataModel
@@ -25,7 +25,7 @@ export const podPostCount = new TableAggregate<{
 })
 
 // Aggregate for counting engagements per post
-export const postEngagementCount = new TableAggregate<{
+export const aggregateEngagements = new TableAggregate<{
   Namespace: string
   Key: number
   DataModel: DataModel

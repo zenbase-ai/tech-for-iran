@@ -20,7 +20,7 @@ export const deleteUser = internalAction({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await ctx.runMutation(internal.management.deleteUserMemberships, args)
+    await ctx.runMutation(internal.moderation.deleteUserMemberships, args)
     const { account } = await ctx.runMutation(internal.linkedin.deleteAccount, args)
     await ctx.runAction(internal.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
   },

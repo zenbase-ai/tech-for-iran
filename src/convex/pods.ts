@@ -4,7 +4,7 @@ import { customQuery } from "convex-helpers/server/customFunctions"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
-import { podMemberCount, podPostCount } from "@/convex/aggregates"
+import { aggregateMembers, aggregatePosts } from "@/convex/aggregates"
 import { requireAuth } from "@/convex/helpers/auth"
 import { pmap } from "@/convex/helpers/collections"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
@@ -38,7 +38,7 @@ export const get = authQuery({
   handler: async (ctx, args) => {
     const [pod, memberCount] = await Promise.all([
       ctx.db.get(args.podId),
-      podMemberCount.count(ctx, { namespace: args.podId }),
+      aggregateMembers.count(ctx, { namespace: args.podId }),
     ])
     if (!pod) {
       throw new NotFoundError()
@@ -93,8 +93,8 @@ export const stats = authQuery({
   },
   handler: async (ctx, args) => {
     const [memberCount, postCount] = await Promise.all([
-      podMemberCount.count(ctx, { namespace: args.podId }),
-      podPostCount.count(ctx, { namespace: args.podId }),
+      aggregateMembers.count(ctx, { namespace: args.podId }),
+      aggregatePosts.count(ctx, { namespace: args.podId }),
     ])
 
     return { memberCount, postCount }
@@ -165,7 +165,7 @@ export const join = authMutation({
       throw new ConflictError()
     }
 
-    await podMemberCount.insert(ctx, membership)
+    await aggregateMembers.insert(ctx, membership)
 
     return { pod, success: `Welcome to the ${pod.name} pod!` }
   },

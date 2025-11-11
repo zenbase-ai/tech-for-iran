@@ -7,7 +7,7 @@ import { DateTime } from "luxon"
 import type { DeepNonNullable, DeepRequired } from "ts-essentials"
 import { components, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
-import { postEngagementCount } from "@/convex/aggregates"
+import { aggregateEngagements } from "@/convex/aggregates"
 import { pmap } from "@/convex/helpers/collections"
 import { errorMessage } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
@@ -36,7 +36,7 @@ export const workflow = new WorkflowManager(components.workflow, {
  *    - Useful for debugging specific workflow executions
  *    - Returned as workflow result and compared against aggregate
  *
- * 2. Aggregate Count (postEngagementCount from aggregates.ts):
+ * 2. Aggregate Count (engagementCount from aggregates.ts):
  *    - Source of truth for total engagements across ALL attempts
  *    - Automatically maintained by @convex-dev/aggregate
  *    - Only counts successful engagements (inserted into DB)
@@ -60,7 +60,7 @@ export const perform = workflow.define({
   },
   handler: async (step, args): Promise<Perform> => {
     const { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay } = args
-    const performResult: Perform = { successCount: 0, failedCount: 0 }
+    const workflowResult: Perform = { successCount: 0, failedCount: 0 }
 
     // Track users who have already reacted (to prevent duplicates)
     const excludeUserIds = [userId]
@@ -74,24 +74,24 @@ export const perform = workflow.define({
       )
 
       // Send the reaction via Unipile AND log it in the database atomically
-      const result = await step.runAction(
+      const actionResult = await step.runAction(
         internal.workflows.engagement.performOne,
         { podId, urn, reactionType, postId, excludeUserIds },
         // Because we await each action, runAfter is relative to now; use the per-iteration delay only
         { name: `Send ${reactionType} reaction #${i + 1}`, runAfter: delayMs },
       )
 
-      if ("userId" in result) {
-        excludeUserIds.push(result.userId)
-        performResult.successCount++
-      } else if (result.error === "UNAVAILABLE_MEMBER") {
+      if ("userId" in actionResult) {
+        excludeUserIds.push(actionResult.userId)
+        workflowResult.successCount++
+      } else if (actionResult.error === "UNAVAILABLE_MEMBER") {
         break
       } else {
-        performResult.failedCount++
+        workflowResult.failedCount++
       }
     }
 
-    return performResult
+    return workflowResult
   },
 })
 
@@ -292,7 +292,7 @@ export const log = internalMutation({
     // Update aggregate
     const engagement = await ctx.db.get(engagementId)
     if (engagement) {
-      await postEngagementCount.insert(ctx, engagement)
+      await aggregateEngagements.insert(ctx, engagement)
     }
 
     return engagementId
@@ -331,7 +331,7 @@ export const onWorkflowComplete = internalMutation({
     }
 
     // Validate against aggregate (source of truth for total engagements)
-    const aggregateCount = await postEngagementCount.count(ctx, { namespace: postId })
+    const aggregateCount = await aggregateEngagements.count(ctx, { namespace: postId })
 
     // Log any mismatches for debugging (helps catch issues with workflow logic)
     if (status === "completed" && successCount !== aggregateCount) {

@@ -114,7 +114,7 @@ src/
   - Uses `@convex-dev/workflow` for durable execution (survives failures, retries)
   - **DUAL COUNTING SYSTEM** (see comments in `engagement.ts:28-47`):
     1. Manual counts (successCount/failedCount) track workflow execution
-    2. Aggregate count (`postEngagementCount` from `aggregates.ts`) is source of truth
+    2. Aggregate count (`aggregateEngagements` from `aggregates.ts`) is source of truth
   - Workflow spawns tasks with random delays (5-15s jitter) to avoid LinkedIn rate limits
   - Handles retries (max 3 attempts, exponential backoff) and API errors
   - Updates post status: `pending` → `processing` → `completed`/`failed`/`canceled`
@@ -159,7 +159,7 @@ src/
 - `src/convex/schema.ts`: Database schema (source of truth) - defines all tables with indexes
 - `src/convex/auth.config.ts`: Clerk JWT integration config (requires `CLERK_JWT_ISSUER_DOMAIN`)
 - `src/convex/workflows/engagement.ts`: Main engagement workflow with dual counting system
-- `src/convex/aggregates.ts`: Aggregate counters (e.g., `postEngagementCount`)
+- `src/convex/aggregates.ts`: Aggregate counters (e.g., `aggregateEngagements`)
 - `src/convex/helpers/unipile.ts`: Unipile API client with error handling
 - `src/convex/helpers/linkedin.ts`: LinkedIn-specific logic (reaction types, URL parsing)
 - `src/convex/http.ts`: HTTP endpoints (webhooks, health checks)

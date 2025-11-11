@@ -9,7 +9,7 @@ import {
   SubmitPostSchema,
 } from "@/app/(auth)/pods/[podId]/posts/-submit/schema"
 import { internal } from "@/convex/_generated/api"
-import { podMemberCount, podPostCount, postEngagementCount } from "@/convex/aggregates"
+import { aggregateEngagements, aggregateMembers, aggregatePosts } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
 import { BadRequestError, NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
@@ -37,12 +37,11 @@ export const get = authQuery({
       status = post.status
     } else {
       // Fallback to dynamic computation for legacy posts without status field
-      const engagementCount = await postEngagementCount.count(ctx, { namespace: args.postId })
       const postAge = Date.now() - post._creationTime
 
       if (!post.workflowId) {
         status = "pending"
-      } else if (engagementCount > 0) {
+      } else if ((await aggregateEngagements.count(ctx, { namespace: args.postId })) > 0) {
         status = "completed"
       } else if (postAge > 60 * 60 * 1000) {
         status = "failed"
@@ -177,9 +176,9 @@ export const submit = authMutation({
       status: "pending",
     })
 
-    const [post, memberCount] = await Promise.all([
+    const [post, membersCount] = await Promise.all([
       ctx.db.get(postId),
-      podMemberCount.count(ctx, { namespace: podId }),
+      aggregateMembers.count(ctx, { namespace: podId }),
     ])
     if (!post) {
       return { error: "Failed to create post, please try again." }
@@ -194,7 +193,7 @@ export const submit = authMutation({
         userId,
         podId,
         urn,
-        targetCount: derivePostTargetCount(args.targetCount, memberCount),
+        targetCount: derivePostTargetCount(args.targetCount, membersCount),
       },
       {
         context: { postId },
@@ -204,7 +203,7 @@ export const submit = authMutation({
     )
 
     await Promise.all([
-      podPostCount.insert(ctx, post),
+      aggregatePosts.insert(ctx, post),
       ctx.db.patch(postId, { workflowId, status: "processing" }),
     ])
 

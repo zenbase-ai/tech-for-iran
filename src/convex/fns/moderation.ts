@@ -12,8 +12,9 @@ export const deleteUser = internalAction({
     await ctx.runMutation(internal.fns.moderation.deleteUserMemberships, args)
 
     const { account } = await ctx.runMutation(internal.fns.linkedin.deleteAccount, args)
+    const { unipileId } = account
 
-    await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
+    await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId })
   },
 })
 

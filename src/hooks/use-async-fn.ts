@@ -1,35 +1,32 @@
 import { startTransition, useEffect, useEffectEvent, useState } from "react"
 import { toast } from "sonner"
-import { actionToast } from "@/lib/action-toast"
-import { errorMessage } from "@/lib/utils"
-import useMounted from "./use-mounted"
+import useMounted from "@/hooks/use-mounted"
+import { errorMessage, toError } from "@/lib/utils"
 
-export type AsyncFn<TArgs extends unknown[], TReturn> = (...args: TArgs) => Promise<TReturn>
+export type AsyncFn<TArgs extends unknown[], TData extends Record<string, unknown>> = (
+  ...args: TArgs
+) => Promise<TData>
 
-export type UseAsyncFn<TArgs extends unknown[], TReturn> = {
-  execute: (...args: TArgs) => Promise<TReturn | undefined>
-  data: TReturn | null
-  pending: boolean
-  complete: boolean | null
+export type UseAsyncFn<TArgs extends unknown[], TData extends Record<string, unknown>> = {
+  execute: (...args: TArgs) => Promise<TData | undefined>
+  data: TData | null
   error: Error | null
-  reset: () => void
+  pending: boolean
 }
 
-export default function useAsyncFn<TArgs extends unknown[], TReturn>(
-  fn: AsyncFn<TArgs, TReturn>,
-): UseAsyncFn<TArgs, TReturn> {
+export default function useAsyncFn<TArgs extends unknown[], TData extends Record<string, unknown>>(
+  fn: AsyncFn<TArgs, TData>,
+): UseAsyncFn<TArgs, TData> {
   const isMounted = useMounted()
 
-  const [pending, setPending] = useState(false)
-  const [data, setData] = useState<TReturn | null>(null)
-  const [complete, setComplete] = useState<boolean | null>(null)
+  const [data, setData] = useState<TData | null>(null)
   const [error, setError] = useState<Error | null>(null)
+  const [pending, setPending] = useState(false)
 
-  const execute = useEffectEvent(async (...args: TArgs): Promise<TReturn | undefined> => {
+  const execute = useEffectEvent(async (...args: TArgs): Promise<TData | undefined> => {
     if (!isMounted) return undefined
 
     startTransition(() => {
-      setComplete(null)
       setData(null)
       setError(null)
       setPending(true)
@@ -39,7 +36,6 @@ export default function useAsyncFn<TArgs extends unknown[], TReturn>(
       const result = await fn(...args)
       startTransition(() => {
         if (isMounted) {
-          setComplete(true)
           setData(result)
           setError(null)
           setPending(false)
@@ -47,23 +43,14 @@ export default function useAsyncFn<TArgs extends unknown[], TReturn>(
       })
       return result
     } catch (error: unknown) {
-      const errorObj = error instanceof Error ? error : new Error(String(error))
-      if (isMounted) {
-        startTransition(() => {
-          setComplete(false)
+      startTransition(() => {
+        if (isMounted) {
           setData(null)
-          setError(errorObj)
+          setError(toError(error))
           setPending(false)
-        })
-      }
+        }
+      })
     }
-  })
-
-  const reset = useEffectEvent(() => {
-    setComplete(null)
-    setData(null)
-    setError(null)
-    setPending(false)
   })
 
   useEffect(() => {
@@ -73,10 +60,14 @@ export default function useAsyncFn<TArgs extends unknown[], TReturn>(
   }, [error])
 
   useEffect(() => {
-    if (data) {
-      actionToast(data)
+    if (data != null) {
+      for (const key of ["success", "error", "info"] as const) {
+        if (key in data && typeof data[key] === "string") {
+          toast[key](data[key])
+        }
+      }
     }
   }, [data])
 
-  return { execute, pending, complete, error, data, reset }
+  return { execute, pending, error, data }
 }

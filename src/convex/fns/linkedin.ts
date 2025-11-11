@@ -83,7 +83,8 @@ export const disconnectAccount = authAction({
     const { userId } = ctx
     const { account } = await ctx.runMutation(internal.fns.linkedin.deleteAccount, { userId })
     try {
-      await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
+      const { unipileId } = account
+      await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId })
       return { success: "LinkedIn disconnected." }
     } catch (error) {
       return { error: errorMessage(error) }

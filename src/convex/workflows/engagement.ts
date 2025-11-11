@@ -9,7 +9,7 @@ import { components, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
 import { aggregateEngagements } from "@/convex/aggregates"
 import { pmap } from "@/convex/helpers/collections"
-import { errorMessage } from "@/convex/helpers/errors"
+import { ConflictError, errorMessage } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { UnipileAPIError, unipile } from "@/convex/helpers/unipile"
 
@@ -199,12 +199,12 @@ export const availableAccount = internalQuery({
       }
 
       // Already engaged on this post?
-      const alreadyEngaged = await ctx.db
-        .query("engagements")
-        .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", userId))
-        .first()
-
-      if (alreadyEngaged) {
+      if (
+        await ctx.db
+          .query("engagements")
+          .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", userId))
+          .first()
+      ) {
         return null
       }
 
@@ -289,11 +289,12 @@ export const log = internalMutation({
 
     const engagementId = await ctx.db.insert("engagements", args)
 
-    // Update aggregate
     const engagement = await ctx.db.get(engagementId)
-    if (engagement) {
-      await aggregateEngagements.insert(ctx, engagement)
+    if (!engagement) {
+      throw new ConflictError()
     }
+
+    await aggregateEngagements.insert(ctx, engagement)
 
     return engagementId
   },

@@ -1,6 +1,8 @@
 import { customAction, customMutation, customQuery } from "convex-helpers/server/customFunctions"
 import { action, mutation, query } from "@/convex/_generated/server"
 import { requireAuth } from "./auth"
+import { UnauthorizedError } from "./errors"
+import { v } from "convex/values"
 
 export const authQuery = customQuery(query, {
   args: {},
@@ -13,12 +15,54 @@ export const authQuery = customQuery(query, {
   },
 })
 
+export const memberQuery = customQuery(query, {
+  args: {
+    podId: v.id("pods"),
+  },
+  input: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx)
+    const membership = await ctx.db
+      .query("memberships")
+      .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", args.podId))
+      .first()
+    if (!membership) {
+      throw new UnauthorizedError("You are not a member of this pod.")
+    }
+
+    return {
+      ctx: { ...ctx, userId, membership },
+      args,
+    }
+  },
+})
+
 export const authMutation = customMutation(mutation, {
   args: {},
   input: async (ctx, args) => {
     const { userId } = await requireAuth(ctx)
     return {
       ctx: { ...ctx, userId },
+      args,
+    }
+  },
+})
+
+export const memberMutation = customMutation(mutation, {
+  args: {
+    podId: v.id("pods"),
+  },
+  input: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx)
+    const membership = await ctx.db
+      .query("memberships")
+      .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", args.podId))
+      .first()
+    if (!membership) {
+      throw new UnauthorizedError("You are not a member of this pod.")
+    }
+
+    return {
+      ctx: { ...ctx, userId, membership },
       args,
     }
   },

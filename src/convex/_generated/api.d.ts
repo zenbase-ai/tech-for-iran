@@ -17,12 +17,12 @@ import type * as helpers_errors from "../helpers/errors.js";
 import type * as helpers_linkedin from "../helpers/linkedin.js";
 import type * as helpers_unipile from "../helpers/unipile.js";
 import type * as http from "../http.js";
-import type * as limiter from "../ratelimits.js";
 import type * as linkedin from "../linkedin.js";
 import type * as migrations from "../migrations.js";
 import type * as moderation from "../moderation.js";
 import type * as pods from "../pods.js";
 import type * as posts from "../posts.js";
+import type * as ratelimits from "../ratelimits.js";
 import type * as user from "../user.js";
 import type * as workflows_engagement from "../workflows/engagement.js";
 
@@ -42,12 +42,12 @@ declare const fullApi: ApiFromModules<{
   "helpers/linkedin": typeof helpers_linkedin;
   "helpers/unipile": typeof helpers_unipile;
   http: typeof http;
-  limiter: typeof limiter;
   linkedin: typeof linkedin;
   migrations: typeof migrations;
   moderation: typeof moderation;
   pods: typeof pods;
   posts: typeof posts;
+  ratelimits: typeof ratelimits;
   user: typeof user;
   "workflows/engagement": typeof workflows_engagement;
 }>;

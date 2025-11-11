@@ -83,9 +83,6 @@ export const submit = authMutation({
     if (!pod) {
       return { error: "Pod not found, try reloading the page." }
     }
-    if (!membership) {
-      return { error: "You are not a member of this pod." }
-    }
     if (!profile || !account) {
       return { error: "Please connect your LinkedIn." }
     }
@@ -93,12 +90,7 @@ export const submit = authMutation({
       return { error: "Please reconnect your LinkedIn." }
     }
 
-    if (
-      await ctx.db
-        .query("posts")
-        .withIndex("byURL", (q) => q.eq("url", data.url))
-        .first()
-    ) {
+    if (await getOneFrom(ctx.db, "posts", "byURL", data.url, "url")) {
       return { error: "Cannot resubmit a post." }
     }
 
@@ -136,17 +128,11 @@ export const submit = authMutation({
       }
     }
 
+    const targetCount = derivePostTargetCount(args.targetCount, membersCount)
     const workflowId = await workflow.start(
       ctx,
       internal.workflows.engagement.perform,
-      {
-        ...data,
-        postId,
-        userId,
-        podId,
-        urn,
-        targetCount: derivePostTargetCount(args.targetCount, membersCount),
-      },
+      { ...data, postId, userId, podId, urn, targetCount },
       {
         context: { postId },
         onComplete: internal.workflows.engagement.onWorkflowComplete,

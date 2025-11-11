@@ -1,37 +1,13 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
-import { customQuery } from "convex-helpers/server/customFunctions"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { query } from "@/convex/_generated/server"
 import { aggregateMembers, aggregatePosts } from "@/convex/aggregates"
-import { requireAuth } from "@/convex/helpers/auth"
 import { pmap } from "@/convex/helpers/collections"
-import { authMutation, authQuery } from "@/convex/helpers/convex"
-import { ConflictError, NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
+import { authMutation, authQuery, memberQuery } from "@/convex/helpers/convex"
+import { ConflictError, NotFoundError } from "@/convex/helpers/errors"
 
-const memberQuery = customQuery(query, {
-  args: {
-    podId: v.id("pods"),
-  },
-  input: async (ctx, args) => {
-    const { userId } = await requireAuth(ctx)
-    const membership = await ctx.db
-      .query("memberships")
-      .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", args.podId))
-      .first()
-    if (!membership) {
-      throw new UnauthorizedError("You are not a member of this pod.")
-    }
-
-    return {
-      ctx: { ...ctx, userId, membership },
-      args,
-    }
-  },
-})
-
-export const get = authQuery({
+export const get = memberQuery({
   args: {
     podId: v.id("pods"),
   },
@@ -87,7 +63,7 @@ export const members = memberQuery({
   },
 })
 
-export const stats = authQuery({
+export const stats = memberQuery({
   args: {
     podId: v.id("pods"),
   },
@@ -113,11 +89,12 @@ export const join = authMutation({
       return { error: "Invalid invite code." }
     }
 
-    const existing = await ctx.db
-      .query("memberships")
-      .withIndex("byUserAndPod", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
-      .first()
-    if (existing) {
+    if (
+      await ctx.db
+        .query("memberships")
+        .withIndex("byUserAndPod", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
+        .first()
+    ) {
       return { pod, success: `Welcome back to ${pod.name}.` }
     }
 

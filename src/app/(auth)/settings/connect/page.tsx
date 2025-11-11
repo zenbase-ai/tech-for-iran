@@ -26,12 +26,12 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   ])
 
   if (account_id) {
-    await fetchMutation(api.linkedin.connectAccount, { unipileId: account_id }, { token })
+    await fetchMutation(api.fns.linkedin.connectAccount, { unipileId: account_id }, { token })
   } else {
     const [{ account, needsReconnection }, validInviteCode] = await Promise.all([
-      fetchQuery(api.linkedin.getState, {}, { token }),
+      fetchQuery(api.fns.linkedin.getState, {}, { token }),
       inviteCode
-        ? fetchQuery(api.pods.validate, { inviteCode }, { token })
+        ? fetchQuery(api.fns.pods.validate, { inviteCode }, { token })
         : Promise.resolve(undefined),
     ])
 
@@ -44,7 +44,7 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   }
 
   if (inviteCode) {
-    const result = await fetchMutation(api.pods.join, { inviteCode }, { token })
+    const result = await fetchMutation(api.fns.pods.join, { inviteCode }, { token })
     if ("error" in result) {
       const { error } = result
       return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)

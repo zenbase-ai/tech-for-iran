@@ -8,7 +8,7 @@ import { JoinPodForm } from "./-join/form"
 import { PodsList } from "./-list"
 
 export default function PodsClientPage() {
-  const pods = useAuthPaginatedQuery(api.user.pods, {}, { initialNumItems: 12 })
+  const pods = useAuthPaginatedQuery(api.fns.user.pods, {}, { initialNumItems: 12 })
 
   return (
     <Box className="px-2 w-full max-w-[640px] mx-auto">

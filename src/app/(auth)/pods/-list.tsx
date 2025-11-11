@@ -11,7 +11,7 @@ import type { api } from "@/convex/_generated/api"
 import { cn } from "@/lib/utils"
 
 export type PodsListProps = BoxProps & {
-  pods: UsePaginatedQueryReturnType<typeof api.user.pods>
+  pods: UsePaginatedQueryReturnType<typeof api.fns.user.pods>
 }
 
 export const PodsList: React.FC<PodsListProps> = ({ pods, className, ...props }) =>

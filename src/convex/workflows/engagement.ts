@@ -139,7 +139,6 @@ export const performOne = internalAction({
     const { unipileId } = account
 
     // Step 2: Send reaction via Unipile API
-    // Note: internal.linkedin.react throws on transient errors to trigger retry
     const [success, data] = await ctx.runAction(internal.workflows.engagement.react, {
       unipileId,
       urn,

@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils"
 export type NavProps = Omit<ItemProps, "asChild" | "variant">
 
 export const Nav: React.FC<NavProps> = ({ className, ...props }) => {
-  const { profile, needsReconnection } = useAuthQuery(api.linkedin.getState) ?? {}
+  const { profile, needsReconnection } = useAuthQuery(api.fns.linkedin.getState) ?? {}
 
   return (
     <Item

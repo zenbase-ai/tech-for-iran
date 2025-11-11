@@ -15,7 +15,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
   variant = "outline",
   ...props
 }) => {
-  const action = useAsyncFn(useAction(api.linkedin.refreshState))
+  const action = useAsyncFn(useAction(api.fns.linkedin.refreshState))
 
   return (
     <Button

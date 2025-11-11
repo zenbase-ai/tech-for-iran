@@ -10,6 +10,11 @@
 
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
+import type * as fns_linkedin from "../fns/linkedin.js";
+import type * as fns_moderation from "../fns/moderation.js";
+import type * as fns_pods from "../fns/pods.js";
+import type * as fns_posts from "../fns/posts.js";
+import type * as fns_user from "../fns/user.js";
 import type * as helpers_auth from "../helpers/auth.js";
 import type * as helpers_collections from "../helpers/collections.js";
 import type * as helpers_convex from "../helpers/convex.js";
@@ -17,13 +22,8 @@ import type * as helpers_errors from "../helpers/errors.js";
 import type * as helpers_linkedin from "../helpers/linkedin.js";
 import type * as helpers_unipile from "../helpers/unipile.js";
 import type * as http from "../http.js";
-import type * as linkedin from "../linkedin.js";
 import type * as migrations from "../migrations.js";
-import type * as moderation from "../moderation.js";
-import type * as pods from "../pods.js";
-import type * as posts from "../posts.js";
 import type * as ratelimits from "../ratelimits.js";
-import type * as user from "../user.js";
 import type * as workflows_engagement from "../workflows/engagement.js";
 
 import type {
@@ -35,6 +35,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   aggregates: typeof aggregates;
   auth: typeof auth;
+  "fns/linkedin": typeof fns_linkedin;
+  "fns/moderation": typeof fns_moderation;
+  "fns/pods": typeof fns_pods;
+  "fns/posts": typeof fns_posts;
+  "fns/user": typeof fns_user;
   "helpers/auth": typeof helpers_auth;
   "helpers/collections": typeof helpers_collections;
   "helpers/convex": typeof helpers_convex;
@@ -42,13 +47,8 @@ declare const fullApi: ApiFromModules<{
   "helpers/linkedin": typeof helpers_linkedin;
   "helpers/unipile": typeof helpers_unipile;
   http: typeof http;
-  linkedin: typeof linkedin;
   migrations: typeof migrations;
-  moderation: typeof moderation;
-  pods: typeof pods;
-  posts: typeof posts;
   ratelimits: typeof ratelimits;
-  user: typeof user;
   "workflows/engagement": typeof workflows_engagement;
 }>;
 

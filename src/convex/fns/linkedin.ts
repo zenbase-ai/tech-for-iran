@@ -28,14 +28,14 @@ export const getState = authQuery({
 export const refreshState = authAction({
   args: {},
   handler: async (ctx) => {
-    const { account, needsReconnection } = await ctx.runQuery(api.linkedin.getState, {})
+    const { account, needsReconnection } = await ctx.runQuery(api.fns.linkedin.getState, {})
     if (!account) {
       return { error: "Account not found" }
     }
     if (needsReconnection) {
       return { error: "Please reconnect your LinkedIn account." }
     }
-    await ctx.runAction(internal.linkedin.refreshProfile, { unipileId: account.unipileId })
+    await ctx.runAction(internal.fns.linkedin.refreshProfile, { unipileId: account.unipileId })
     return { success: "Your profile has been refreshed." }
   },
 })
@@ -81,9 +81,9 @@ export const disconnectAccount = authAction({
   args: {},
   handler: async (ctx) => {
     const { userId } = ctx
-    const { account } = await ctx.runMutation(internal.linkedin.deleteAccount, { userId })
+    const { account } = await ctx.runMutation(internal.fns.linkedin.deleteAccount, { userId })
     try {
-      await ctx.runAction(internal.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
+      await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId: account.unipileId })
       return { success: "LinkedIn disconnected." }
     } catch (error) {
       return { error: errorMessage(error) }
@@ -197,8 +197,8 @@ export const refreshProfile = internalAction({
   },
   handler: async (ctx, args) => {
     const { unipileId } = args
-    const data = await ctx.runAction(internal.linkedin.getUnipileAccount, { unipileId })
-    await ctx.runMutation(internal.linkedin.upsertProfile, {
+    const data = await ctx.runAction(internal.fns.linkedin.getUnipileAccount, { unipileId })
+    await ctx.runMutation(internal.fns.linkedin.upsertProfile, {
       unipileId,
       firstName: data.first_name,
       lastName: data.last_name,

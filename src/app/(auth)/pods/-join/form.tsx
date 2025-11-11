@@ -26,7 +26,7 @@ export const JoinPodForm: React.FC<JoinPodFormProps> = ({ autoFocus, className }
   })
 
   const router = useRouter()
-  const mutation = useAsyncFn(useMutation(api.pods.join))
+  const mutation = useAsyncFn(useMutation(api.fns.pods.join))
 
   const podId = mutation.data && "pod" in mutation.data ? mutation.data.pod._id : null
   useTimeout(() => podId && router.push(`/pods/${podId}`), podId ? 1000 : null)

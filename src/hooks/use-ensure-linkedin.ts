@@ -6,7 +6,7 @@ import useAuthQuery from "./use-auth-query"
 
 export default function useEnsureLinkedin() {
   const isConnectPage = usePathname() === "/settings/connect"
-  const linkedin = useAuthQuery(api.linkedin.getState)
+  const linkedin = useAuthQuery(api.fns.linkedin.getState)
 
   useEffect(() => {
     if (!isConnectPage && linkedin?.needsReconnection) {

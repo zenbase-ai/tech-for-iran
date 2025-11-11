@@ -13,8 +13,8 @@ import { authMutation, authQuery } from "@/convex/helpers/convex"
 import { BadRequestError, NotFoundError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { workflow } from "@/convex/workflows/engagement"
-import { pmap } from "./helpers/collections"
-import { rateLimitMessage, ratelimits } from "./ratelimits"
+import { pmap } from "../helpers/collections"
+import { rateLimitMessage, ratelimits } from "../ratelimits"
 
 export const latest = authQuery({
   args: {

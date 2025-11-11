@@ -12,7 +12,7 @@ import useAuthQuery from "@/hooks/use-auth-query"
 import { timeAgo } from "@/lib/time-ago"
 
 export const PodPostsToasts: React.FC<{ podId: Id<"pods"> }> = ({ podId }) => {
-  const posts = useAuthQuery(api.posts.latest, { podId, take: 3 })
+  const posts = useAuthQuery(api.fns.posts.latest, { podId, take: 3 })
   return (
     <>
       {posts?.map((p) => (

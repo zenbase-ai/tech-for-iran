@@ -27,9 +27,9 @@ http.route({
 
     const { account_id: unipileId, message: status } = data.AccountStatus
 
-    await ctx.scheduler.runAfter(0, internal.linkedin.upsertAccount, { unipileId, status })
+    await ctx.scheduler.runAfter(0, internal.fns.linkedin.upsertAccount, { unipileId, status })
     if (status === "SYNC_SUCCESS") {
-      await ctx.scheduler.runAfter(0, internal.linkedin.refreshProfile, { unipileId })
+      await ctx.scheduler.runAfter(0, internal.fns.linkedin.refreshProfile, { unipileId })
     }
 
     return new Response(null, { status: 201 })

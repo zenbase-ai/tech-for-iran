@@ -183,9 +183,9 @@ src/
 ## Working with Convex
 
 **Running Convex Functions:**
-- Queries (read-only): `useQuery(api.path.to.query, { args })`
-- Mutations (writes): `useMutation(api.path.to.mutation)` → `mutate({ args })`
-- Actions (external APIs): `useAction(api.path.to.action)` → `action({ args })`
+- Queries (read-only): `useQuery(api.fns.path.to.query, { args })`
+- Mutations (writes): `useMutation(api.fns.path.to.mutation)` → `mutate({ args })`
+- Actions (external APIs): `useAction(api.fns.path.to.action)` → `action({ args })`
 
 **Authentication in Convex:**
 ```typescript

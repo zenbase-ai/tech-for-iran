@@ -33,7 +33,7 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const mutation = useAsyncFn(useMutation(api.posts.submit))
+  const mutation = useAsyncFn(useMutation(api.fns.posts.submit))
   const form = useForm<SubmitPostSchema>({
     resolver: zodResolver(SubmitPostSchema),
     defaultValues: submitPostSchema.defaultValues,
@@ -46,7 +46,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     }
   })
 
-  const stats = useAuthQuery(api.pods.stats, { podId })
+  const stats = useAuthQuery(api.fns.pods.stats, { podId })
   const submitPostTargetCount = calculateSchemaTargetCount(stats?.memberCount)
   useEffect(() => {
     form.setValue("targetCount", submitPostTargetCount.defaultValue)

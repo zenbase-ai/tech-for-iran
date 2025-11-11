@@ -33,7 +33,7 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const validate = useAsyncFn(useAction(api.fns.posts.validateURL))
+  const validate = useAction(api.fns.posts.validateURL)
   const mutate = useAsyncFn(useMutation(api.fns.posts.submit))
   const form = useForm<SubmitPostSchema>({
     resolver: zodResolver(SubmitPostSchema),
@@ -41,7 +41,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   })
 
   const handleSubmit = useEffectEvent(async (data: SubmitPostSchema) => {
-    const validation = await validate.execute({ url: data.url })
+    const validation = await validate({ url: data.url })
     if (validation?.error) {
       form.setError("url", { message: validation.error })
     } else {

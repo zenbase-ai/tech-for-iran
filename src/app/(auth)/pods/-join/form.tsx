@@ -26,14 +26,14 @@ export const JoinPodForm: React.FC<JoinPodFormProps> = ({ autoFocus, className }
   })
 
   const router = useRouter()
-  const mutation = useAsyncFn(useMutation(api.fns.pods.join))
+  const mutate = useAsyncFn(useMutation(api.fns.pods.join))
 
-  const podId = mutation.data && "pod" in mutation.data ? mutation.data.pod._id : null
+  const podId = mutate.data && "pod" in mutate.data ? mutate.data.pod._id : null
   useTimeout(() => podId && router.push(`/pods/${podId}`), podId ? 1000 : null)
 
   return (
     <form
-      onSubmit={form.handleSubmit(mutation.execute)}
+      onSubmit={form.handleSubmit(mutate.execute)}
       className={cn("flex flex-row items-center gap-3", className)}
     >
       <Controller

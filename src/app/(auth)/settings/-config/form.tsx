@@ -21,7 +21,7 @@ export type ConfigFormProps = {
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
-  const mutation = useAsyncFn(useMutation(api.fns.linkedin.updateAccount))
+  const mutate = useAsyncFn(useMutation(api.fns.linkedin.updateAccount))
   const linkedin = useAuthQuery(api.fns.linkedin.getState)
 
   const form = useForm<ConfigSchemaType>({
@@ -43,7 +43,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
 
   return (
     <form
-      onSubmit={form.handleSubmit(mutation.execute)}
+      onSubmit={form.handleSubmit(mutate.execute)}
       className={cn("w-full flex flex-col gap-4", className)}
     >
       <Controller

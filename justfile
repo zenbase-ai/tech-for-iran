@@ -21,9 +21,6 @@ dev:
 build:
   bun --bun next build
 
-analyze:
-  ANALYZE=1 bun --bun next build --webpack
-
 preview: build
   bun --bun next start
 

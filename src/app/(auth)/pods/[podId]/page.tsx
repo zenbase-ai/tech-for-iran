@@ -13,8 +13,8 @@ export type PodPageProps = {
   params: Promise<{ podId: Id<"pods"> }>
 }
 
-export const generateMetadata = async ({ params }: PodPageProps): Promise<Metadata> => {
-  const [{ token }, { podId }] = await Promise.all([tokenAuth(), params])
+export const generateMetadata = async (props: PodPageProps): Promise<Metadata> => {
+  const [{ token }, { podId }] = await Promise.all([tokenAuth(), props.params])
   const pod = await fetchQuery(api.pods.get, { podId }, { token })
 
   return {
@@ -22,8 +22,8 @@ export const generateMetadata = async ({ params }: PodPageProps): Promise<Metada
   }
 }
 
-export default async function PodPage({ params }: PodPageProps) {
-  const { podId } = await params
+export default async function PodPage(props: PodPageProps) {
+  const { podId } = await props.params
 
   return (
     <VStack items="center" className="w-full px-4 max-w-[640px] mx-auto gap-6">

@@ -28,30 +28,30 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   if (account_id) {
     await fetchMutation(api.linkedin.connectAccount, { unipileId: account_id }, { token })
   } else {
-    const [{ account, needsReconnection }, validatedInviteCode] = await Promise.all([
+    const [{ account, needsReconnection }, validInviteCode] = await Promise.all([
       fetchQuery(api.linkedin.getState, {}, { token }),
       inviteCode
         ? fetchQuery(api.pods.validate, { inviteCode }, { token })
         : Promise.resolve(undefined),
     ])
 
-    if (!account && !validatedInviteCode) {
-      return <ConnectGate inviteCode={inviteCode} validatedInviteCode={validatedInviteCode} />
+    if (!account && !validInviteCode) {
+      return <ConnectGate inviteCode={inviteCode} validInviteCode={validInviteCode} />
     } else if (!account || needsReconnection) {
-      const url = await unipileHostedAuthURL(userId, inviteCode)
-      return <ConnectDialog url={url} />
+      const redirectURL = await unipileHostedAuthURL(userId, inviteCode)
+      return <ConnectDialog redirectURL={redirectURL} />
     }
   }
 
   if (inviteCode) {
     const result = await fetchMutation(api.pods.join, { inviteCode }, { token })
     if ("error" in result) {
-      return redirect(`/pods?${queryString(result)}`, RedirectType.push)
+      return redirect(`/pods?${queryString(result)}`, RedirectType.replace)
     }
 
-    const { pod, ...toasts } = result
-    return redirect(`/pods/${pod._id}?${queryString(toasts)}`, RedirectType.push)
+    const { pod, success } = result
+    return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
   }
 
-  return redirect("/pods", RedirectType.push)
+  return redirect("/pods", RedirectType.replace)
 }

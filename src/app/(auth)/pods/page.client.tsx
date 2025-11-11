@@ -1,11 +1,9 @@
 "use client"
 
 import { Box } from "@/components/layout/box"
-import { HStack } from "@/components/layout/stack"
 import { PageDescription, PageTitle } from "@/components/layout/text"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery from "@/hooks/use-auth-paginated-query"
-import { CreatePodForm } from "./-create/form"
 import { JoinPodForm } from "./-join/form"
 import { PodsList } from "./-list"
 
@@ -14,11 +12,7 @@ export default function PodsClientPage() {
 
   return (
     <Box className="px-2 w-full max-w-[640px] mx-auto">
-      <HStack justify="between" items="center" className="gap-2">
-        <PageTitle>Engagement Pods</PageTitle>
-
-        <CreatePodForm />
-      </HStack>
+      <PageTitle>Engagement Pods</PageTitle>
 
       <PageDescription>
         Pods are groups that engage with each other&apos;s LinkedIn posts.

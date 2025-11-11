@@ -1,6 +1,6 @@
 import { paginationOptsValidator } from "convex/server"
-import { getAll } from "convex-helpers/server/relationships"
 import { zip } from "es-toolkit"
+import { pmap } from "@/convex/helpers/collections"
 import { authQuery } from "@/convex/helpers/convex"
 
 export const pods = authQuery({
@@ -11,8 +11,7 @@ export const pods = authQuery({
       .withIndex("byUser", (q) => q.eq("userId", ctx.userId))
       .paginate(args.paginationOpts)
 
-    const podIds = memberships.page.map((m) => m.podId)
-    const pods = await getAll(ctx.db, podIds)
+    const pods = await pmap(memberships.page, async ({ podId }) => await ctx.db.get(podId))
     const page = zip(memberships.page, pods).map(([{ _creationTime }, pod]) => ({
       ...pod,
       joinedAt: _creationTime,

@@ -101,42 +101,7 @@ export const stats = authQuery({
   },
 })
 
-export const posts = memberQuery({
-  args: {
-    podId: v.id("pods"),
-    paginationOpts: paginationOptsValidator,
-  },
-  handler: async (ctx, args) =>
-    await ctx.db
-      .query("posts")
-      .withIndex("byPod", (q) => q.eq("podId", args.podId))
-      .order("desc")
-      .paginate(args.paginationOpts),
-})
-
-export type Join = { error: string } | { pod: Doc<"pods">; success?: string; info?: string }
-
-export const create = authMutation({
-  args: {
-    name: v.string(),
-    inviteCode: v.string(),
-  },
-  handler: async (_ctx, _args): Promise<Join> => {
-    throw new UnauthorizedError()
-    // const { name, inviteCode } = args
-
-    // const existing = await ctx.db
-    //   .query("pods")
-    //   .withIndex("byInviteCode", (q) => q.eq("inviteCode", inviteCode))
-    //   .first()
-    // if (existing) {
-    //   return { error: "That invite code is already in use, please try a different one." }
-    // }
-
-    // await ctx.db.insert("pods", { name, inviteCode, createdBy: ctx.userId })
-    // return await ctx.runMutation(api.pods.join, { inviteCode })
-  },
-})
+export type Join = { pod: Doc<"pods">; success: string } | { error: string }
 
 export const join = authMutation({
   args: {
@@ -153,7 +118,7 @@ export const join = authMutation({
       .withIndex("byUserAndPod", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
       .first()
     if (existing) {
-      return { pod, info: `You are already a member of ${pod.name}.` }
+      return { pod, success: `Welcome back to ${pod.name}.` }
     }
 
     // Add to pod
@@ -167,7 +132,7 @@ export const join = authMutation({
 
     await aggregateMembers.insert(ctx, membership)
 
-    return { pod, success: `Welcome to the ${pod.name} pod!` }
+    return { pod, success: `Welcome to ${pod.name}!` }
   },
 })
 

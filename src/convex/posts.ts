@@ -1,4 +1,3 @@
-import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import { omit, zip } from "es-toolkit"
@@ -9,71 +8,13 @@ import {
   SubmitPostSchema,
 } from "@/app/(auth)/pods/[podId]/posts/-submit/schema"
 import { internal } from "@/convex/_generated/api"
-import { aggregateEngagements, aggregateMembers, aggregatePosts } from "@/convex/aggregates"
+import { aggregateMembers, aggregatePosts } from "@/convex/aggregates"
 import { authMutation, authQuery } from "@/convex/helpers/convex"
-import { BadRequestError, NotFoundError, UnauthorizedError } from "@/convex/helpers/errors"
+import { BadRequestError } from "@/convex/helpers/errors"
 import { needsReconnection } from "@/convex/helpers/linkedin"
 import { humanizeDuration, rateLimiter } from "@/convex/limiter"
 import { workflow } from "@/convex/workflows/engagement"
 import { pmap } from "./helpers/collections"
-
-export const get = authQuery({
-  args: {
-    postId: v.id("posts"),
-  },
-  handler: async (ctx, args) => {
-    const post = await ctx.db.get(args.postId)
-    if (!post) {
-      return null
-    }
-    if (post.userId !== ctx.userId) {
-      throw new UnauthorizedError()
-    }
-
-    // Use stored status if available, otherwise compute dynamically for backwards compatibility
-    let status: string
-    if (post.status) {
-      // Use the stored status from workflow completion
-      status = post.status
-    } else {
-      // Fallback to dynamic computation for legacy posts without status field
-      const postAge = Date.now() - post._creationTime
-
-      if (!post.workflowId) {
-        status = "pending"
-      } else if ((await aggregateEngagements.count(ctx, { namespace: args.postId })) > 0) {
-        status = "completed"
-      } else if (postAge > 60 * 60 * 1000) {
-        status = "failed"
-      } else {
-        status = "processing"
-      }
-    }
-
-    return { ...post, status }
-  },
-})
-
-export const engagements = authQuery({
-  args: {
-    postId: v.id("posts"),
-    paginationOpts: paginationOptsValidator,
-  },
-  handler: async (ctx, args) => {
-    const post = await ctx.db.get(args.postId)
-    if (!post) {
-      throw new NotFoundError()
-    }
-    if (post.userId !== ctx.userId) {
-      throw new UnauthorizedError()
-    }
-
-    return await ctx.db
-      .query("engagements")
-      .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId))
-      .paginate(args.paginationOpts)
-  },
-})
 
 export const latest = authQuery({
   args: {

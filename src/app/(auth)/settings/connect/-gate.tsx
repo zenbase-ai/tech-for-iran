@@ -29,15 +29,15 @@ type ConnectGateSchema = z.infer<typeof ConnectGateSchema>
 
 type ConnectGateProps = {
   inviteCode?: string
-  validatedInviteCode?: boolean
+  validInviteCode?: boolean
 }
 
-export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode, validatedInviteCode }) => {
+export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode, validInviteCode }) => {
   const form = useForm({
     resolver: zodResolver(ConnectGateSchema),
     defaultValues: { inviteCode: inviteCode ?? "" },
     errors:
-      validatedInviteCode === false
+      validInviteCode === false
         ? { inviteCode: { message: "Invalid invite code.", type: "value" } }
         : undefined,
   })

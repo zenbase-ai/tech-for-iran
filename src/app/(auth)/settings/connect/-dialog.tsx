@@ -16,16 +16,16 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export type ConnectDialogProps = {
-  url: string
+  redirectURL: string
 }
 
-export const ConnectDialog: React.FC<ConnectDialogProps> = ({ url }) => {
+export const ConnectDialog: React.FC<ConnectDialogProps> = ({ redirectURL }) => {
   const [countdown, { startCountdown, stopCountdown, resetCountdown }] = useCountdown({
     countStart: 5,
   })
 
   const connect = useEffectEvent(async () => {
-    window.location.href = url
+    window.location.href = redirectURL
   })
 
   useEffect(() => {

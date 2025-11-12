@@ -15,7 +15,11 @@
       "WebFetch(domain:github.com)",
       "WebSearch",
       "WebFetch(domain:stack.convex.dev)",
-      "WebFetch(domain:www.convex.dev)"
+      "WebFetch(domain:www.convex.dev)",
+      "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/src/convex/helpers/unipile.ts)",
+      "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/src/convex/helpers/linkedin.ts)",
+      "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/src/proxy.ts)",
+      "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/middleware.ts)"
     ],
     "deny": [],
     "ask": []

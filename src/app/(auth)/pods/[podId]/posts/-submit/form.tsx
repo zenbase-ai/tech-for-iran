@@ -44,7 +44,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     const validation = await validate({ url: data.url })
     if (validation?.error) {
       form.setError("url", { message: validation.error })
-    } else if ((await mutate.execute({ podId, ...data }))?.success) {
+    } else if ((await mutate.execute({ podId, ...data }))?.postId) {
       form.reset()
     }
   })

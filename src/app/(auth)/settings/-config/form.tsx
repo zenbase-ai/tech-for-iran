@@ -21,8 +21,8 @@ export type ConfigFormProps = {
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
-  const mutate = useAsyncFn(useMutation(api.fns.linkedin.updateAccount))
   const linkedin = useAuthQuery(api.fns.linkedin.getState)
+  const mutate = useAsyncFn(useMutation(api.fns.linkedin.updateAccount))
 
   const form = useForm<ConfigSchemaType>({
     resolver: zodResolver(ConfigSchema),

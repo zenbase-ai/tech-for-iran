@@ -6,13 +6,19 @@ import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia } from "@/components/ui/item"
+import { StaticRelativeTime } from "@/components/ui/relative-time"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { timeAgo } from "@/lib/time-ago"
 
-export const PodPostsToasts: React.FC<{ podId: Id<"pods"> }> = ({ podId }) => {
-  const posts = useAuthQuery(api.fns.posts.latest, { podId, take: 3 })
+export type PodPostsToastsProps = {
+  podId: Id<"pods">
+  take?: number
+}
+
+export const PodPostsToasts: React.FC<PodPostsToastsProps> = ({ podId, take = 5 }) => {
+  const posts = useAuthQuery(api.fns.posts.latest, { podId, take })?.toReversed()
+
   return (
     <>
       {posts?.map((p) => (
@@ -45,7 +51,7 @@ export const PostToast: React.FC<PostToastProps> = ({ profile, url, _creationTim
         <ItemContent className="gap-0">
           <ItemDescription className="font-medium">
             <span className="text-foreground">{profile.firstName}</span>&nbsp;posted&nbsp;
-            {timeAgo.format(new Date(_creationTime))}
+            <StaticRelativeTime date={_creationTime} />
           </ItemDescription>
         </ItemContent>
         <ItemActions>

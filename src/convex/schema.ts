@@ -12,8 +12,8 @@ const schema = defineSchema({
     maxActions: v.number(),
     updatedAt: v.number(), // Timestamp
   })
-    .index("byUserAndAccount", ["userId", "unipileId"])
-    .index("byAccount", ["unipileId"]),
+    .index("by_userId", ["userId", "unipileId"])
+    .index("by_unipileId", ["unipileId"]),
 
   linkedinProfiles: defineTable({
     userId: v.optional(v.string()),
@@ -24,27 +24,23 @@ const schema = defineSchema({
     url: v.string(),
     updatedAt: v.number(),
   })
-    .index("byUserAndAccount", ["userId", "unipileId"])
-    .index("byAccount", ["unipileId"]),
+    .index("by_userId", ["userId", "unipileId"])
+    .index("by_unipileId", ["unipileId"]),
 
   // Pods (groups of users who engage with each other's posts)
   pods: defineTable({
     name: v.string(), // Pod name (e.g., "YC Alumni")
     inviteCode: v.string(), // Unique invite code for joining
     createdBy: v.string(), // Reference to profile who created the pod
-  })
-    .index("byName", ["name"])
-    .index("byInviteCode", ["inviteCode"]) // Efficient lookup by invite code
-    .index("byCreator", ["createdBy"]), // Lookup by creator
+  }).index("by_inviteCode", ["inviteCode"]), // Efficient lookup by invite code
 
   // Pod members (join table for many-to-many relationship)
   memberships: defineTable({
     userId: v.string(), // Reference to profile
     podId: v.id("pods"), // Reference to pod
   })
-    .index("byUser", ["userId"])
-    .index("byPod", ["podId"])
-    .index("byUserAndPod", ["userId", "podId"]),
+    .index("by_podId", ["podId", "userId"])
+    .index("by_userId", ["userId", "podId"]),
 
   // Posts submitted for engagement
   posts: defineTable({
@@ -67,19 +63,18 @@ const schema = defineSchema({
     failedCount: v.optional(v.number()),
     completedAt: v.optional(v.number()),
   })
-    .index("byUser", ["userId"])
-    .index("byPod", ["podId"])
-    .index("byURL", ["url"])
-    .index("byURN", ["urn"]),
+    .index("by_userId", ["userId"])
+    .index("by_podId", ["podId"])
+    .index("by_urn", ["urn"]),
 
   // Engagement log (tracks reactions on posts)
   engagements: defineTable({
     postId: v.id("posts"),
     userId: v.string(), // User who reacted
-    reactionType: v.string(), // Type: LIKE, CELEBRATE, SUPPORT, LOVE, INSIGHTFUL, FUNNY
+    reactionType: v.string(), // Type: like, celebrate, support, love, insightful, funny
   })
-    .index("byUser", ["userId"]) // For daily limit checks
-    .index("byPostAndUser", ["postId", "userId"]), // Uniqueness constraint
+    .index("by_userId", ["userId"]) // For daily limit checks
+    .index("by_postId", ["postId", "userId"]), // Uniqueness constraint
 })
 
 export default schema

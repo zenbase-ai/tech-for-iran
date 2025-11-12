@@ -10,5 +10,5 @@ export const ratelimits = new RateLimiter(components.rateLimiter, {
   },
 })
 
-export const rateLimitMessage = (retryAfter: number) =>
+export const rateLimitError = ({ retryAfter }: { retryAfter: number }) =>
   `Too many requests, please try again in ${humanizeDuration(retryAfter)}.`

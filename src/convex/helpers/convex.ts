@@ -1,8 +1,17 @@
+import { getAuthUserId } from "@convex-dev/auth/server"
+import type { Auth } from "convex/server"
 import { v } from "convex/values"
 import { customAction, customMutation, customQuery } from "convex-helpers/server/customFunctions"
 import { action, mutation, query } from "@/convex/_generated/server"
-import { requireAuth } from "./auth"
 import { UnauthorizedError } from "./errors"
+
+export const requireAuth = async (ctx: { auth: Auth }) => {
+  const userId = await getAuthUserId(ctx)
+  if (!userId) {
+    throw new UnauthorizedError()
+  }
+  return { userId }
+}
 
 export const authQuery = customQuery(query, {
   args: {},
@@ -23,7 +32,7 @@ export const memberQuery = customQuery(query, {
     const { userId } = await requireAuth(ctx)
     const membership = await ctx.db
       .query("memberships")
-      .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", args.podId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId).eq("podId", args.podId))
       .first()
     if (!membership) {
       throw new UnauthorizedError("You are not a member of this pod.")
@@ -55,7 +64,7 @@ export const memberMutation = customMutation(mutation, {
     const { userId } = await requireAuth(ctx)
     const membership = await ctx.db
       .query("memberships")
-      .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", args.podId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId).eq("podId", args.podId))
       .first()
     if (!membership) {
       throw new UnauthorizedError("You are not a member of this pod.")

@@ -1,8 +1,8 @@
 "use server"
 
 import { DateTime } from "luxon"
-import { unipile } from "@/convex/helpers/unipile"
 import { env } from "@/lib/env.mjs"
+import { unipile } from "@/lib/server/unipile"
 import { path } from "@/lib/utils"
 
 export const unipileHostedAuthURL = async (userId: string, inviteCode?: string) => {

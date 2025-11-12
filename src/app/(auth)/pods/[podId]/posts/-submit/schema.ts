@@ -1,7 +1,7 @@
 import { regex } from "arkregex"
 import { clamp } from "es-toolkit/math"
 import * as z from "zod"
-import { LINKEDIN_REACTION_TYPES, type LinkedInReactionType } from "@/convex/helpers/linkedin"
+import { LinkedInReaction } from "@/lib/linkedin"
 
 export const submitPostSchema = {
   min: {
@@ -19,10 +19,10 @@ export const submitPostSchema = {
     targetCount: 25,
     minDelay: 10,
     maxDelay: 30,
-    reactionTypes: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReactionType[],
+    reactionTypes: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReaction[],
   },
   options: {
-    reactionTypes: LINKEDIN_REACTION_TYPES,
+    reactionTypes: LinkedInReaction.options,
   },
 }
 
@@ -55,13 +55,7 @@ export const SubmitPostSchema = z.object({
       (url) => !!parsePostURN(url),
       `URL must include ${urlRegex.source} or ${urnRegex.source}`,
     ),
-  reactionTypes: z
-    .array(z.string())
-    .min(1, "Select at least one reaction type")
-    .refine(
-      (types) => types.every((t) => LINKEDIN_REACTION_TYPES.includes(t as LinkedInReactionType)),
-      "Invalid reaction types",
-    ),
+  reactionTypes: z.array(LinkedInReaction).min(1, "Select at least one reaction type"),
   targetCount: z
     .number()
     .int()

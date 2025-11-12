@@ -5,9 +5,9 @@
     "": {
       "name": "engagement-pod",
       "dependencies": {
-        "@clerk/clerk-react": "^5.53.8",
-        "@clerk/nextjs": "^6.34.5",
-        "@clerk/themes": "^2.4.33",
+        "@clerk/clerk-react": "^5.54.0",
+        "@clerk/nextjs": "^6.35.0",
+        "@clerk/themes": "^2.4.35",
         "@convex-dev/aggregate": "^0.1.25",
         "@convex-dev/auth": "^0.0.90",
         "@convex-dev/migrations": "^0.2.9",
@@ -30,12 +30,11 @@
         "arkregex": "^0.0.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "convex": "^1.28.2",
+        "convex": "^1.29.0",
         "convex-helpers": "^0.1.104",
         "es-toolkit": "^1.41.0",
         "hamburger-react": "^2.5.2",
         "humanize-duration": "^3.33.1",
-        "javascript-time-ago": "^2.5.12",
         "ky": "^1.14.0",
         "lucide-react": "^0.552.0",
         "luxon": "^3.7.2",
@@ -50,10 +49,12 @@
         "react-dom": "19.2.0",
         "react-hook-form": "^7.66.0",
         "react-icons": "^5.5.0",
+        "react-timeago": "^8.3.0",
         "rough-notation": "^0.5.1",
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.4.0",
         "ts-essentials": "^10.1.1",
+        "ts-pattern": "^5.9.0",
         "usehooks-ts": "^3.1.1",
         "zod": "^4.1.12",
       },
@@ -613,6 +614,8 @@
 
     "react-style-singleton": ["react-style-singleton@2.2.3", "", { "dependencies": { "get-nonce": "^1.0.0", "tslib": "^2.0.0" }, "peerDependencies": { "@types/react": "*", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc" }, "optionalPeers": ["@types/react"] }, "sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ=="],
 
+    "react-timeago": ["react-timeago@8.3.0", "", { "peerDependencies": { "react": "^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-BeR0hj/5qqTc2+zxzBSQZMky6MmqwOtKseU3CSmcjKR5uXerej2QY34v2d+cdz11PoeVfAdWLX+qjM/UdZkUUg=="],
+
     "relative-time-format": ["relative-time-format@1.1.11", "", {}, "sha512-TH+oV/w77hjaB9xCzoFYJ/Icmr/12+02IAoCI/YGS2UBTbjCbBjHGEBxGnVy4EJvOR1qadGzyFRI6hGaJJG93Q=="],
 
     "rough-notation": ["rough-notation@0.5.1", "", {}, "sha512-ITHofTzm13cWFVfoGsh/4c/k2Mg8geKgBCwex71UZLnNuw403tCRjYPQ68jSAd37DMbZIePXPjDgY0XdZi9HPw=="],
@@ -652,6 +655,8 @@
     "totalist": ["totalist@3.0.1", "", {}, "sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ=="],
 
     "ts-essentials": ["ts-essentials@10.1.1", "", { "peerDependencies": { "typescript": ">=4.5.0" }, "optionalPeers": ["typescript"] }, "sha512-4aTB7KLHKmUvkjNj8V+EdnmuVTiECzn3K+zIbRthumvHu+j44x3w63xpfs0JL3NGIzGXqoQ7AV591xHO+XrOTw=="],
+
+    "ts-pattern": ["ts-pattern@5.9.0", "", {}, "sha512-6s5V71mX8qBUmlgbrfL33xDUwO0fq48rxAu2LBE11WBeGdpCPOsXksQbZJHvHwhrd3QjUusd3mAOM5Gg0mFBLg=="],
 
     "tslib": ["tslib@2.8.1", "", {}, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 

@@ -32,10 +32,10 @@ type ConnectGateProps = {
   validInviteCode?: boolean
 }
 
-export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode, validInviteCode }) => {
+export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode = "", validInviteCode }) => {
   const form = useForm({
     resolver: zodResolver(ConnectGateSchema),
-    defaultValues: { inviteCode: inviteCode ?? "" },
+    defaultValues: { inviteCode },
     errors:
       validInviteCode === false
         ? { inviteCode: { message: "Invalid invite code.", type: "value" } }

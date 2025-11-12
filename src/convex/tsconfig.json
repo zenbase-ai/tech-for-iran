@@ -19,6 +19,12 @@
       "@/*": ["../*"]
     }
   },
-  "include": ["./**/*.ts", "./**/*.tsx"],
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "../lib/linkedin.ts",
+    "../lib/server/unipile.ts",
+    "../lib/parallel.ts"
+  ],
   "exclude": ["./_generated"]
 }

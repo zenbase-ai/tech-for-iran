@@ -7,44 +7,44 @@ import {
   SubmitPostSchema,
 } from "@/app/(auth)/pods/[podId]/posts/-submit/schema"
 import { api, internal } from "@/convex/_generated/api"
-import { aggregateMembers, aggregatePosts } from "@/convex/aggregates"
+import type { Id } from "@/convex/_generated/dataModel"
+import { aggregatePodMembers, aggregatePodPosts } from "@/convex/aggregates"
 import { authAction, authMutation, authQuery } from "@/convex/helpers/convex"
 import { BadRequestError, errorMessage, NotFoundError } from "@/convex/helpers/errors"
-import { needsReconnection } from "@/convex/helpers/linkedin"
-import { unipile } from "@/convex/helpers/unipile"
-import { rateLimitMessage, ratelimits } from "@/convex/ratelimits"
+import { rateLimitError, ratelimits } from "@/convex/ratelimits"
 import { workflow } from "@/convex/workflows/engagement"
-import { pmap } from "../helpers/collections"
+import { needsReconnection } from "@/lib/linkedin"
+import { pmap } from "@/lib/parallel"
+import { unipile } from "@/lib/server/unipile"
 
 export const latest = authQuery({
   args: {
     podId: v.id("pods"),
     take: v.number(),
   },
-  handler: async (ctx, args) => {
-    if (args.take <= 0 || 6 <= args.take) {
-      throw new BadRequestError("Invalid take value, must be between 1 and 6.")
+  handler: async (ctx, { podId, take }) => {
+    if (take <= 0 || 10 < take) {
+      throw new BadRequestError("Invalid take value, must be between 1 and 10.")
     }
 
     const posts = await ctx.db
       .query("posts")
-      .withIndex("byPod", (q) => q.eq("podId", args.podId))
+      .withIndex("by_podId", (q) => q.eq("podId", podId))
       .order("desc")
       .filter((q) => q.eq(q.field("status"), "completed"))
-      .take(args.take)
+      .take(take)
 
     const profiles = await pmap(posts, async ({ userId }) =>
-      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", userId, "userId"),
+      getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId),
     )
 
-    return zip(posts, profiles)
-      .map(([post, profile]) =>
-        profile ? { ...post, profile: omit(profile, ["unipileId"]) } : null,
-      )
-      .filter((p) => p != null)
-      .reverse()
+    return zip(posts, profiles).flatMap(([{ url, _creationTime }, profile]) =>
+      profile ? [{ url, _creationTime, profile: omit(profile, ["unipileId"]) }] : [],
+    )
   },
 })
+
+type Submit = { postId: Id<"posts">; success: string } | { postId: null; error: string }
 
 export const submit = authMutation({
   args: {
@@ -55,53 +55,50 @@ export const submit = authMutation({
     minDelay: v.number(),
     maxDelay: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { podId, ...args }): Promise<Submit> => {
     const { userId } = ctx
-    const { podId } = args
 
     const { data, success, error } = SubmitPostSchema.safeParse(args)
     if (!success) {
-      return { success: null, error: errorMessage(error) }
+      return { postId: null, error: errorMessage(error) }
     }
 
     const urn = parsePostURN(data.url)
     if (!urn) {
-      return { success: null, error: "Failed to parse URL, please try again." }
+      return { postId: null, error: "Failed to parse URL." }
     }
 
-    const [pod, membership, account, profile] = await Promise.all([
+    const [pod, account, profile, membership] = await Promise.all([
       ctx.db.get(podId),
+      getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId),
+      getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId),
       ctx.db
         .query("memberships")
-        .withIndex("byUserAndPod", (q) => q.eq("userId", userId).eq("podId", podId))
+        .withIndex("by_userId", (q) => q.eq("userId", userId).eq("podId", podId))
         .first(),
-      getOneFrom(ctx.db, "linkedinAccounts", "byUserAndAccount", userId, "userId"),
-      getOneFrom(ctx.db, "linkedinProfiles", "byUserAndAccount", userId, "userId"),
     ])
 
     if (!pod) {
       throw new NotFoundError()
     }
     if (!membership) {
-      return { success: null, error: "You are not a member of this pod." }
+      return { postId: null, error: "You are not a member of this pod." }
     }
     if (!profile) {
-      return { success: null, error: "Please connect your LinkedIn." }
+      return { postId: null, error: "Please connect your LinkedIn." }
     }
     if (needsReconnection(account?.status)) {
-      return { success: null, error: "Please reconnect your LinkedIn." }
+      return { postId: null, error: "Please reconnect your LinkedIn." }
     }
-    if (await getOneFrom(ctx.db, "posts", "byURN", urn, "urn")) {
-      return { success: null, error: "Cannot resubmit a post." }
+    if (await getOneFrom(ctx.db, "posts", "by_urn", urn)) {
+      return { postId: null, error: "Cannot resubmit a post." }
     }
 
-    {
-      const { ok, retryAfter } = await ratelimits.check(ctx, "submitPost", {
-        key: `[podId:${podId}]-[userId:${userId}]`,
-      })
-      if (!ok) {
-        return { success: null, error: rateLimitMessage(retryAfter) }
-      }
+    const ratelimit = await ratelimits.limit(ctx, "submitPost", {
+      key: `[podId:${podId}]-[userId:${userId}]`,
+    })
+    if (!ratelimit.ok) {
+      return { postId: null, error: rateLimitError(ratelimit) }
     }
 
     const { url } = data
@@ -109,24 +106,15 @@ export const submit = authMutation({
 
     const [post, membersCount] = await Promise.all([
       ctx.db.get(postId),
-      aggregateMembers.count(ctx, { namespace: podId }),
+      aggregatePodMembers.count(ctx, { namespace: podId }),
     ])
     if (!post) {
-      return { success: null, error: "Failed to create post, please try again." }
-    }
-
-    {
-      const { ok, retryAfter } = await ratelimits.limit(ctx, "submitPost", {
-        key: `[podId:${podId}]-[userId:${userId}]`,
-      })
-      if (!ok) {
-        return { success: null, error: rateLimitMessage(retryAfter) }
-      }
+      return { postId: null, error: "Failed to create post, please try again." }
     }
 
     const targetCount = derivePostTargetCount(args.targetCount, membersCount)
     const context = { postId }
-    const onComplete = internal.workflows.engagement.onWorkflowComplete
+    const onComplete = internal.workflows.engagement.onComplete
     const workflowId = await workflow.start(
       ctx,
       internal.workflows.engagement.perform,
@@ -136,10 +124,10 @@ export const submit = authMutation({
 
     await Promise.all([
       ctx.db.patch(postId, { workflowId, status: "pending" }),
-      aggregatePosts.insert(ctx, post),
+      aggregatePodPosts.insert(ctx, post),
     ])
 
-    return { success: "Watch out for the results!", error: null }
+    return { postId, success: "Stay tuned for the engagements!" }
   },
 })
 
@@ -165,8 +153,8 @@ export const validateURL = authAction({
   args: {
     url: v.string(),
   },
-  handler: async (ctx, args): Promise<ValidateURL> => {
-    const urn = parsePostURN(args.url)
+  handler: async (ctx, { url }): Promise<ValidateURL> => {
+    const urn = parsePostURN(url)
     if (!urn) {
       return { success: false, error: "Failed to parse URL, please try again." }
     }

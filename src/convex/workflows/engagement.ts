@@ -1,17 +1,17 @@
 import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
-import { getOneFrom } from "convex-helpers/server/relationships"
+import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import { randomInt, sample } from "es-toolkit"
 import { DateTime } from "luxon"
-import type { DeepNonNullable, DeepRequired } from "ts-essentials"
+import * as z from "zod"
 import { components, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
-import { aggregateEngagements } from "@/convex/aggregates"
-import { pmap } from "@/convex/helpers/collections"
+import { aggregatePostEngagements } from "@/convex/aggregates"
 import { errorMessage, NotFoundError } from "@/convex/helpers/errors"
-import { needsReconnection } from "@/convex/helpers/linkedin"
-import { UnipileAPIError, unipile } from "@/convex/helpers/unipile"
+import { LinkedInReaction, needsReconnection } from "@/lib/linkedin"
+import { UnipileAPIError, unipile } from "@/lib/server/unipile"
+import { pflatMap } from "../../lib/parallel"
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
@@ -45,8 +45,6 @@ export const workflow = new WorkflowManager(components.workflow, {
  * In handleWorkflowCompletion, we validate the manual count against the aggregate
  * and always store the aggregate count as authoritative in the post document.
  */
-export type Perform = { successCount: number; failedCount: number }
-
 export const perform = workflow.define({
   args: {
     userId: v.string(),
@@ -58,175 +56,168 @@ export const perform = workflow.define({
     minDelay: v.number(),
     maxDelay: v.number(),
   },
-  handler: async (step, args): Promise<Perform> => {
-    const { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay } = args
-    const workflowResult: Perform = { successCount: 0, failedCount: 0 }
+  handler: async (
+    step,
+    { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay },
+  ): Promise<number> => {
+    const skipUserIds = [userId]
 
-    await step.runMutation(internal.workflows.engagement.setPostStatus, {
+    await step.runMutation(internal.workflows.engagement.patchPostStatus, {
       postId,
       status: "processing",
     })
 
-    // Track users who have already reacted (to prevent duplicates)
-    const excludeUserIds = [userId]
+    let failedCount = 0
 
-    // Send reactions with delays (schedule each step after a per-iteration jitter)
     for (let i = 0; i < targetCount; i++) {
-      // Random delay between minDelay and maxDelay (randomInt uses exclusive upper bound)
-      const [delayMs, reactionType] = await step.runAction(
-        internal.workflows.engagement.getPerformOneParams,
+      const [runAfter, reactionType] = await step.runAction(
+        internal.workflows.engagement.performOneRandomParams,
         { i, minDelay, maxDelay, reactionTypes },
       )
 
-      // Send the reaction via Unipile AND log it in the database atomically
-      const actionResult = await step.runAction(
+      const success = await step.runAction(
         internal.workflows.engagement.performOne,
-        { podId, urn, reactionType, postId, excludeUserIds },
-        // Because we await each action, runAfter is relative to now; use the per-iteration delay only
-        { name: `Send ${reactionType} reaction #${i + 1}`, runAfter: delayMs },
+        { podId, postId, urn, reactionType, skipUserIds },
+        { runAfter }, // runAfter is relative to now; not workflow start
       )
 
-      if ("userId" in actionResult) {
-        excludeUserIds.push(actionResult.userId)
-        workflowResult.successCount++
-      } else if (actionResult.error === "UNAVAILABLE_MEMBER") {
-        break
-      } else {
-        workflowResult.failedCount++
+      if (!success) {
+        failedCount++
+        console.error("[workflows/engagement:performOne]", {
+          reactionType,
+          podId,
+          postId,
+        })
+
+        if (success === null) {
+          break
+        }
       }
     }
 
-    return workflowResult
+    return failedCount
   },
 })
 
-export const getPerformOneParams = internalAction({
+export const performOneRandomParams = internalAction({
   args: {
+    i: v.number(), // cache buster
     minDelay: v.number(),
     maxDelay: v.number(),
     reactionTypes: v.array(v.string()),
-    i: v.number(),
   },
-  handler: async (_ctx, args) => {
-    const delayMs = randomInt(args.minDelay, args.maxDelay + 1) * 1000
-    const reactionType = sample(args.reactionTypes) ?? "like"
-    return [delayMs, reactionType] as const
+  handler: async (_ctx, args): Promise<[number, LinkedInReaction]> => {
+    const delay = randomInt(args.minDelay, args.maxDelay + 1) * 1000
+    const jitter = randomInt(0, 2500 + 1)
+    const reactionType = LinkedInReaction.parse(sample(args.reactionTypes) ?? "like")
+
+    return [delay + jitter, reactionType]
   },
 })
 
-// Internal action to send a single reaction via Unipile AND log it in the database atomically
-export type PerformOne = { userId: string } | { error: unknown; message?: string }
+type PerformOne =
+  | boolean // was the action successful?
+  | null // unable to find an available account
 
 export const performOne = internalAction({
   args: {
     podId: v.id("pods"),
+    postId: v.id("posts"),
     urn: v.string(),
     reactionType: v.string(),
-    postId: v.id("posts"),
-    excludeUserIds: v.array(v.string()),
+    skipUserIds: v.array(v.string()),
   },
-  handler: async (ctx, args): Promise<PerformOne> => {
-    const { podId, urn, reactionType, postId, excludeUserIds } = args
-    // Step 1: Select an available pod member
-    const account = await ctx.runQuery(internal.workflows.engagement.availableAccount, {
+  handler: async (ctx, { podId, urn, reactionType, postId, skipUserIds }): Promise<PerformOne> => {
+    const account = await ctx.runQuery(internal.workflows.engagement.selectAvailableAccount, {
       podId,
       postId,
-      excludeUserIds,
+      skipUserIds,
     })
     if (!account) {
-      return { error: "UNAVAILABLE_MEMBER" }
+      return null
     }
-    const { unipileId } = account
 
-    // Step 2: Send reaction via Unipile API
-    const [success, data] = await ctx.runAction(internal.workflows.engagement.react, {
+    const { userId, unipileId } = account
+    const error = await ctx.runAction(internal.workflows.engagement.postUnipileReaction, {
       unipileId,
       urn,
       reactionType,
     })
-    if (!success) {
-      return { error: data, message: "Failed to send reaction to LinkedIn" }
+    if (error) {
+      return false
     }
 
-    // Step 3: Log engagement in database
-    try {
-      await ctx.runMutation(internal.workflows.engagement.log, {
-        userId: account.userId,
-        postId: args.postId,
-        reactionType: args.reactionType,
-      })
+    await ctx.runMutation(internal.workflows.engagement.insertEngagement, {
+      userId,
+      postId,
+      reactionType,
+    })
 
-      return { userId: account.userId }
-    } catch (dbError) {
-      // API succeeded but DB logging failed - orphaned reaction
-      return {
-        error: errorMessage(dbError),
-        message: "Failed to log reaction to database",
-      }
-    }
+    return true
   },
 })
 
-export const availableAccount = internalQuery({
+const SelectAvailableAccount = z.object({
+  unipileId: z.string(),
+  userId: z.string(),
+})
+
+type SelectAvailableAccount = z.infer<typeof SelectAvailableAccount>
+
+export const selectAvailableAccount = internalQuery({
   args: {
     podId: v.id("pods"),
     postId: v.id("posts"),
-    excludeUserIds: v.array(v.string()),
+    skipUserIds: v.array(v.string()),
   },
-  handler: async (ctx, args) => {
-    const excludeUserIds = new Set(args.excludeUserIds)
-
-    const members = await ctx.db
-      .query("memberships")
-      .withIndex("byPod", (q) => q.eq("podId", args.podId))
-      .collect()
-
-    // Check each candidate for availability in parallel
+  handler: async (ctx, { podId, postId, skipUserIds }): Promise<SelectAvailableAccount | null> => {
     const startOfDay = DateTime.utc().startOf("day").toMillis()
 
-    const availableAccounts = await pmap(members, async ({ userId }) => {
-      if (excludeUserIds.has(userId)) {
-        return null
+    const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
+
+    const availableAccounts = await pflatMap(members, async ({ userId }) => {
+      if (skipUserIds.includes(userId)) {
+        return []
       }
 
       // Check LinkedIn account health status
-      const account = await getOneFrom(
-        ctx.db,
-        "linkedinAccounts",
-        "byUserAndAccount",
-        userId,
-        "userId",
-      )
+      const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
 
-      if (!account?.userId || needsReconnection(account.status)) {
-        return null
+      const canAccountEngage = !!account?.userId && !needsReconnection(account?.status)
+      if (!canAccountEngage) {
+        return []
       }
 
-      // Already engaged on this post?
-      if (
-        await ctx.db
-          .query("engagements")
-          .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", userId))
-          .first()
-      ) {
-        return null
+      const didAccountAlreadyEngage = await ctx.db
+        .query("engagements")
+        .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
+        .first()
+
+      if (didAccountAlreadyEngage) {
+        return []
       }
 
       // Count today's engagements for this user
-      const engagementsToday = await ctx.db
+      const accountEngagementsToday = await ctx.db
         .query("engagements")
-        .withIndex("byUser", (q) => q.eq("userId", userId).gte("_creationTime", startOfDay))
+        .withIndex("by_userId", (q) => q.eq("userId", userId).gte("_creationTime", startOfDay))
         .collect()
 
       // Return candidate if user hasn't hit their daily limit
-      if (engagementsToday.length >= account.maxActions) {
-        return null
+      if (accountEngagementsToday.length >= account.maxActions) {
+        return []
       }
 
-      return account as DeepRequired<DeepNonNullable<typeof account>>
+      const { success, data, error } = SelectAvailableAccount.safeParse(account)
+      if (!success) {
+        console.error(error)
+        return []
+      }
+
+      return [data]
     })
 
-    const account = sample(availableAccounts.filter((a) => a != null))
+    const account = sample(availableAccounts)
     if (!account) {
       return null
     }
@@ -235,32 +226,21 @@ export const availableAccount = internalQuery({
   },
 })
 
-/**
- * Add a reaction to a LinkedIn post
- * POST /api/v1/posts/reaction
- *
- * Throws on transient errors (429, 500, 503, 504) to trigger retry.
- * Converts permanent errors to regular errors for caller handling.
- */
-export const react = internalAction({
+export const postUnipileReaction = internalAction({
   args: {
     unipileId: v.string(),
     urn: v.string(),
     reactionType: v.string(),
   },
-  handler: async (_ctx, args): Promise<[boolean, unknown]> => {
+  handler: async (_ctx, { unipileId, urn, reactionType }): Promise<string | undefined> => {
     try {
-      const response = await unipile
-        .post("/api/v1/posts/reaction", {
-          json: {
-            account_id: args.unipileId,
-            post_id: args.urn,
-            reaction_type: args.reactionType.toLowerCase(),
-          },
-        })
-        .json()
-
-      return [true, response]
+      await unipile.post<void>("/api/v1/posts/reaction", {
+        json: {
+          account_id: unipileId,
+          post_id: urn,
+          reaction_type: LinkedInReaction.parse(reactionType),
+        },
+      })
     } catch (error: unknown) {
       if (error instanceof UnipileAPIError) {
         const status = error.data.status
@@ -270,22 +250,21 @@ export const react = internalAction({
         }
       }
 
-      return [false, errorMessage(error)]
+      return errorMessage(error)
     }
   },
 })
 
-export const log = internalMutation({
+export const insertEngagement = internalMutation({
   args: {
     postId: v.id("posts"),
     userId: v.string(),
     reactionType: v.string(),
   },
   handler: async (ctx, args) => {
-    // Check for duplicate engagement
     const existing = await ctx.db
       .query("engagements")
-      .withIndex("byPostAndUser", (q) => q.eq("postId", args.postId).eq("userId", args.userId))
+      .withIndex("by_postId", (q) => q.eq("postId", args.postId).eq("userId", args.userId))
       .first()
     if (existing) {
       return existing._id
@@ -298,13 +277,13 @@ export const log = internalMutation({
       throw new NotFoundError()
     }
 
-    await aggregateEngagements.insert(ctx, engagement)
+    await aggregatePostEngagements.insert(ctx, engagement)
 
     return engagementId
   },
 })
 
-export const setPostStatus = internalMutation({
+export const patchPostStatus = internalMutation({
   args: {
     postId: v.id("posts"),
     status: v.union(
@@ -314,11 +293,11 @@ export const setPostStatus = internalMutation({
       v.literal("canceled"),
     ),
   },
-  handler: async (ctx, args) => await ctx.db.patch(args.postId, { status: args.status }),
+  handler: async (ctx, { postId, status }) => await ctx.db.patch(postId, { status }),
 })
 
 // Internal mutation to handle workflow completion
-export const onWorkflowComplete = internalMutation({
+export const onComplete = internalMutation({
   args: {
     workflowId: vWorkflowId,
     result: vResultValidator,
@@ -326,45 +305,33 @@ export const onWorkflowComplete = internalMutation({
       postId: v.id("posts"),
     }),
   },
-  handler: async (ctx, args) => {
-    const { postId } = args.context
-    const { kind } = args.result
+  handler: async (ctx, { workflowId, result, context: { postId } }) => {
+    const completedAt = Date.now()
+    const status = result.kind
+
+    if (status !== "success") {
+      return await Promise.all([
+        workflow.cleanup(ctx, workflowId),
+        ctx.db.patch(postId, { status, completedAt }),
+      ])
+    }
 
     // Determine final status based on workflow result
-    let status: "completed" | "failed" | "canceled"
-    let successCount = 0
-    let failedCount = 0
+    const { failedCount } = result.returnValue
+    // Aggregate count is source of truth for total engagements
+    const successCount = await aggregatePostEngagements.count(ctx, { namespace: postId })
 
-    if (kind === "success") {
-      // Workflow completed successfully
-      status = "completed"
-      successCount = args.result.returnValue.successCount
-      failedCount = args.result.returnValue.failedCount
-    } else if (kind === "failed") {
-      // Workflow failed with an error
-      status = "failed"
-    } else {
-      // Workflow was canceled
-      status = "canceled"
-    }
-
-    // Validate against aggregate (source of truth for total engagements)
-    const aggregateCount = await aggregateEngagements.count(ctx, { namespace: postId })
-
-    // Log any mismatches for debugging (helps catch issues with workflow logic)
-    if (status === "completed" && successCount !== aggregateCount) {
-      console.error(
-        `[Workflow Validation] Mismatch detected for post ${postId}: workflow reported ${successCount} successes, but aggregate shows ${aggregateCount} total engagements`,
-      )
-    }
-
-    // Update the post with final status and metrics
-    // Use aggregate count as authoritative (survives retries, always accurate)
-    await ctx.db.patch(postId, {
-      status,
-      successCount: aggregateCount, // Aggregate is source of truth
-      failedCount, // Only workflow knows about failures (not inserted to DB)
-      completedAt: Date.now(),
-    })
+    return await Promise.all([
+      // Cleanup the workflow storage
+      workflow.cleanup(ctx, workflowId),
+      // Update the post with final status and metrics
+      // Use aggregate count as authoritative (survives retries, always accurate)
+      ctx.db.patch(postId, {
+        status: "completed",
+        completedAt,
+        successCount,
+        failedCount,
+      }),
+    ])
   },
 })

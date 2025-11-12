@@ -8,8 +8,9 @@ const app = defineApp()
 app.use(migrations)
 app.use(rateLimiter)
 app.use(workflow)
-app.use(aggregate, { name: "aggregatePodMembers" })
-app.use(aggregate, { name: "aggregatePodPosts" })
-app.use(aggregate, { name: "aggregatePostEngagements" })
+app.use(aggregate, { name: "podMembers" })
+app.use(aggregate, { name: "podPosts" })
+app.use(aggregate, { name: "postEngagements" })
+app.use(aggregate, { name: "userEngagements" })
 
 export default app

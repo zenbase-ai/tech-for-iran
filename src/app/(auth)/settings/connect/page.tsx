@@ -2,6 +2,7 @@ import { fetchMutation, fetchQuery } from "convex/nextjs"
 import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
+import { needsConnection } from "@/lib/linkedin"
 import { tokenAuth } from "@/lib/server/clerk"
 import { queryString } from "@/lib/utils"
 import { unipileHostedAuthURL } from "./-actions"
@@ -28,7 +29,7 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   if (account_id) {
     await fetchMutation(api.fns.linkedin.connectAccount, { unipileId: account_id }, { token })
   } else {
-    const [{ account, needsReconnection }, validInviteCode] = await Promise.all([
+    const [{ account }, validInviteCode] = await Promise.all([
       fetchQuery(api.fns.linkedin.getState, {}, { token }),
       inviteCode
         ? fetchQuery(api.fns.pods.validate, { inviteCode }, { token })
@@ -37,7 +38,7 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
 
     if (!account && !validInviteCode) {
       return <ConnectGate inviteCode={inviteCode} validInviteCode={validInviteCode} />
-    } else if (!account || needsReconnection) {
+    } else if (needsConnection(account?.status)) {
       const redirectURL = await unipileHostedAuthURL(userId, inviteCode)
       return <ConnectDialog redirectURL={redirectURL} />
     }

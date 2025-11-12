@@ -70,6 +70,8 @@ const schema = defineSchema({
     postId: v.id("posts"),
     userId: v.string(), // User who reacted
     reactionType: v.string(), // Type: like, celebrate, support, love, insightful, funny
+    success: v.optional(v.boolean()),
+    error: v.optional(v.string()),
   })
     .index("by_userId", ["userId"]) // For daily limit checks
     .index("by_postId", ["postId", "userId"]), // Uniqueness constraint

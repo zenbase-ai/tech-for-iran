@@ -1,36 +1,35 @@
 import { TableAggregate } from "@convex-dev/aggregate"
 import { components } from "@/convex/_generated/api"
-import type { DataModel } from "@/convex/_generated/dataModel"
+import type { DataModel, Id } from "@/convex/_generated/dataModel"
 
-// Aggregate for counting pod members
-export const aggregatePodMembers = new TableAggregate<{
-  Namespace: string
-  Key: number
+export const podMembers = new TableAggregate<{
+  Key: [Id<"pods">, number]
   DataModel: DataModel
   TableName: "memberships"
-}>(components.aggregatePodMembers, {
-  namespace: (doc) => doc.podId,
-  sortKey: (doc) => doc._creationTime,
+}>(components.podMembers, {
+  sortKey: (doc) => [doc.podId, doc._creationTime],
 })
 
-// Aggregate for counting posts per pod
-export const aggregatePodPosts = new TableAggregate<{
-  Namespace: string
-  Key: number
+export const podPosts = new TableAggregate<{
+  Key: [Id<"pods">, number]
   DataModel: DataModel
   TableName: "posts"
-}>(components.aggregatePodPosts, {
-  namespace: (doc) => doc.podId,
-  sortKey: (doc) => doc._creationTime,
+}>(components.podPosts, {
+  sortKey: (doc) => [doc.podId, doc._creationTime],
 })
 
-// Aggregate for counting engagements per post
-export const aggregatePostEngagements = new TableAggregate<{
-  Namespace: string
-  Key: number
+export const postEngagements = new TableAggregate<{
+  Key: [Id<"posts">, boolean]
   DataModel: DataModel
   TableName: "engagements"
-}>(components.aggregatePostEngagements, {
-  namespace: (doc) => doc.postId,
-  sortKey: (doc) => doc._creationTime,
+}>(components.postEngagements, {
+  sortKey: (doc) => [doc.postId, !!doc.success],
+})
+
+export const userEngagements = new TableAggregate<{
+  Key: [string, number]
+  DataModel: DataModel
+  TableName: "engagements"
+}>(components.userEngagements, {
+  sortKey: (doc) => [doc.userId, doc._creationTime],
 })

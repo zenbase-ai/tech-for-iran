@@ -6,18 +6,22 @@ import {
   parsePostURN,
   SubmitPostSchema,
 } from "@/app/(auth)/pods/[podId]/posts/-submit/schema"
-import { api, internal } from "@/convex/_generated/api"
+import { internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { aggregatePodMembers, aggregatePodPosts } from "@/convex/aggregates"
-import { authAction, authMutation, authQuery, update } from "@/convex/helpers/convex"
+import { podMembers } from "@/convex/aggregates"
 import { BadRequestError, errorMessage, NotFoundError } from "@/convex/helpers/errors"
+import {
+  connectedAction,
+  connectedMemberMutation,
+  memberQuery,
+  update,
+} from "@/convex/helpers/server"
 import { rateLimitError, ratelimits } from "@/convex/ratelimits"
 import { workflow } from "@/convex/workflows/engagement"
-import { needsReconnection } from "@/lib/linkedin"
 import { pmap } from "@/lib/parallel"
 import { unipile } from "@/lib/server/unipile"
 
-export const latest = authQuery({
+export const latest = memberQuery({
   args: {
     podId: v.id("pods"),
     take: v.number(),
@@ -45,7 +49,7 @@ export const latest = authQuery({
 
 type Submit = { postId: Id<"posts">; success: string } | { postId: null; error: string }
 
-export const submit = authMutation({
+export const submit = connectedMemberMutation({
   args: {
     podId: v.id("pods"),
     url: v.string(),
@@ -67,27 +71,9 @@ export const submit = authMutation({
       return { postId: null, error: "Failed to parse URL." }
     }
 
-    const [pod, account, profile, membership] = await Promise.all([
-      ctx.db.get(podId),
-      getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId),
-      getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId),
-      ctx.db
-        .query("memberships")
-        .withIndex("by_userId", (q) => q.eq("userId", userId).eq("podId", podId))
-        .first(),
-    ])
-
+    const pod = await ctx.db.get(podId)
     if (!pod) {
       throw new NotFoundError()
-    }
-    if (!membership) {
-      return { postId: null, error: "You are not a member of this pod." }
-    }
-    if (!profile) {
-      return { postId: null, error: "Please connect your LinkedIn." }
-    }
-    if (needsReconnection(account?.status)) {
-      return { postId: null, error: "Please reconnect your LinkedIn." }
     }
     if (await getOneFrom(ctx.db, "posts", "by_urn", urn)) {
       return { postId: null, error: "Cannot resubmit a post." }
@@ -103,15 +89,12 @@ export const submit = authMutation({
     const { url } = data
     const postId = await ctx.db.insert("posts", update({ userId, podId, url, urn }))
 
-    const [post, membersCount] = await Promise.all([
-      ctx.db.get(postId),
-      aggregatePodMembers.count(ctx, { namespace: podId }),
-    ])
-    if (!post) {
-      return { postId: null, error: "Failed to create post, please try again." }
+    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [podId] } })
+    const targetCount = derivePostTargetCount(args.targetCount, memberCount)
+    if (targetCount <= 0) {
+      return { postId: null, error: "Target count must be greater than 0." }
     }
 
-    const targetCount = derivePostTargetCount(args.targetCount, membersCount)
     const context = { postId }
     const onComplete = internal.workflows.engagement.onComplete
     const workflowId = await workflow.start(
@@ -121,10 +104,7 @@ export const submit = authMutation({
       { context, onComplete, startAsync: true },
     )
 
-    await Promise.all([
-      ctx.db.patch(postId, { workflowId, status: "pending" }),
-      aggregatePodPosts.insert(ctx, post),
-    ])
+    await ctx.db.patch(postId, { workflowId, status: "pending" })
 
     return { postId, success: "Stay tuned for the engagements!" }
   },
@@ -148,7 +128,7 @@ type FetchUnipilePost = {
 
 type ValidateURL = { success: true; error: null } | { success: false; error: string }
 
-export const validateURL = authAction({
+export const validateURL = connectedAction({
   args: {
     url: v.string(),
   },
@@ -157,15 +137,9 @@ export const validateURL = authAction({
     if (!urn) {
       return { success: false, error: "Failed to parse URL, please try again." }
     }
-    const { account, needsReconnection } = await ctx.runQuery(api.fns.linkedin.getState, {})
-    if (!account) {
-      return { success: false, error: "Please connect your LinkedIn." }
-    }
-    if (needsReconnection) {
-      return { success: false, error: "Please reconnect your LinkedIn." }
-    }
+
     try {
-      const searchParams = { account_id: account.unipileId }
+      const searchParams = { account_id: ctx.account.unipileId }
       const data = await unipile
         .get<FetchUnipilePost>(`api/v1/posts/${urn}`, { searchParams })
         .json()

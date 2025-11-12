@@ -1,6 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
+import { v } from "convex/values"
 import { zip } from "es-toolkit"
-import { authQuery } from "@/convex/helpers/convex"
+import { authQuery } from "@/convex/helpers/server"
 import { pmap } from "@/lib/parallel"
 
 export const pods = authQuery({
@@ -19,4 +20,15 @@ export const pods = authQuery({
 
     return { ...memberships, page }
   },
+})
+
+export const membership = authQuery({
+  args: {
+    podId: v.id("pods"),
+  },
+  handler: async (ctx, { podId }) =>
+    await ctx.db
+      .query("memberships")
+      .withIndex("by_userId", (q) => q.eq("userId", ctx.userId).eq("podId", podId))
+      .first(),
 })

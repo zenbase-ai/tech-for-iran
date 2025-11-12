@@ -3,9 +3,9 @@ import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import { pick } from "es-toolkit"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { aggregatePodMembers, aggregatePodPosts } from "@/convex/aggregates"
-import { authMutation, authQuery, memberQuery } from "@/convex/helpers/convex"
+import { podMembers, podPosts } from "@/convex/aggregates"
 import { NotFoundError } from "@/convex/helpers/errors"
+import { authQuery, connectedMutation, memberQuery } from "@/convex/helpers/server"
 import { pflatMap } from "@/lib/parallel"
 
 export const validate = authQuery({
@@ -18,7 +18,7 @@ export const validate = authQuery({
 
 export type Join = { pod: Doc<"pods">; success: string } | { pod: null; error: string }
 
-export const join = authMutation({
+export const join = connectedMutation({
   args: {
     inviteCode: v.string(),
   },
@@ -28,25 +28,14 @@ export const join = authMutation({
       return { pod, error: "Invalid invite code." }
     }
 
-    if (
-      await ctx.db
-        .query("memberships")
-        .withIndex("by_userId", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
-        .first()
-    ) {
-      return { pod, success: `Welcome back to ${pod.name}.` }
-    }
+    const membership = await ctx.db
+      .query("memberships")
+      .withIndex("by_userId", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
+      .first()
 
-    // Add to pod
-    const membershipId = await ctx.db.insert("memberships", { userId: ctx.userId, podId: pod._id })
-
-    // Update aggregate
-    const membership = await ctx.db.get(membershipId)
     if (!membership) {
-      throw new NotFoundError()
+      await ctx.db.insert("memberships", { userId: ctx.userId, podId: pod._id })
     }
-
-    await aggregatePodMembers.insert(ctx, membership)
 
     return { pod, success: `Welcome to ${pod.name}!` }
   },
@@ -59,7 +48,7 @@ export const get = memberQuery({
   handler: async (ctx, { podId }) => {
     const [pod, memberCount] = await Promise.all([
       ctx.db.get(podId),
-      aggregatePodMembers.count(ctx, { namespace: podId }),
+      podMembers.count(ctx, { bounds: { prefix: [podId] } }),
     ])
     if (!pod) {
       throw new NotFoundError()
@@ -106,8 +95,8 @@ export const stats = memberQuery({
   },
   handler: async (ctx, { podId }) => {
     const [memberCount, postCount] = await Promise.all([
-      aggregatePodMembers.count(ctx, { namespace: podId }),
-      aggregatePodPosts.count(ctx, { namespace: podId }),
+      podMembers.count(ctx, { bounds: { prefix: [podId] } }),
+      podPosts.count(ctx, { bounds: { prefix: [podId] } }),
     ])
 
     return { memberCount, postCount }

@@ -1,23 +1,25 @@
 import { v } from "convex/values"
 import { getManyFrom } from "convex-helpers/server/relationships"
 import { internal } from "@/convex/_generated/api"
-import { internalAction, internalMutation } from "@/convex/_generated/server"
+import { internalAction } from "@/convex/_generated/server"
+import { internalMutation } from "@/convex/helpers/server"
 import { pmap } from "@/lib/parallel"
+import { unipile } from "@/lib/server/unipile"
 
 export const deleteUser = internalAction({
   args: {
     userId: v.string(),
   },
   handler: async (ctx, { userId }) => {
-    await ctx.runMutation(internal.fns.moderation.deleteUserMemberships, { userId })
+    await ctx.runMutation(internal.fns.moderation.deleteMemberships, { userId })
 
     const { unipileId } = await ctx.runMutation(internal.fns.linkedin.deleteAccount, { userId })
 
-    await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId })
+    await unipile.delete<void>(`api/v1/accounts/${unipileId}`)
   },
 })
 
-export const deleteUserMemberships = internalMutation({
+export const deleteMemberships = internalMutation({
   args: {
     userId: v.string(),
   },

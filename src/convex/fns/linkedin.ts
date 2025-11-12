@@ -1,11 +1,18 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { configSchema } from "@/app/(auth)/settings/-config/schema"
-import { api, internal } from "@/convex/_generated/api"
-import { internalAction, internalMutation } from "@/convex/_generated/server"
-import { authAction, authMutation, authQuery, update } from "@/convex/helpers/convex"
+import { internal } from "@/convex/_generated/api"
+import { internalAction } from "@/convex/_generated/server"
 import { ConflictError, errorMessage, NotFoundError } from "@/convex/helpers/errors"
-import { needsReconnection } from "@/lib/linkedin"
+import {
+  authAction,
+  authMutation,
+  authQuery,
+  connectedAction,
+  connectedMutation,
+  internalMutation,
+  update,
+} from "@/convex/helpers/server"
 import { unipile } from "@/lib/server/unipile"
 
 export const getState = authQuery({
@@ -16,27 +23,16 @@ export const getState = authQuery({
       getOneFrom(ctx.db, "linkedinProfiles", "by_userId", ctx.userId),
     ])
 
-    return {
-      account,
-      profile,
-      needsReconnection: needsReconnection(account?.status),
-    }
+    return { account, profile }
   },
 })
 
-export const refreshState = authAction({
+export const refreshState = connectedAction({
   args: {},
   handler: async (ctx) => {
-    const { account, needsReconnection } = await ctx.runQuery(api.fns.linkedin.getState, {})
-    if (!account) {
-      return { error: "Account not found" }
-    }
-    if (needsReconnection) {
-      return { error: "Please reconnect your LinkedIn account." }
-    }
-
+    const { unipileId } = ctx.account
     try {
-      await ctx.runAction(internal.fns.linkedin.refreshProfile, { unipileId: account.unipileId })
+      await ctx.runAction(internal.fns.linkedin.refreshProfile, { unipileId })
       return { success: "Your profile has been refreshed." }
     } catch (error) {
       return { error: errorMessage(error) }
@@ -81,13 +77,24 @@ export const connectAccount = authMutation({
   },
 })
 
+export const updateAccount = connectedMutation({
+  args: {
+    maxActions: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(ctx.account._id, update(args))
+    return { success: "Settings updated." }
+  },
+})
+
+// You can delete accounts that need reconnection
 export const disconnectAccount = authAction({
   args: {},
   handler: async (ctx) => {
     const { userId } = ctx
     const { unipileId } = await ctx.runMutation(internal.fns.linkedin.deleteAccount, { userId })
     try {
-      await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId })
+      await unipile.delete<void>(`api/v1/accounts/${unipileId}`)
       return { success: "LinkedIn disconnected." }
     } catch (error) {
       return { error: errorMessage(error) }
@@ -111,21 +118,6 @@ export const deleteAccount = internalMutation({
     ])
 
     return { unipileId: account.unipileId, account, profile }
-  },
-})
-
-export const updateAccount = authMutation({
-  args: {
-    maxActions: v.number(),
-  },
-  handler: async (ctx, args) => {
-    const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", ctx.userId)
-    if (!account) {
-      return { error: "Account not found, please try reloading." }
-    }
-
-    await ctx.db.patch(account._id, update(args))
-    return { success: "Settings updated." }
   },
 })
 
@@ -204,12 +196,4 @@ export const refreshProfile = internalAction({
       url: data.public_profile_url || `https://www.linkedin.com/in/${data.public_identifier}`,
     })
   },
-})
-
-export const deleteUnipileAccount = internalAction({
-  args: {
-    unipileId: v.string(),
-  },
-  handler: async (_ctx, { unipileId }) =>
-    await unipile.delete<void>(`api/v1/accounts/${unipileId}`),
 })

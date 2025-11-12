@@ -6,11 +6,11 @@ import { randomInt, sample } from "es-toolkit"
 import { DateTime } from "luxon"
 import * as z from "zod"
 import { components, internal } from "@/convex/_generated/api"
-import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
-import { aggregatePostEngagements } from "@/convex/aggregates"
-import { update } from "@/convex/helpers/convex"
-import { errorMessage, NotFoundError } from "@/convex/helpers/errors"
-import { LinkedInReaction, needsReconnection } from "@/lib/linkedin"
+import { internalAction, internalQuery } from "@/convex/_generated/server"
+import { userEngagements } from "@/convex/aggregates"
+import { errorMessage } from "@/convex/helpers/errors"
+import { internalMutation, update } from "@/convex/helpers/server"
+import { LinkedInReaction, needsConnection } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/parallel"
 import { UnipileAPIError, unipile } from "@/lib/server/unipile"
 
@@ -86,12 +86,6 @@ export const perform = workflow.define({
       )
 
       if (!success) {
-        console.error("[workflows/engagement:performOne]", {
-          reactionType,
-          podId,
-          postId,
-        })
-
         if (success === null) {
           break
         }
@@ -144,15 +138,22 @@ export const performOne = internalAction({
       urn,
       reactionType,
     })
-    if (error) {
-      return false
-    }
 
-    await ctx.runMutation(internal.workflows.engagement.insertEngagement, {
+    await ctx.runMutation(internal.workflows.engagement.upsertEngagement, {
       userId,
       postId,
       reactionType,
+      error,
     })
+
+    if (error) {
+      console.error("[workflows/engagement:performOne]", {
+        reactionType,
+        podId,
+        postId,
+      })
+      return false
+    }
 
     return true
   },
@@ -172,8 +173,6 @@ export const selectAvailableAccount = internalQuery({
     skipUserIds: v.array(v.string()),
   },
   handler: async (ctx, { podId, postId, skipUserIds }): Promise<SelectAvailableAccount | null> => {
-    const startOfDay = DateTime.utc().startOf("day").toMillis()
-
     const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
 
     const availableAccounts = await pflatMap(members, async ({ userId }) => {
@@ -181,10 +180,9 @@ export const selectAvailableAccount = internalQuery({
         return []
       }
 
-      // Check LinkedIn account health status
       const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
 
-      const canAccountEngage = !!account?.userId && !needsReconnection(account?.status)
+      const canAccountEngage = !!account?.userId && !needsConnection(account?.status)
       if (!canAccountEngage) {
         return []
       }
@@ -193,19 +191,17 @@ export const selectAvailableAccount = internalQuery({
         .query("engagements")
         .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
         .first()
-
       if (didAccountAlreadyEngage) {
         return []
       }
 
-      // Count today's engagements for this user
-      const accountEngagementsToday = await ctx.db
-        .query("engagements")
-        .withIndex("by_userId", (q) => q.eq("userId", userId).gte("_creationTime", startOfDay))
-        .collect()
-
-      // Return candidate if user hasn't hit their daily limit
-      if (accountEngagementsToday.length >= account.maxActions) {
+      const accountEngagementsToday = await userEngagements.count(ctx, {
+        bounds: {
+          lower: { key: [userId, DateTime.utc().minus({ hours: 24 }).toMillis()], inclusive: true },
+          upper: { key: [userId, DateTime.utc().toMillis()], inclusive: false },
+        },
+      })
+      if (accountEngagementsToday >= account.maxActions) {
         return []
       }
 
@@ -256,31 +252,27 @@ export const postUnipileReaction = internalAction({
   },
 })
 
-export const insertEngagement = internalMutation({
+export const upsertEngagement = internalMutation({
   args: {
     postId: v.id("posts"),
     userId: v.string(),
     reactionType: v.string(),
+    error: v.union(v.string(), v.null()),
   },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db
+  handler: async (ctx, { postId, userId, reactionType, ...args }) => {
+    const engagement = await ctx.db
       .query("engagements")
-      .withIndex("by_postId", (q) => q.eq("postId", args.postId).eq("userId", args.userId))
+      .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
       .first()
-    if (existing) {
-      return existing._id
+
+    const state = { reactionType, success: !args.error, error: args.error ?? undefined }
+
+    if (engagement) {
+      await ctx.db.patch(engagement._id, update(state))
+      return engagement._id
     }
 
-    const engagementId = await ctx.db.insert("engagements", args)
-
-    const engagement = await ctx.db.get(engagementId)
-    if (!engagement) {
-      throw new NotFoundError()
-    }
-
-    await aggregatePostEngagements.insert(ctx, engagement)
-
-    return engagementId
+    return await ctx.db.insert("engagements", update({ postId, userId, ...state }))
   },
 })
 

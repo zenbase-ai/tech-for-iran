@@ -15,12 +15,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
+import { needsConnection } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 
 export type NavProps = Omit<ItemProps, "asChild" | "variant">
 
 export const Nav: React.FC<NavProps> = ({ className, ...props }) => {
-  const { profile, needsReconnection } = useAuthQuery(api.fns.linkedin.getState) ?? {}
+  const { account, profile } = useAuthQuery(api.fns.linkedin.getState) ?? {}
 
   return (
     <Item
@@ -51,7 +52,7 @@ export const Nav: React.FC<NavProps> = ({ className, ...props }) => {
                 </Avatar>
               </ItemMedia>
               <ItemContent>
-                {needsReconnection ? (
+                {needsConnection(account?.status) ? (
                   <ItemTitle className="text-base text-red-700">Reconnect</ItemTitle>
                 ) : (
                   <ItemTitle className="text-base">

@@ -171,11 +171,11 @@ export const performOne = internalAction({
 })
 
 const SelectAvailableAccount = z.union([
+  z.null(),
   z.object({
     unipileId: z.string(),
     userId: z.string(),
   }),
-  z.null(),
 ])
 
 type SelectAvailableAccount = z.infer<typeof SelectAvailableAccount>
@@ -236,7 +236,7 @@ export const postUnipileReaction = internalAction({
     urn: v.string(),
     reactionType: v.string(),
   },
-  handler: async (_ctx, { unipileId, urn, reactionType }): Promise<string | undefined> => {
+  handler: async (_ctx, { unipileId, urn, reactionType }): Promise<string | null> => {
     try {
       await unipile.post<void>("/api/v1/posts/reaction", {
         json: {
@@ -245,6 +245,7 @@ export const postUnipileReaction = internalAction({
           reaction_type: LinkedInReaction.parse(reactionType),
         },
       })
+      return null
     } catch (error: unknown) {
       if (error instanceof UnipileAPIError) {
         const status = error.data.status

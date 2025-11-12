@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import type { LinkProps } from "next/link"
 import { twMerge } from "tailwind-merge"
+import { env } from "./env.mjs"
 
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
 
@@ -31,18 +32,18 @@ export const queryString = (params: Record<string, string | undefined>) => {
   return searchParams.toString()
 }
 
-export type PathOptions = {
+export type AppURLOptions = {
   searchParams?: Record<string, string | undefined>
-  prefixURL?: string
+  absolute?: boolean
 }
 
-export const path = (path: string, { searchParams, prefixURL }: PathOptions = {}) => {
-  let result = path
+export const appURL = (path: string, { searchParams, absolute = true }: AppURLOptions = {}) => {
+  let url = `/${path}`
   if (searchParams) {
-    result = `${result}?${queryString(searchParams)}`
+    url = `${url}?${queryString(searchParams)}`
   }
-  if (prefixURL) {
-    result = `${prefixURL}${result}`
+  if (absolute) {
+    url = `${env.NEXT_PUBLIC_APP_URL}${url}`
   }
-  return result
+  return url
 }

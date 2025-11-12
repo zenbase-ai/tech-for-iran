@@ -3,20 +3,18 @@
 import { DateTime } from "luxon"
 import { env } from "@/lib/env.mjs"
 import { unipile } from "@/lib/server/unipile"
-import { path } from "@/lib/utils"
+import { appURL } from "@/lib/utils"
 
 export const unipileHostedAuthURL = async (userId: string, inviteCode?: string) => {
   const expiresOn = DateTime.utc().plus({ minutes: 10 }).toISO()
 
-  const successRedirectURL = path("/settings/connect", {
+  const successRedirectURL = appURL("settings/connect", {
     searchParams: { inviteCode },
-    prefixURL: env.APP_URL,
   })
-  const failureRedirectURL = path("/settings", {
+  const failureRedirectURL = appURL("settings", {
     searchParams: { error: "Something went wrong. Please try again." },
-    prefixURL: env.APP_URL,
   })
-  const notifyURL = path("/webhooks/unipile", { prefixURL: env.APP_URL })
+  const notifyURL = appURL("webhooks/unipile")
 
   const { url } = await unipile
     .post<{ url: string }>("/api/v1/hosted/accounts/link", {

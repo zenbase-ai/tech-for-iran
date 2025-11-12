@@ -1,7 +1,7 @@
 import { SignUp } from "@clerk/nextjs"
 import type { Metadata } from "next"
 import { VStack } from "@/components/layout/stack"
-import { path } from "@/lib/utils"
+import { appURL } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Sign Up | Crackedbook",
@@ -19,8 +19,8 @@ export default async function SignUpPage(props: SignUpPageProps) {
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh] mx-auto">
       <SignUp
-        forceRedirectUrl={path("/settings/connect", { searchParams })}
-        signInUrl={path("/sign-in", { searchParams })}
+        forceRedirectUrl={appURL("settings/connect", { searchParams, absolute: false })}
+        signInUrl={appURL("sign-in", { searchParams, absolute: false })}
       />
     </VStack>
   )

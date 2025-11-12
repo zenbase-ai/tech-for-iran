@@ -91,6 +91,11 @@ export const members = memberQuery({
   },
 })
 
+type Stats = {
+  memberCount: number
+  postCount: number
+}
+
 export const stats = memberQuery({
   args: {
     podId: v.id("pods"),
@@ -101,6 +106,6 @@ export const stats = memberQuery({
       podPosts.count(ctx, { bounds: { prefix: [podId] } }),
     ])
 
-    return { memberCount, postCount }
+    return { memberCount, postCount } satisfies Stats
   },
 })

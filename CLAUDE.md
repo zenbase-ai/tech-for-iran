@@ -236,7 +236,7 @@ This section documents the common coding patterns used throughout the codebase. 
 - Include `min`, `max`, `defaultValues`, and `options` in schema object
 - Example from `src/app/(auth)/pods/[podId]/posts/-submit/schema.ts`:
   ```typescript
-  export const submitPostSchema = {
+  export const submitPost = {
     min: { targetCount: 1, minDelay: 1, maxDelay: 1 },
     max: { targetCount: 50, minDelay: 30, maxDelay: 90 },
     defaultValues: {
@@ -250,12 +250,12 @@ This section documents the common coding patterns used throughout the codebase. 
   export const SubmitPostSchema = z.object({
     url: z.string().url(),
     targetCount: z.number().int()
-      .min(submitPostSchema.min.targetCount)
-      .max(submitPostSchema.max.targetCount),
+      .min(submitPost.min.targetCount)
+      .max(submitPost.max.targetCount),
     // ... more fields
   })
 
-  export type SubmitPostSchema = z.infer<typeof SubmitPostSchema>
+  export type SubmitPost = z.infer<typeof SubmitPost>
   ```
 
 **Generic Hook Type Extraction:**
@@ -508,21 +508,21 @@ This section documents the common coding patterns used throughout the codebase. 
 - Example structure:
   ```typescript
   // Schema configuration object
-  export const configSchema = {
+  export const config = {
     min: { maxActions: 1 },
     max: { maxActions: 25 },
     defaultValues: { maxActions: 10 },
   }
 
   // Zod schema
-  export const ConfigSchema = z.object({
+  export const Config = z.object({
     maxActions: z.number().int()
-      .min(configSchema.min.maxActions)
-      .max(configSchema.max.maxActions),
+      .min(config.min.maxActions)
+      .max(config.max.maxActions),
   })
 
   // TypeScript type
-  export type ConfigSchema = z.infer<typeof ConfigSchema>
+  export type Config = z.infer<typeof Config>
   ```
 
 **URL/URN Parsing Pattern:**

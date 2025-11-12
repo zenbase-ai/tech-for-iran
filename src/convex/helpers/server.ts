@@ -194,6 +194,21 @@ export const connectedMutation = customMutation(authMutation, {
   },
 })
 
+export const connectedMemberAction = customAction(connectedAction, {
+  args: {
+    podId: v.id("pods"),
+  },
+  input: async (ctx: ActionCtx, args) => {
+    const { userId } = await requireAuth(ctx.auth)
+    const { account, profile } = await requireConnection(ctx, userId)
+    const { membership } = await requireMembership(ctx, userId, args.podId)
+    return {
+      ctx: { ...ctx, userId, account, profile, membership },
+      args,
+    }
+  },
+})
+
 export const connectedMemberMutation = customMutation(authMutation, {
   args: {
     podId: v.id("pods"),

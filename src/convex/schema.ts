@@ -9,6 +9,7 @@ const schema = defineSchema({
     userId: v.optional(v.string()),
     unipileId: v.string(),
     status: v.string(),
+    role: v.optional(v.union(v.literal("sudo"))),
     maxActions: v.number(),
     updatedAt: v.number(), // Timestamp
   })

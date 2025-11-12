@@ -1,6 +1,6 @@
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
-import { omit, zip } from "es-toolkit"
+import { pick, zip } from "es-toolkit"
 import {
   derivePostTargetCount,
   parsePostURN,
@@ -21,12 +21,20 @@ import { workflow } from "@/convex/workflows/engagement"
 import { pmap } from "@/lib/parallel"
 import { unipile } from "@/lib/server/unipile"
 
+export type Latest = Array<{
+  firstName: string
+  lastName: string
+  picture: string
+  url: string
+  _creationTime: number
+}>
+
 export const latest = memberQuery({
   args: {
     podId: v.id("pods"),
     take: v.number(),
   },
-  handler: async (ctx, { podId, take }) => {
+  handler: async (ctx, { podId, take }): Promise<Latest> => {
     if (take <= 0 || 10 < take) {
       throw new BadRequestError("Invalid take value, must be between 1 and 10.")
     }
@@ -41,9 +49,13 @@ export const latest = memberQuery({
       getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId),
     )
 
-    return zip(posts, profiles).flatMap(([{ url, _creationTime }, profile]) =>
-      profile ? [{ url, _creationTime, profile: omit(profile, ["unipileId"]) }] : [],
-    )
+    return zip(profiles, posts).flatMap(([profile, { url, _creationTime }]) => {
+      if (!profile) {
+        return []
+      }
+
+      return [{ url, _creationTime, ...pick(profile, ["firstName", "lastName", "picture"]) }]
+    })
   },
 })
 

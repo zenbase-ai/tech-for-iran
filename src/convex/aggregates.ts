@@ -25,11 +25,3 @@ export const postEngagements = new TableAggregate<{
 }>(components.postEngagements, {
   sortKey: (doc) => [doc.postId, !!doc.success],
 })
-
-export const userEngagements = new TableAggregate<{
-  Key: [string, number]
-  DataModel: DataModel
-  TableName: "engagements"
-}>(components.userEngagements, {
-  sortKey: (doc) => [doc.userId, doc._creationTime],
-})

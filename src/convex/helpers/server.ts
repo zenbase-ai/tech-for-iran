@@ -8,6 +8,7 @@ import {
   customQuery,
 } from "convex-helpers/server/customFunctions"
 import { getOneFrom } from "convex-helpers/server/relationships"
+import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import {
   type ActionCtx,
@@ -20,7 +21,6 @@ import {
 } from "@/convex/_generated/server"
 import { triggers } from "@/convex/triggers"
 import { needsConnection } from "@/lib/linkedin"
-import { api } from "../_generated/api"
 import { BadRequestError, UnauthorizedError } from "./errors"
 
 export const update = <T extends Record<string, unknown>>(data: T): T & { updatedAt: number } => ({

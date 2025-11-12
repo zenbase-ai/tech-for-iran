@@ -28,29 +28,31 @@ export const PodPostsToasts: React.FC<PodPostsToastsProps> = ({ podId, take = 5 
   )
 }
 
-export type PostToastProps = {
-  profile: Omit<Doc<"linkedinProfiles">, "unipileId">
-  url: string
-  _creationTime: number
-}
+type PostToastProps = Pick<Doc<"posts">, "url" | "_creationTime"> &
+  Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture">
 
-export const PostToast: React.FC<PostToastProps> = ({ profile, url, _creationTime }) => {
-  // biome-ignore lint/correctness/useExhaustiveDependencies: we only want this to run when the posts change
+export const PostToast: React.FC<PostToastProps> = ({
+  firstName,
+  lastName,
+  picture,
+  url,
+  _creationTime,
+}) => {
   useEffect(() => {
     toast(
       <Item className="p-0">
         <ItemMedia className="-mt-0.5">
           <Avatar className="size-6">
-            <AvatarImage src={profile.picture} alt={`${profile.firstName} ${profile.lastName}`} />
+            <AvatarImage src={picture} alt={`${firstName} ${lastName}`} />
             <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-              {profile.firstName[0]}
-              {profile.lastName[0]}
+              {firstName[0]}
+              {lastName[0]}
             </AvatarFallback>
           </Avatar>
         </ItemMedia>
         <ItemContent className="gap-0">
           <ItemDescription className="font-medium">
-            <span className="text-foreground">{profile.firstName}</span>&nbsp;posted&nbsp;
+            <span className="text-foreground">{firstName}</span>&nbsp;posted&nbsp;
             <StaticRelativeTime date={_creationTime} />
           </ItemDescription>
         </ItemContent>
@@ -62,9 +64,9 @@ export const PostToast: React.FC<PostToastProps> = ({ profile, url, _creationTim
           </Button>
         </ItemActions>
       </Item>,
-      { position: "bottom-left", duration: 10_000 },
+      { position: "bottom-left", duration: 5_000 },
     )
-  }, [JSON.stringify({ profile, url, _creationTime })])
+  }, [firstName, lastName, picture, url, _creationTime])
 
   return null
 }

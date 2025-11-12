@@ -3,53 +3,66 @@ import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
 import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import { randomInt, sample } from "es-toolkit"
-import { DateTime } from "luxon"
 import * as z from "zod"
 import { components, internal } from "@/convex/_generated/api"
 import { internalAction, internalQuery } from "@/convex/_generated/server"
-import { userEngagements } from "@/convex/aggregates"
 import { errorMessage } from "@/convex/helpers/errors"
 import { internalMutation, update } from "@/convex/helpers/server"
+import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { LinkedInReaction, needsConnection } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/parallel"
 import { UnipileAPIError, unipile } from "@/lib/server/unipile"
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
-    maxParallelism: 10,
+    maxParallelism: 32,
     defaultRetryBehavior: {
       maxAttempts: 3,
-      initialBackoffMs: 250,
+      initialBackoffMs: 500,
       base: 2,
     },
   },
 })
 
 /**
- * Main engagement workflow
+ * Main engagement workflow - durable background job for scheduled LinkedIn reactions
  *
- * HOW IT WORKS:
+ * WORKFLOW CONFIGURATION:
+ * - Uses workpool with maxParallelism: 10 (max 10 concurrent workflow executions)
+ * - Retry behavior: max 3 attempts, 250ms initial backoff, exponential base 2
+ * - Transient API errors (429, 500, 503, 504) trigger automatic retries
+ *
+ * EXECUTION FLOW:
  * 1. Sets post status to "processing"
  * 2. Loops up to `targetCount` times attempting engagements:
- *    - Generates random delay (minDelay to maxDelay + jitter) and reaction type
- *    - Schedules `performOne` action with the delay (relative to step execution time)
- *    - `performOne` returns:
- *      * true: engagement succeeded (inserted to DB, counted via aggregates)
- *      * false: API call failed (logs error, continues to next iteration)
- *      * null: no available accounts (breaks loop early - stops trying)
- * 3. On completion, `onComplete` handler updates post status based on workflow result
+ *    a. Generates random delay and reaction type:
+ *       - Delay = randomInt(minDelay, maxDelay + 1) * 1000ms + randomInt(0, 2501)ms jitter
+ *       - Reaction type randomly selected from user-provided options
+ *    b. Schedules `performOne` action with delay (relative to current step execution time, not workflow start)
+ *    c. `performOne` returns:
+ *       - true: engagement succeeded (inserted to DB, counted via aggregates)
+ *       - false: API call failed (logs error, workflow continues to next iteration)
+ *       - null: no available accounts (breaks loop early, stops trying)
+ * 3. On workflow completion, `onComplete` handler updates post status:
+ *    - Maps workflow result kind ("success"/"failed"/"canceled") to post status
  *
  * ENGAGEMENT COUNTING:
- * - Total engagements are tracked via aggregates (aggregatePostEngagements)
- * - Aggregates automatically maintain counts across all workflow runs
+ * - Total engagements tracked via aggregates (postEngagements) - NOT stored directly on posts
+ * - Aggregates automatically maintain counts as engagements are inserted
  * - Query aggregate to get actual engagement count for a post
- * - Note: successCount/failedCount fields in posts schema exist but are unused (legacy)
+ * - Note: successCount/failedCount fields in posts schema are unused (legacy)
  *
- * ACCOUNT SELECTION:
- * - Excludes post author and users who already engaged
- * - Only selects healthy accounts (no reconnection needed)
- * - Respects daily engagement limits (maxActions per user)
- * - Randomly selects from available candidates
+ * ACCOUNT SELECTION (selectAvailableAccount):
+ * - Excludes: post author, users who already engaged on this post
+ * - Filters out: unhealthy accounts (needsConnection status), users at daily limit
+ * - Daily limit check: counts engagements in past 24 hours vs account.maxActions
+ * - Randomly samples one account from available candidates
+ * - Returns null if no accounts available (triggers early workflow termination)
+ *
+ * TIMING DETAILS:
+ * - Each reaction scheduled with independent delay relative to when that step runs
+ * - Delays help avoid LinkedIn rate limits and make engagement appear organic
+ * - Example: minDelay=1, maxDelay=30 → 1-30 seconds + 0-2.5s jitter per reaction
  */
 export const perform = workflow.define({
   args: {
@@ -85,10 +98,8 @@ export const perform = workflow.define({
         { runAfter }, // runAfter is relative to now; not workflow start
       )
 
-      if (!success) {
-        if (success === null) {
-          break
-        }
+      if (success === null) {
+        break
       }
     }
   },
@@ -159,10 +170,13 @@ export const performOne = internalAction({
   },
 })
 
-const SelectAvailableAccount = z.object({
-  unipileId: z.string(),
-  userId: z.string(),
-})
+const SelectAvailableAccount = z.union([
+  z.object({
+    unipileId: z.string(),
+    userId: z.string(),
+  }),
+  z.null(),
+])
 
 type SelectAvailableAccount = z.infer<typeof SelectAvailableAccount>
 
@@ -172,7 +186,7 @@ export const selectAvailableAccount = internalQuery({
     postId: v.id("posts"),
     skipUserIds: v.array(v.string()),
   },
-  handler: async (ctx, { podId, postId, skipUserIds }): Promise<SelectAvailableAccount | null> => {
+  handler: async (ctx, { podId, postId, skipUserIds }): Promise<SelectAvailableAccount> => {
     const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
 
     const availableAccounts = await pflatMap(members, async ({ userId }) => {
@@ -189,19 +203,12 @@ export const selectAvailableAccount = internalQuery({
       }
 
       const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-
-      const canAccountEngage = !!account?.userId && !needsConnection(account?.status)
-      if (!canAccountEngage) {
+      if (!account || needsConnection(account?.status)) {
         return []
       }
 
-      const accountEngagementsToday = await userEngagements.count(ctx, {
-        bounds: {
-          lower: { key: [userId, DateTime.utc().minus({ hours: 24 }).toMillis()], inclusive: true },
-          upper: { key: [userId, DateTime.utc().toMillis()], inclusive: false },
-        },
-      })
-      if (accountEngagementsToday >= account.maxActions) {
+      const { ok } = await ratelimits.check(ctx, ...accountActionsRateLimit(account))
+      if (!ok) {
         return []
       }
 

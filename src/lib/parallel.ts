@@ -4,7 +4,7 @@ import pMap from "p-map"
 export type ParallelOptions = Parameters<typeof pMap>[2]
 
 export const defaultOptions: ParallelOptions = {
-  concurrency: 50,
+  concurrency: 32,
   stopOnError: true,
 }
 

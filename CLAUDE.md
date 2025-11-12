@@ -201,19 +201,20 @@ This section documents the common coding patterns used throughout the codebase. 
 **API Error Pattern with Retries:**
 - Custom `UnipileAPIError` extends `ConvexError<UnipileAPIErrorData>`
 - Retry logic for transient errors (429, 500, 503, 504)
+- Workflow retry configuration: max 3 attempts, 250ms initial backoff, exponential base 2
 - Example from workflows:
   ```typescript
   try {
-    await unipileAPI.react(...)
+    await unipile.post("/api/v1/posts/reaction", { json: { ... } })
   } catch (error: unknown) {
     if (error instanceof UnipileAPIError) {
       const status = error.data.status
       const isTransient = [429, 500, 503, 504].includes(status)
       if (isTransient) {
-        throw error // triggers workflow retries
+        throw error // triggers workflow retries with exponential backoff
       }
     }
-    return errorMessage(error)
+    return errorMessage(error) // non-transient errors logged but don't retry
   }
   ```
 
@@ -667,14 +668,19 @@ src/
 - **Workflow Architecture (Convex Workflow):**
   - Main workflow: `src/convex/workflows/engagement.ts` (`perform` function)
   - Uses `@convex-dev/workflow` for durable execution (survives failures, retries)
+  - Configured with workpool: maxParallelism 10, max 3 retry attempts, 250ms initial backoff, exponential base 2
   - **Engagement Flow:**
-    1. Loops up to `targetCount` times attempting engagements
-    2. Each iteration: generates random delay + reaction type, schedules `performOne` action
-    3. `performOne` returns: true (success), false (API failed, continues), null (no accounts, stops)
-    4. Successful engagements inserted to DB and counted via aggregates (`postEngagements`)
-  - Random delays (minDelay to maxDelay + up to 2.5s jitter) avoid LinkedIn rate limits
-  - Handles retries (max 3 attempts, exponential backoff) for transient API errors (429, 500, 503, 504)
-  - Updates post status: `pending` → `processing` → `success`/`failed`/`canceled` (via `onComplete`)
+    1. Sets post status to "processing"
+    2. Loops up to `targetCount` times attempting engagements
+    3. Each iteration:
+       - Generates random delay: `randomInt(minDelay, maxDelay + 1) * 1000ms + randomInt(0, 2501)ms` jitter
+       - Randomly selects reaction type from user-provided options
+       - Schedules `performOne` action with delay (relative to current step execution time)
+    4. `performOne` returns: true (success), false (API failed, continues), null (no accounts, stops loop)
+    5. Successful engagements inserted to DB and counted via aggregates (`postEngagements`)
+    6. On workflow completion, `onComplete` maps result kind to post status
+  - Retry behavior: transient API errors (429, 500, 503, 504) trigger automatic workflow retries
+  - Post status transitions: `pending` → `processing` → `success`/`failed`/`canceled`
 
 - **External API Integration (Unipile):**
   - All Unipile API calls happen server-side (Convex actions or workflow steps)
@@ -692,9 +698,11 @@ src/
 - **Randomization & Deduplication:**
   - Random member selection: uses `sample()` to pick from available pod members (excludes post author, already-engaged members, unhealthy accounts, daily limit reached)
   - Random reaction types: uses `sample()` from user-selected options
-  - Random delays: `randomInt(minDelay, maxDelay + 1) * 1000 + randomInt(0, 2501)` ms (base delay + jitter, exclusive upper bounds)
-  - Deduplication via `engagements` table index: `by_postId` (postId + userId composite)
-  - Parallel utilities from `src/lib/parallel.ts` (`pmap`, `pflatMap`, `pfilter`) used for concurrent operations
+  - Random delays: `randomInt(minDelay, maxDelay + 1) * 1000ms + randomInt(0, 2501)ms` (base delay + jitter)
+    - Note: randomInt uses exclusive upper bounds, so actual range is [minDelay, maxDelay] seconds + [0, 2500]ms jitter
+    - Example: minDelay=1, maxDelay=30 → 1-30 seconds + 0-2.5s jitter
+  - Deduplication: `engagements` table has composite index `by_postId` (postId + userId) preventing duplicate reactions
+  - Parallel utilities from `src/lib/parallel.ts` (`pmap`, `pflatMap`, `pfilter`) used for concurrent database operations
 
 **Next.js Configuration:**
 - Typed routes enabled (`typedRoutes: true`) - use `route("/path")` helper

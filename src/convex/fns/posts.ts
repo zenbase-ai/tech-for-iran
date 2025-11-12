@@ -9,7 +9,7 @@ import {
 import { api, internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { aggregatePodMembers, aggregatePodPosts } from "@/convex/aggregates"
-import { authAction, authMutation, authQuery } from "@/convex/helpers/convex"
+import { authAction, authMutation, authQuery, update } from "@/convex/helpers/convex"
 import { BadRequestError, errorMessage, NotFoundError } from "@/convex/helpers/errors"
 import { rateLimitError, ratelimits } from "@/convex/ratelimits"
 import { workflow } from "@/convex/workflows/engagement"
@@ -29,9 +29,8 @@ export const latest = authQuery({
 
     const posts = await ctx.db
       .query("posts")
-      .withIndex("by_podId", (q) => q.eq("podId", podId))
+      .withIndex("by_podId", (q) => q.eq("podId", podId).eq("status", "success"))
       .order("desc")
-      .filter((q) => q.eq(q.field("status"), "completed"))
       .take(take)
 
     const profiles = await pmap(posts, async ({ userId }) =>
@@ -102,7 +101,7 @@ export const submit = authMutation({
     }
 
     const { url } = data
-    const postId = await ctx.db.insert("posts", { userId, podId, url, urn })
+    const postId = await ctx.db.insert("posts", update({ userId, podId, url, urn }))
 
     const [post, membersCount] = await Promise.all([
       ctx.db.get(postId),

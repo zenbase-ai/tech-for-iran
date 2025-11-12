@@ -36,7 +36,7 @@ const schema = defineSchema({
 
   // Pod members (join table for many-to-many relationship)
   memberships: defineTable({
-    userId: v.string(), // Reference to profile
+    userId: v.string(), // Reference to userId
     podId: v.id("pods"), // Reference to pod
   })
     .index("by_podId", ["podId", "userId"])
@@ -55,6 +55,7 @@ const schema = defineSchema({
         v.literal("pending"),
         v.literal("processing"),
         v.literal("completed"),
+        v.literal("success"),
         v.literal("failed"),
         v.literal("canceled"),
       ),
@@ -62,9 +63,10 @@ const schema = defineSchema({
     successCount: v.optional(v.number()),
     failedCount: v.optional(v.number()),
     completedAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
   })
-    .index("by_userId", ["userId"])
-    .index("by_podId", ["podId"])
+    .index("by_userId", ["userId", "status"])
+    .index("by_podId", ["podId", "status"])
     .index("by_urn", ["urn"]),
 
   // Engagement log (tracks reactions on posts)

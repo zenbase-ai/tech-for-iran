@@ -37,7 +37,6 @@
     "convex-helpers": "^0.1.104",
     "es-toolkit": "^1.41.0",
     "hamburger-react": "^2.5.2",
-    "humanize-duration": "^3.33.1",
     "ky": "^1.14.0",
     "lucide-react": "^0.552.0",
     "luxon": "^3.7.2",

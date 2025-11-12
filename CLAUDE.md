@@ -117,7 +117,7 @@ src/
     2. Aggregate count (`aggregateEngagements` from `aggregates.ts`) is source of truth
   - Workflow spawns tasks with random delays (5-15s jitter) to avoid LinkedIn rate limits
   - Handles retries (max 3 attempts, exponential backoff) and API errors
-  - Updates post status: `pending` → `processing` → `completed`/`failed`/`canceled`
+  - Updates post status: `pending` → `processing` → `success`/`failed`/`canceled`
 
 - **External API Integration (Unipile):**
   - All Unipile API calls happen server-side (Convex actions or workflow steps)

@@ -1,5 +1,5 @@
 import { HOUR, RateLimiter } from "@convex-dev/rate-limiter"
-import humanizeDuration from "humanize-duration"
+import { DateTime } from "luxon"
 import { components } from "@/convex/_generated/api"
 
 export const ratelimits = new RateLimiter(components.rateLimiter, {
@@ -10,5 +10,7 @@ export const ratelimits = new RateLimiter(components.rateLimiter, {
   },
 })
 
-export const rateLimitError = ({ retryAfter }: { retryAfter: number }) =>
-  `Too many requests, please try again in ${humanizeDuration(retryAfter)}.`
+export const rateLimitError = ({ retryAfter }: { retryAfter: number }) => {
+  const inRelativeTime = DateTime.now().plus({ milliseconds: retryAfter }).toRelative()
+  return `Too many requests, please try again ${inRelativeTime}.`
+}

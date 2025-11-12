@@ -24,6 +24,28 @@ export const authQuery = customQuery(query, {
   },
 })
 
+export const authMutation = customMutation(mutation, {
+  args: {},
+  input: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx)
+    return {
+      ctx: { ...ctx, userId },
+      args,
+    }
+  },
+})
+
+export const authAction = customAction(action, {
+  args: {},
+  input: async (ctx, args) => {
+    const { userId } = await requireAuth(ctx)
+    return {
+      ctx: { ...ctx, userId },
+      args,
+    }
+  },
+})
+
 export const memberQuery = customQuery(query, {
   args: {
     podId: v.id("pods"),
@@ -45,17 +67,6 @@ export const memberQuery = customQuery(query, {
   },
 })
 
-export const authMutation = customMutation(mutation, {
-  args: {},
-  input: async (ctx, args) => {
-    const { userId } = await requireAuth(ctx)
-    return {
-      ctx: { ...ctx, userId },
-      args,
-    }
-  },
-})
-
 export const memberMutation = customMutation(mutation, {
   args: {
     podId: v.id("pods"),
@@ -72,17 +83,6 @@ export const memberMutation = customMutation(mutation, {
 
     return {
       ctx: { ...ctx, userId, membership },
-      args,
-    }
-  },
-})
-
-export const authAction = customAction(action, {
-  args: {},
-  input: async (ctx, args) => {
-    const { userId } = await requireAuth(ctx)
-    return {
-      ctx: { ...ctx, userId },
       args,
     }
   },

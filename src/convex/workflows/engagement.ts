@@ -8,10 +8,11 @@ import * as z from "zod"
 import { components, internal } from "@/convex/_generated/api"
 import { internalAction, internalMutation, internalQuery } from "@/convex/_generated/server"
 import { aggregatePostEngagements } from "@/convex/aggregates"
+import { update } from "@/convex/helpers/convex"
 import { errorMessage, NotFoundError } from "@/convex/helpers/errors"
 import { LinkedInReaction, needsReconnection } from "@/lib/linkedin"
+import { pflatMap } from "@/lib/parallel"
 import { UnipileAPIError, unipile } from "@/lib/server/unipile"
-import { pflatMap } from "../../lib/parallel"
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
@@ -59,15 +60,13 @@ export const perform = workflow.define({
   handler: async (
     step,
     { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay },
-  ): Promise<number> => {
+  ) => {
     const skipUserIds = [userId]
 
     await step.runMutation(internal.workflows.engagement.patchPostStatus, {
       postId,
       status: "processing",
     })
-
-    let failedCount = 0
 
     for (let i = 0; i < targetCount; i++) {
       const [runAfter, reactionType] = await step.runAction(
@@ -82,7 +81,6 @@ export const perform = workflow.define({
       )
 
       if (!success) {
-        failedCount++
         console.error("[workflows/engagement:performOne]", {
           reactionType,
           podId,
@@ -94,8 +92,6 @@ export const perform = workflow.define({
         }
       }
     }
-
-    return failedCount
   },
 })
 
@@ -287,16 +283,15 @@ export const patchPostStatus = internalMutation({
   args: {
     postId: v.id("posts"),
     status: v.union(
-      v.literal("processing"),
-      v.literal("completed"),
-      v.literal("failed"),
       v.literal("canceled"),
+      v.literal("processing"),
+      v.literal("failed"),
+      v.literal("success"),
     ),
   },
-  handler: async (ctx, { postId, status }) => await ctx.db.patch(postId, { status }),
+  handler: async (ctx, { postId, status }) => await ctx.db.patch(postId, update({ status })),
 })
 
-// Internal mutation to handle workflow completion
 export const onComplete = internalMutation({
   args: {
     workflowId: vWorkflowId,
@@ -305,33 +300,9 @@ export const onComplete = internalMutation({
       postId: v.id("posts"),
     }),
   },
-  handler: async (ctx, { workflowId, result, context: { postId } }) => {
-    const completedAt = Date.now()
-    const status = result.kind
-
-    if (status !== "success") {
-      return await Promise.all([
-        workflow.cleanup(ctx, workflowId),
-        ctx.db.patch(postId, { status, completedAt }),
-      ])
-    }
-
-    // Determine final status based on workflow result
-    const { failedCount } = result.returnValue
-    // Aggregate count is source of truth for total engagements
-    const successCount = await aggregatePostEngagements.count(ctx, { namespace: postId })
-
-    return await Promise.all([
-      // Cleanup the workflow storage
+  handler: async (ctx, { workflowId, result: { kind: status }, context: { postId } }) =>
+    await Promise.all([
       workflow.cleanup(ctx, workflowId),
-      // Update the post with final status and metrics
-      // Use aggregate count as authoritative (survives retries, always accurate)
-      ctx.db.patch(postId, {
-        status: "completed",
-        completedAt,
-        successCount,
-        failedCount,
-      }),
-    ])
-  },
+      ctx.db.patch(postId, update({ status })),
+    ]),
 })

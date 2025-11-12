@@ -20,7 +20,7 @@ import {
   query as rawQuery,
 } from "@/convex/_generated/server"
 import { triggers } from "@/convex/triggers"
-import { needsConnection } from "@/lib/linkedin"
+import { requiresConnection } from "@/lib/linkedin"
 import { BadRequestError, UnauthorizedError } from "./errors"
 
 export const update = <T extends Record<string, unknown>>(data: T): T & { updatedAt: number } => ({
@@ -157,13 +157,13 @@ export const requireConnection = async (
       getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId),
       getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId),
     ])
-    if (!account || !profile || needsConnection(account?.status)) {
+    if (!account || !profile || requiresConnection(account?.status)) {
       throw new BadRequestError("CONNECTION")
     }
     return { account, profile }
   } else {
     const { account, profile } = await ctx.runQuery(api.fns.linkedin.getState, {})
-    if (!account || !profile || needsConnection(account?.status)) {
+    if (!account || !profile || requiresConnection(account?.status)) {
       throw new BadRequestError("CONNECTION")
     }
     return { account, profile }

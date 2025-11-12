@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { appURL, cn } from "@/lib/utils"
+import { cn, url } from "@/lib/utils"
 
 export type PodHeaderProps = {
   podId: Id<"pods">
@@ -24,14 +24,14 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
   }
 
   const { inviteCode } = pod
-  const inviteLink = appURL("sign-up", { searchParams: { inviteCode } })
+  const inviteURL = url("/sign-up", { searchParams: { inviteCode } })
 
   return (
     <HStack justify="between" items="center" className={cn("w-full gap-2", className)}>
       <PageTitle>{pod.name}</PageTitle>
       <Tooltip>
         <TooltipTrigger asChild>
-          <CopyButton icon={LuSend} content={inviteLink} variant="muted" className="-mt-1" />
+          <CopyButton icon={LuSend} content={inviteURL} variant="muted" className="-mt-1" />
         </TooltipTrigger>
         <TooltipContent>Share invite link</TooltipContent>
       </Tooltip>

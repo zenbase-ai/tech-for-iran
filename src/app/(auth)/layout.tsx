@@ -8,7 +8,7 @@ import { Box } from "@/components/layout/box"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { needsConnection } from "@/lib/linkedin"
+import { requiresConnection } from "@/lib/linkedin"
 import { Nav } from "./-nav"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -16,7 +16,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const status = linkedin?.account?.status
   const isConnectPage = usePathname() === "/settings/connect"
 
-  const forceConnect = !isConnectPage && status != null && needsConnection(status)
+  const forceConnect = !isConnectPage && status != null && requiresConnection(status)
   useTimeout(() => redirect("/settings/connect"), forceConnect ? 1000 : null)
   useEffect(() => {
     if (forceConnect) toast.info("Please connect your LinkedIn.")

@@ -2,10 +2,10 @@ import { fetchMutation, fetchQuery } from "convex/nextjs"
 import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
-import { needsConnection } from "@/lib/linkedin"
+import { requiresConnection } from "@/lib/linkedin"
 import { tokenAuth } from "@/lib/server/clerk"
+import { unipileHostedAuth } from "@/lib/server/unipile"
 import { queryString } from "@/lib/utils"
-import { unipileHostedAuthURL } from "./-actions"
 import { ConnectDialog } from "./-dialog"
 import { ConnectGate } from "./-gate"
 
@@ -40,21 +40,24 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
 
     if (!account && !validInviteCode) {
       return <ConnectGate inviteCode={inviteCode} validInviteCode={validInviteCode} />
-    } else if (needsConnection(account?.status)) {
-      const redirectURL = await unipileHostedAuthURL(userId, inviteCode)
-      return <ConnectDialog redirectURL={redirectURL} />
+    } else if (requiresConnection(account?.status)) {
+      const hostedAuth = await unipileHostedAuth(userId, inviteCode)
+      return <ConnectDialog redirectURL={hostedAuth.url} />
     }
   }
 
   if (inviteCode) {
-    const result = await fetchMutation(api.fns.pods.join, { inviteCode }, { token })
-    if ("error" in result) {
-      const { error } = result
-      return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
+    const { error, pod, success } = await fetchMutation(
+      api.fns.pods.join,
+      { inviteCode },
+      { token },
+    )
+
+    if (pod) {
+      return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
     }
 
-    const { pod, success } = result
-    return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
+    return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
   }
 
   return redirect("/pods", RedirectType.replace)

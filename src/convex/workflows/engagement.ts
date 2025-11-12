@@ -9,7 +9,7 @@ import { internalAction, internalQuery } from "@/convex/_generated/server"
 import { errorMessage } from "@/convex/helpers/errors"
 import { internalMutation, update } from "@/convex/helpers/server"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
-import { LinkedInReaction, needsConnection } from "@/lib/linkedin"
+import { LinkedInReaction, requiresConnection } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/parallel"
 import { UnipileAPIError, unipile } from "@/lib/server/unipile"
 
@@ -203,7 +203,7 @@ export const selectAvailableAccount = internalQuery({
       }
 
       const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-      if (!account || needsConnection(account?.status)) {
+      if (!account || requiresConnection(account?.status)) {
         return []
       }
 

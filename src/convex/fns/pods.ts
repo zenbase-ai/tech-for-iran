@@ -16,7 +16,9 @@ export const validate = authQuery({
     !!(await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)),
 })
 
-export type Join = { pod: Doc<"pods">; success: string } | { pod: null; error: string }
+export type Join =
+  | { pod: Doc<"pods">; success: string; error: null }
+  | { pod: null; success: null; error: string }
 
 export const join = connectedMutation({
   args: {
@@ -25,7 +27,7 @@ export const join = connectedMutation({
   handler: async (ctx, { inviteCode }): Promise<Join> => {
     const pod = await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)
     if (!pod) {
-      return { pod, error: "Invalid invite code." }
+      return { pod, success: null, error: "Invalid invite code." }
     }
 
     const membership = await ctx.db
@@ -37,7 +39,7 @@ export const join = connectedMutation({
       await ctx.db.insert("memberships", { userId: ctx.userId, podId: pod._id })
     }
 
-    return { pod, success: `Welcome to ${pod.name}!` }
+    return { pod, success: `Welcome to ${pod.name}!`, error: null }
   },
 })
 

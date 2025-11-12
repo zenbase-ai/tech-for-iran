@@ -263,10 +263,15 @@ export const postUnipileReaction = internalAction({
         })
         .json()
 
-      console.info(
-        `[workflows/engagement:postUnipileReaction] ${unipileId} ${urn} ${reactionType}`,
-        response,
-      )
+      if ("status" in response) {
+        throw new UnipileAPIError({
+          method: "POST",
+          path: "api/v1/posts/reaction",
+          status: response.status,
+          body: JSON.stringify(response),
+        })
+      }
+
       return null
     } catch (error: unknown) {
       if (error instanceof UnipileAPIError) {

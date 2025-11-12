@@ -27,11 +27,19 @@ export const submitPostSchema = {
 }
 
 export const calculateSchemaTargetCount = (memberCount?: number) => {
+  // If memberCount is provided, min should be at least 1, but not more than memberCount - 1
+  // (since you can't target yourself). Otherwise, use the schema's minimum.
   const min = memberCount ? Math.min(1, memberCount - 1) : submitPostSchema.min.targetCount
+
+  // If memberCount is provided, max should be memberCount - 1 (excluding yourself),
+  // but capped at the schema's maximum. Otherwise, use the schema's maximum.
   const max = memberCount
     ? Math.min(memberCount - 1, submitPostSchema.max.targetCount)
     : submitPostSchema.max.targetCount
+
+  // Default value should be the schema's default, but not exceed the calculated max
   const defaultValue = Math.min(submitPostSchema.defaultValues.targetCount, max)
+
   return { min, max, defaultValue }
 }
 

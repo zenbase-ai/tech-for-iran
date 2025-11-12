@@ -19,7 +19,9 @@
       "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/src/convex/helpers/unipile.ts)",
       "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/src/convex/helpers/linkedin.ts)",
       "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/src/proxy.ts)",
-      "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/middleware.ts)"
+      "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/middleware.ts)",
+      "Bash(just lint)",
+      "Bash(just fmt)"
     ],
     "deny": [],
     "ask": []

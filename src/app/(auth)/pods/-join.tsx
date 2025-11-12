@@ -6,22 +6,28 @@ import { useRouter } from "next/navigation"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
 import { useTimeout } from "usehooks-ts"
+import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
-import { JoinPodSchema, type JoinPodSchema as JoinPodSchemaType } from "./schema"
 
-export type JoinPodFormProps = {
+export const PodJoinSchema = z.object({
+  inviteCode: z.string().min(1),
+})
+
+export type PodJoinSchema = z.infer<typeof PodJoinSchema>
+
+export type PodJoinFormProps = {
   autoFocus?: boolean
   className?: string
 }
 
-export const JoinPodForm: React.FC<JoinPodFormProps> = ({ autoFocus, className }) => {
-  const form = useForm<JoinPodSchemaType>({
-    resolver: zodResolver(JoinPodSchema),
+export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }) => {
+  const form = useForm<PodJoinSchema>({
+    resolver: zodResolver(PodJoinSchema),
     defaultValues: { inviteCode: "" },
   })
 

@@ -1,5 +1,6 @@
 import { ConvexError } from "convex/values"
 import ky from "ky"
+import * as z from "zod"
 import { env } from "@/lib/env.mjs"
 
 export type UnipileAPIErrorData = {
@@ -28,4 +29,20 @@ export const unipile = ky.create({
       },
     ],
   },
+})
+
+export const UnipileAccountStatus = z.object({
+  AccountStatus: z.object({
+    account_id: z.string(),
+    account_type: z.literal("LINKEDIN"),
+    message: z.string(),
+  }),
+})
+export type UnipileAccountStatus = z.infer<typeof UnipileAccountStatus>
+
+export const unipileAccountStatus = ({
+  AccountStatus: { account_id, message },
+}: UnipileAccountStatus) => ({
+  unipileId: account_id,
+  status: message,
 })

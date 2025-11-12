@@ -14,7 +14,7 @@ import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import { ConfigSchema, type ConfigSchema as ConfigSchemaType, configSchema } from "./schema"
+import { ConfigSchema, configSchema } from "./schema"
 
 export type ConfigFormProps = {
   className?: string
@@ -24,7 +24,7 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
   const linkedin = useAuthQuery(api.fns.linkedin.getState)
   const mutate = useAsyncFn(useMutation(api.fns.linkedin.updateAccount))
 
-  const form = useForm<ConfigSchemaType>({
+  const form = useForm<ConfigSchema>({
     resolver: zodResolver(ConfigSchema),
     defaultValues: configSchema.defaultValues,
   })

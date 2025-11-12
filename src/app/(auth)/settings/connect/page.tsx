@@ -21,6 +21,8 @@ export const metadata: Metadata = {
 }
 
 export default async function LinkedinConnectPage({ searchParams }: LinkedinConnectPageParams) {
+  "use memo"
+
   const [{ userId, token }, { account_id, inviteCode }] = await Promise.all([
     tokenAuth(),
     searchParams,

@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import plur from "plur"
 import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
@@ -76,7 +75,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           <ItemGroup className="contents">
             {members.results.map((member) => (
               <Item key={member.userId} variant="outline" size="sm" asChild>
-                <Link href={member.url as any} target="_blank" rel="noopener noreferrer">
+                <a href={member.url} target="_blank" rel="noopener noreferrer">
                   <ItemMedia variant="image">
                     <Avatar className="size-10">
                       <AvatarImage
@@ -97,7 +96,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
                       Joined {new Date(member.joinedAt).toLocaleDateString()}
                     </ItemDescription>
                   </ItemContent>
-                </Link>
+                </a>
               </Item>
             ))}
           </ItemGroup>

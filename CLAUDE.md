@@ -305,7 +305,7 @@ This section documents the common coding patterns used throughout the codebase. 
   ```
 
 **useEffectEvent Pattern:**
-- Use `useEffectEvent` from `usehooks-ts` for stable callback references
+- Use `useEffectEvent` from `react` for stable callback references
 - Prevents unnecessary re-renders in async handlers
 - Example:
   ```typescript
@@ -502,7 +502,7 @@ This section documents the common coding patterns used throughout the codebase. 
 ### Validation
 
 **Schema-First Development:**
-- Define Zod schema in separate `schema.ts` files co-located with forms
+- Define Zod schema in separate `schema.ts` files co-located with forms if they are complex or used in multiple places.
 - Export schema object with min/max/defaults, then Zod schema, then TypeScript type
 - Example structure:
   ```typescript
@@ -627,7 +627,7 @@ src/
     ├── env.mjs             # Environment variable validation (@t3-oss/env-nextjs + Zod)
     ├── linkedin.ts         # LinkedIn-specific logic (reaction types, URL parsing)
     ├── parallel.ts         # Parallel utilities (pmap, pflatMap, pfilter)
-    ├── utils.ts            # Shared utilities (cn, linkProps, css, errorMessage, appURL)
+    ├── utils.ts            # Shared utilities (cn, css, errorMessage, appURL)
     └── server/             # Server-side utilities
         └── unipile.ts      # Unipile API client with error handling
 ```
@@ -687,6 +687,7 @@ src/
   - Post submission limited to 2 posts per 24 hours per user
   - Configured via `src/convex/ratelimits.ts` using `@convex-dev/rate-limiter`
   - Uses fixed window rate limiting strategy
+  - Convex has a max query concurrency of 100 within a single request, so we need to be careful not to exceed this.
 
 - **Randomization & Deduplication:**
   - Random member selection: uses `sample()` to pick from available pod members (excludes post author, already-engaged members, unhealthy accounts, daily limit reached)
@@ -738,7 +739,7 @@ src/
 - `src/lib/server/unipile.ts`: Unipile API client with error handling
 - `src/lib/linkedin.ts`: LinkedIn-specific logic (reaction types, URL parsing)
 - `src/lib/parallel.ts`: Parallel utilities (pmap, pflatMap, pfilter)
-- `src/lib/utils.ts`: Shared utilities (cn, linkProps, css, errorMessage, appURL)
+- `src/lib/utils.ts`: Shared utilities (cn, css, errorMessage, appURL)
 - `src/lib/env.mjs`: Environment variable validation with Zod
 
 **Authentication & Providers:**

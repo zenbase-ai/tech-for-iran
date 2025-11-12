@@ -4,7 +4,7 @@ import { Box } from "@/components/layout/box"
 import { PageDescription, PageTitle } from "@/components/layout/text"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery from "@/hooks/use-auth-paginated-query"
-import { JoinPodForm } from "./-join/form"
+import { PodJoinForm } from "./-join"
 import { PodsList } from "./-list"
 
 export default function PodsClientPage() {
@@ -20,7 +20,7 @@ export default function PodsClientPage() {
 
       <PodsList pods={pods} className="my-8" />
 
-      <JoinPodForm autoFocus={!pods.isLoading && pods.results.length === 0} />
+      <PodJoinForm autoFocus={!pods.isLoading && pods.results.length === 0} />
     </Box>
   )
 }

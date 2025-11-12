@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { configSchema } from "@/app/(auth)/settings/-config/schema"
 import { internal } from "@/convex/_generated/api"
-import { internalAction } from "@/convex/_generated/server"
+import { internalAction, internalQuery } from "@/convex/_generated/server"
 import { ConflictError, errorMessage, NotFoundError } from "@/convex/helpers/errors"
 import {
   authAction,
@@ -95,6 +95,7 @@ export const disconnectAccount = authAction({
     const { unipileId } = await ctx.runMutation(internal.fns.linkedin.deleteAccount, { userId })
     try {
       await unipile.delete<void>(`api/v1/accounts/${unipileId}`)
+      await ctx.runAction(internal.fns.linkedin.deleteUnipileAccount, { unipileId })
       return { success: "LinkedIn disconnected." }
     } catch (error) {
       return { error: errorMessage(error) }
@@ -150,25 +151,33 @@ export const upsertProfile = internalMutation({
     lastName: v.string(),
   },
   handler: async (ctx, { unipileId, ...patch }) => {
-    const { userId } = await getOneFromOrThrow(
-      ctx.db,
-      "linkedinAccounts",
-      "by_unipileId",
-      unipileId,
-    )
+    const [{ userId }, profile] = await Promise.all([
+      getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId),
+      getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
+    ])
+
     if (!userId) {
       throw new NotFoundError()
     }
 
-    const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId)
-
     if (profile) {
-      await ctx.db.patch(profile._id, update(patch))
+      await ctx.db.patch(profile._id, update({ ...patch, scheduledRefresh: undefined }))
       return profile._id
     }
 
-    return await ctx.db.insert("linkedinProfiles", update({ userId, unipileId, ...patch }))
+    return await ctx.db.insert(
+      "linkedinProfiles",
+      update({ userId, unipileId, ...patch, scheduledRefresh: undefined }),
+    )
   },
+})
+
+export const getProfile = internalQuery({
+  args: {
+    unipileId: v.string(),
+  },
+  handler: async (ctx, { unipileId }) =>
+    await getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
 })
 
 type FetchUnipileAccount = {
@@ -196,4 +205,12 @@ export const refreshProfile = internalAction({
       url: data.public_profile_url || `https://www.linkedin.com/in/${data.public_identifier}`,
     })
   },
+})
+
+export const deleteUnipileAccount = internalAction({
+  args: {
+    unipileId: v.string(),
+  },
+  handler: async (_ctx, { unipileId }) =>
+    await unipile.delete<void>(`api/v1/accounts/${unipileId}`),
 })

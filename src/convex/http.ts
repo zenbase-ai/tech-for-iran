@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server"
-import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
+import { UnipileAccountStatus, unipileAccountStatus } from "@/lib/server/unipile"
 
 const http = httpRouter()
 
@@ -11,23 +11,15 @@ http.route({
   handler: httpAction(async (ctx, request) => {
     const payload = await request.json()
 
-    const { data, error } = z
-      .object({
-        AccountStatus: z.object({
-          account_id: z.string(),
-          account_type: z.literal("LINKEDIN"),
-          message: z.string(),
-        }),
-      })
-      .safeParse(payload)
-    if (error) {
+    const { success, data } = UnipileAccountStatus.safeParse(payload)
+    if (!success) {
       console.warn("Unexpected Unipile webhook payload", payload)
       return new Response(null, { status: 201 })
     }
 
-    const { account_id: unipileId, message: status } = data.AccountStatus
+    const { unipileId, status } = unipileAccountStatus(data)
+    await ctx.runMutation(internal.fns.linkedin.upsertAccount, { unipileId, status })
 
-    await ctx.scheduler.runAfter(0, internal.fns.linkedin.upsertAccount, { unipileId, status })
     if (status === "SYNC_SUCCESS") {
       await ctx.scheduler.runAfter(0, internal.fns.linkedin.refreshProfile, { unipileId })
     }

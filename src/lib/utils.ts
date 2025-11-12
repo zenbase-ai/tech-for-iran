@@ -1,14 +1,8 @@
 import { type ClassValue, clsx } from "clsx"
-import type { LinkProps } from "next/link"
 import { twMerge } from "tailwind-merge"
 import { env } from "./env.mjs"
 
 export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
-
-export const isInternalLink = (href: string) => href.startsWith("/") || href.startsWith("#")
-
-export const linkProps = <R extends string>(href: LinkProps<R>["href"]) =>
-  isInternalLink(href.toString()) ? { href } : { href, target: "_blank" }
 
 export type CSS = React.CSSProperties & {
   [variable: `--${string}`]: string | number

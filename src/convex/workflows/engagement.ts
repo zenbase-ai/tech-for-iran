@@ -180,18 +180,18 @@ export const selectAvailableAccount = internalQuery({
         return []
       }
 
-      const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-
-      const canAccountEngage = !!account?.userId && !needsConnection(account?.status)
-      if (!canAccountEngage) {
-        return []
-      }
-
       const didAccountAlreadyEngage = await ctx.db
         .query("engagements")
         .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
         .first()
       if (didAccountAlreadyEngage) {
+        return []
+      }
+
+      const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+
+      const canAccountEngage = !!account?.userId && !needsConnection(account?.status)
+      if (!canAccountEngage) {
         return []
       }
 

@@ -9,7 +9,7 @@ import {
 import { internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { podMembers } from "@/convex/aggregates"
-import { BadRequestError, errorMessage, NotFoundError } from "@/convex/helpers/errors"
+import { BadRequestError, errorMessage } from "@/convex/helpers/errors"
 import {
   connectedAction,
   connectedMemberMutation,
@@ -71,10 +71,6 @@ export const submit = connectedMemberMutation({
       return { postId: null, error: "Failed to parse URL." }
     }
 
-    const pod = await ctx.db.get(podId)
-    if (!pod) {
-      throw new NotFoundError()
-    }
     if (await getOneFrom(ctx.db, "posts", "by_urn", urn)) {
       return { postId: null, error: "Cannot resubmit a post." }
     }

@@ -238,7 +238,7 @@ export const postUnipileReaction = internalAction({
   },
   handler: async (_ctx, { unipileId, urn, reactionType }): Promise<string | null> => {
     try {
-      await unipile.post<void>("/api/v1/posts/reaction", {
+      await unipile.post<void>("api/v1/posts/reaction", {
         json: {
           account_id: unipileId,
           post_id: urn,
@@ -276,11 +276,11 @@ export const upsertEngagement = internalMutation({
     const state = { reactionType, success: !args.error, error: args.error ?? undefined }
 
     if (engagement) {
-      await ctx.db.patch(engagement._id, update(state))
+      await ctx.db.patch(engagement._id, state)
       return engagement._id
     }
 
-    return await ctx.db.insert("engagements", update({ postId, userId, ...state }))
+    return await ctx.db.insert("engagements", { postId, userId, ...state })
   },
 })
 

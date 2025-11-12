@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { zip } from "es-toolkit"
-import { authQuery } from "@/convex/helpers/server"
+import { authQuery } from "@/convex/_helpers/server"
 import { pmap } from "@/lib/parallel"
 
 export const pods = authQuery({

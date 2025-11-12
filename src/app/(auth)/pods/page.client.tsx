@@ -4,11 +4,11 @@ import { Box } from "@/components/layout/box"
 import { PageDescription, PageTitle } from "@/components/layout/text"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery from "@/hooks/use-auth-paginated-query"
-import { PodJoinForm } from "./-join"
-import { PodsList } from "./-list"
+import { PodJoinForm } from "./_join"
+import { PodsList } from "./_list"
 
 export default function PodsClientPage() {
-  const pods = useAuthPaginatedQuery(api.fns.user.pods, {}, { initialNumItems: 12 })
+  const pods = useAuthPaginatedQuery(api.user.query.pods, {}, { initialNumItems: 12 })
 
   return (
     <Box className="px-2 w-full max-w-[640px] mx-auto">

@@ -35,9 +35,9 @@ export const PodMembers: React.FC<PodMembersProps> = ({
   className,
   membersPageSize = 8,
 }) => {
-  const stats = useAuthQuery(api.fns.pods.stats, { podId })
+  const stats = useAuthQuery(api.pods.query.stats, { podId })
   const members = useAuthPaginatedQuery(
-    api.fns.pods.members,
+    api.pods.query.members,
     { podId },
     { initialNumItems: membersPageSize },
   )

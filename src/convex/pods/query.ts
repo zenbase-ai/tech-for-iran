@@ -2,10 +2,9 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import { pick } from "es-toolkit"
-import type { Doc } from "@/convex/_generated/dataModel"
+import { NotFoundError } from "@/convex/_helpers/errors"
+import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
-import { NotFoundError } from "@/convex/helpers/errors"
-import { authQuery, connectedMutation, memberQuery } from "@/convex/helpers/server"
 import { pflatMap } from "@/lib/parallel"
 
 export const validate = authQuery({
@@ -14,33 +13,6 @@ export const validate = authQuery({
   },
   handler: async (ctx, { inviteCode }) =>
     !!(await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)),
-})
-
-export type Join =
-  | { pod: Doc<"pods">; success: string; error: null }
-  | { pod: null; success: null; error: string }
-
-export const join = connectedMutation({
-  args: {
-    inviteCode: v.string(),
-  },
-  handler: async (ctx, { inviteCode }): Promise<Join> => {
-    const pod = await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)
-    if (!pod) {
-      return { pod, success: null, error: "Invalid invite code." }
-    }
-
-    const membership = await ctx.db
-      .query("memberships")
-      .withIndex("by_userId", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
-      .first()
-
-    if (!membership) {
-      await ctx.db.insert("memberships", { userId: ctx.userId, podId: pod._id })
-    }
-
-    return { pod, success: `Welcome to ${pod.name}!`, error: null }
-  },
 })
 
 export const get = memberQuery({

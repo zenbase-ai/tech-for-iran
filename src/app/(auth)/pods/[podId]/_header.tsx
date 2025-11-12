@@ -17,7 +17,7 @@ export type PodHeaderProps = {
 }
 
 export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
-  const pod = useAuthQuery(api.fns.pods.get, { podId })
+  const pod = useAuthQuery(api.pods.query.get, { podId })
 
   if (!pod) {
     return <Skeleton className={cn("w-full h-15", className)} />

@@ -81,10 +81,10 @@ This section documents the common coding patterns used throughout the codebase. 
 - Enables automatic memoization without manual `useMemo`/`useCallback`
 
 **Private Component Pattern:**
-- Components prefixed with `-` are private/co-located (not exported for external use)
-- Examples: `-header.tsx`, `-members.tsx`, `-submit/`, `-config/`
-- Pattern: Keep route-specific components co-located with pages using `-` prefix
-- Example: `src/app/(auth)/pods/[podId]/-members.tsx` is only used by that route
+- Components prefixed with `_` are private/co-located (not exported for external use)
+- Examples: `_header.tsx`, `_members.tsx`, `_submit/`, `_config/`
+- Pattern: Keep route-specific components co-located with pages using `_` prefix
+- Example: `src/app/(auth)/pods/[podId]/_members.tsx` is only used by that route
 
 **Component Type Definitions:**
 - Use `React.FC<PropsType>` for functional components
@@ -775,9 +775,9 @@ src/
 ## Working with Convex
 
 **Running Convex Functions:**
-- Queries (read-only): `useQuery(api.fns.path.to.query, { args })`
-- Mutations (writes): `useMutation(api.fns.path.to.mutation)` → `mutate({ args })`
-- Actions (external APIs): `useAction(api.fns.path.to.action)` → `action({ args })`
+- Queries (read-only): `useQuery(api.path.to.query, { args })`
+- Mutations (writes): `useMutation(api.path.to.mutation)` → `mutate({ args })`
+- Actions (external APIs): `useAction(api.path.to.action)` → `action({ args })`
 
 **Authentication in Convex:**
 

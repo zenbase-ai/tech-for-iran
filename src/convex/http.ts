@@ -18,10 +18,10 @@ http.route({
     }
 
     const { unipileId, status } = unipileAccountStatus(data)
-    await ctx.runMutation(internal.fns.linkedin.upsertAccount, { unipileId, status })
+    await ctx.runMutation(internal.linkedin.mutate.upsertAccount, { unipileId, status })
 
     if (status === "SYNC_SUCCESS") {
-      await ctx.scheduler.runAfter(0, internal.fns.linkedin.refreshProfile, { unipileId })
+      await ctx.scheduler.runAfter(0, internal.linkedin.action.refreshProfile, { unipileId })
     }
 
     return new Response(null, { status: 201 })

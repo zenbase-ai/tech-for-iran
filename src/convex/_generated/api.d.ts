@@ -8,20 +8,28 @@
  * @module
  */
 
+import type * as _helpers_errors from "../_helpers/errors.js";
+import type * as _helpers_server from "../_helpers/server.js";
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as fns_linkedin from "../fns/linkedin.js";
-import type * as fns_moderation from "../fns/moderation.js";
-import type * as fns_pods from "../fns/pods.js";
-import type * as fns_posts from "../fns/posts.js";
-import type * as fns_user from "../fns/user.js";
-import type * as helpers_errors from "../helpers/errors.js";
-import type * as helpers_server from "../helpers/server.js";
+import type * as engagement_action from "../engagement/action.js";
+import type * as engagement_mutate from "../engagement/mutate.js";
+import type * as engagement_query from "../engagement/query.js";
+import type * as engagement_workflow from "../engagement/workflow.js";
 import type * as http from "../http.js";
+import type * as linkedin_action from "../linkedin/action.js";
+import type * as linkedin_mutate from "../linkedin/mutate.js";
+import type * as linkedin_query from "../linkedin/query.js";
 import type * as migrations from "../migrations.js";
+import type * as moderation from "../moderation.js";
+import type * as pods_mutate from "../pods/mutate.js";
+import type * as pods_query from "../pods/query.js";
+import type * as posts_action from "../posts/action.js";
+import type * as posts_mutate from "../posts/mutate.js";
+import type * as posts_query from "../posts/query.js";
 import type * as ratelimits from "../ratelimits.js";
 import type * as triggers from "../triggers.js";
-import type * as workflows_engagement from "../workflows/engagement.js";
+import type * as user_query from "../user/query.js";
 
 import type {
   ApiFromModules,
@@ -30,20 +38,28 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "_helpers/errors": typeof _helpers_errors;
+  "_helpers/server": typeof _helpers_server;
   aggregates: typeof aggregates;
   auth: typeof auth;
-  "fns/linkedin": typeof fns_linkedin;
-  "fns/moderation": typeof fns_moderation;
-  "fns/pods": typeof fns_pods;
-  "fns/posts": typeof fns_posts;
-  "fns/user": typeof fns_user;
-  "helpers/errors": typeof helpers_errors;
-  "helpers/server": typeof helpers_server;
+  "engagement/action": typeof engagement_action;
+  "engagement/mutate": typeof engagement_mutate;
+  "engagement/query": typeof engagement_query;
+  "engagement/workflow": typeof engagement_workflow;
   http: typeof http;
+  "linkedin/action": typeof linkedin_action;
+  "linkedin/mutate": typeof linkedin_mutate;
+  "linkedin/query": typeof linkedin_query;
   migrations: typeof migrations;
+  moderation: typeof moderation;
+  "pods/mutate": typeof pods_mutate;
+  "pods/query": typeof pods_query;
+  "posts/action": typeof posts_action;
+  "posts/mutate": typeof posts_mutate;
+  "posts/query": typeof posts_query;
   ratelimits: typeof ratelimits;
   triggers: typeof triggers;
-  "workflows/engagement": typeof workflows_engagement;
+  "user/query": typeof user_query;
 }>;
 
 /**

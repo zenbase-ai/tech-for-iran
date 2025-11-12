@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
-import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
@@ -14,32 +13,32 @@ import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import { ConfigSchema, configSchema } from "./schema"
+import { Config, config } from "./schema"
 
 export type ConfigFormProps = {
   className?: string
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
-  const linkedin = useAuthQuery(api.fns.linkedin.getState)
-  const mutate = useAsyncFn(useMutation(api.fns.linkedin.updateAccount))
+  const maxActions = useAuthQuery(api.linkedin.query.getState)?.account?.maxActions
 
-  const form = useForm<ConfigSchema>({
-    resolver: zodResolver(ConfigSchema),
-    defaultValues: configSchema.defaultValues,
+  return maxActions == null ? (
+    <Skeleton className={cn("w-full h-29", className)} />
+  ) : (
+    <ActualConfigForm className={className} maxActions={maxActions} />
+  )
+}
+
+type ActualConfigFormProps = ConfigFormProps & {
+  maxActions: number
+}
+
+const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ maxActions, className }) => {
+  const mutate = useAsyncFn(useMutation(api.linkedin.mutate.updateAccount))
+  const form = useForm<Config>({
+    resolver: zodResolver(Config),
+    defaultValues: { ...config.defaultValues, maxActions },
   })
-
-  const maxActions = linkedin?.account?.maxActions
-  useEffect(() => {
-    if (maxActions != null) {
-      form.setValue("maxActions", maxActions)
-    }
-  }, [maxActions, form.setValue])
-
-  const isLoading = maxActions == null
-  if (isLoading) {
-    return <Skeleton className={cn("w-full h-29", className)} />
-  }
 
   return (
     <form
@@ -57,8 +56,8 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
                 {...field}
                 id={field.name}
                 type="number"
-                min={configSchema.min.maxActions}
-                max={configSchema.max.maxActions}
+                min={config.min.maxActions}
+                max={config.max.maxActions}
                 aria-invalid={fieldState.invalid}
                 disabled={form.formState.isSubmitting}
                 onChange={(e) => field.onChange(e.target.valueAsNumber)}

@@ -1,7 +1,6 @@
-import createBundleAnalyzer from "@next/bundle-analyzer"
 import type { NextConfig } from "next"
 
-let config: NextConfig = {
+const config: NextConfig = {
   typedRoutes: true,
   reactCompiler: {
     compilationMode: "annotation",
@@ -13,9 +12,5 @@ let config: NextConfig = {
     turbopackFileSystemCacheForDev: true,
   },
 }
-
-config = createBundleAnalyzer({
-  enabled: Boolean(process.env.ANALYZE),
-})(config)
 
 export default config

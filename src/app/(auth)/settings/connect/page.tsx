@@ -6,8 +6,8 @@ import { requiresConnection } from "@/lib/linkedin"
 import { tokenAuth } from "@/lib/server/clerk"
 import { unipileHostedAuth } from "@/lib/server/unipile"
 import { queryString } from "@/lib/utils"
-import { ConnectDialog } from "./-dialog"
-import { ConnectGate } from "./-gate"
+import { ConnectDialog } from "./_dialog"
+import { ConnectGate } from "./_gate"
 
 export type LinkedinConnectPageParams = {
   searchParams: Promise<{
@@ -29,12 +29,12 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
   ])
 
   if (account_id) {
-    await fetchMutation(api.fns.linkedin.connectAccount, { unipileId: account_id }, { token })
+    await fetchMutation(api.linkedin.mutate.connectAccount, { unipileId: account_id }, { token })
   } else {
     const [{ account }, validInviteCode] = await Promise.all([
-      fetchQuery(api.fns.linkedin.getState, {}, { token }),
+      fetchQuery(api.linkedin.query.getState, {}, { token }),
       inviteCode
-        ? fetchQuery(api.fns.pods.validate, { inviteCode }, { token })
+        ? fetchQuery(api.pods.query.validate, { inviteCode }, { token })
         : Promise.resolve(undefined),
     ])
 
@@ -48,7 +48,7 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
 
   if (inviteCode) {
     const { error, pod, success } = await fetchMutation(
-      api.fns.pods.join,
+      api.pods.mutate.join,
       { inviteCode },
       { token },
     )

@@ -4,9 +4,9 @@ import { HStack, VStack } from "@/components/layout/stack"
 import { PageTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ConfigForm } from "./-config/form"
-import { DisconnectButton } from "./-disconnect"
-import { RefreshButton } from "./-refresh"
+import { ConfigForm } from "./_config/form"
+import { DisconnectButton } from "./_disconnect"
+import { RefreshButton } from "./_refresh"
 
 export const metadata: Metadata = {
   title: "Settings | Crackedbook",

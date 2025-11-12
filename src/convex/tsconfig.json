@@ -22,8 +22,9 @@
     "./**/*.ts",
     "./**/*.tsx",
     "../lib/linkedin.ts",
-    "../lib/server/unipile.ts",
-    "../lib/parallel.ts"
+    "../lib/parallel.ts",
+    "../lib/server/openai.ts",
+    "../lib/server/unipile.ts"
   ],
   "exclude": ["./_generated"]
 }

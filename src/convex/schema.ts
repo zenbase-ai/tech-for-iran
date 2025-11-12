@@ -23,6 +23,8 @@ const schema = defineSchema({
     lastName: v.string(),
     picture: v.string(),
     url: v.string(),
+    location: v.optional(v.string()),
+    headline: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId", "unipileId"])

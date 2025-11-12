@@ -9,10 +9,10 @@ import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { requiresConnection } from "@/lib/linkedin"
-import { Nav } from "./-nav"
+import { Nav } from "./_nav"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  const linkedin = useAuthQuery(api.fns.linkedin.getState)
+  const linkedin = useAuthQuery(api.linkedin.query.getState)
   const status = linkedin?.account?.status
   const isConnectPage = usePathname() === "/settings/connect"
 

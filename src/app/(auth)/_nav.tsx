@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils"
 export type NavProps = Omit<ItemProps, "asChild" | "variant">
 
 export const Nav: React.FC<NavProps> = ({ className, ...props }) => {
-  const { account, profile } = useAuthQuery(api.fns.linkedin.getState) ?? {}
+  const { account, profile } = useAuthQuery(api.linkedin.query.getState) ?? {}
 
   return (
     <Item

@@ -26,7 +26,7 @@ export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
   className,
   ...props
 }) => {
-  const action = useAsyncFn(useAction(api.fns.linkedin.disconnectAccount))
+  const action = useAsyncFn(useAction(api.linkedin.action.disconnectAccount))
   const [isOpen, setOpen] = useState(false)
 
   return (

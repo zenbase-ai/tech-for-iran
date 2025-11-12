@@ -33,12 +33,11 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const stats = useAuthQuery(api.fns.pods.stats, { podId })
-  if (!stats) {
-    return <Skeleton className={cn("w-full h-84 mt-1", className)} />
-  }
+  const stats = useAuthQuery(api.pods.query.stats, { podId })
 
-  return (
+  return stats == null ? (
+    <Skeleton className={cn("w-full h-84 mt-1", className)} />
+  ) : (
     <ActualSubmitPostForm podId={podId} className={className} memberCount={stats.memberCount} />
   )
 }
@@ -54,7 +53,7 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
 }) => {
   const targetCount = calculateTargetCount(memberCount)
 
-  const action = useAsyncFn(useAction(api.fns.posts.submit))
+  const action = useAsyncFn(useAction(api.posts.action.submit))
   const form = useForm<SubmitPost>({
     resolver: zodResolver(SubmitPost),
     defaultValues: { ...submitPost.defaultValues, targetCount: targetCount.defaultValue },

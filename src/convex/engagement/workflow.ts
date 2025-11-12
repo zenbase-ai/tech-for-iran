@@ -1,17 +1,11 @@
 import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
-import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import { randomInt, sample } from "es-toolkit"
-import * as z from "zod"
 import { components, internal } from "@/convex/_generated/api"
-import { internalAction, internalQuery } from "@/convex/_generated/server"
-import { errorMessage } from "@/convex/helpers/errors"
-import { internalMutation, update } from "@/convex/helpers/server"
-import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
-import { LinkedInReaction, requiresConnection } from "@/lib/linkedin"
-import { pflatMap } from "@/lib/parallel"
-import { UnipileAPIError, unipile } from "@/lib/server/unipile"
+import { internalAction } from "@/convex/_generated/server"
+import { internalMutation, update } from "@/convex/_helpers/server"
+import { LinkedInReaction } from "@/lib/linkedin"
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
@@ -81,7 +75,7 @@ export const perform = workflow.define({
   ) => {
     const skipUserIds = [userId]
 
-    await step.runMutation(internal.workflows.engagement.patchPostStatus, {
+    await step.runMutation(internal.engagement.mutate.patchPostStatus, {
       postId,
       status: "processing",
     })
@@ -90,12 +84,12 @@ export const perform = workflow.define({
 
     for (; i <= targetCount; i++) {
       const [runAfter, reactionType] = await step.runAction(
-        internal.workflows.engagement.performOneRandomParams,
+        internal.engagement.workflow.performOneRandomParams,
         { i, minDelay, maxDelay, reactionTypes },
       )
 
       const success = await step.runAction(
-        internal.workflows.engagement.performOne,
+        internal.engagement.workflow.performOne,
         { podId, postId, urn, reactionType, skipUserIds },
         { runAfter }, // runAfter is relative to now; not workflow start
       )
@@ -136,7 +130,7 @@ export const performOne = internalAction({
     skipUserIds: v.array(v.string()),
   },
   handler: async (ctx, { podId, urn, reactionType, postId, skipUserIds }): Promise<PerformOne> => {
-    const account = await ctx.runQuery(internal.workflows.engagement.selectAvailableAccount, {
+    const account = await ctx.runQuery(internal.engagement.query.selectAvailableAccount, {
       podId,
       postId,
       skipUserIds,
@@ -146,13 +140,13 @@ export const performOne = internalAction({
     }
 
     const { userId, unipileId } = account
-    const error = await ctx.runAction(internal.workflows.engagement.postUnipileReaction, {
+    const error = await ctx.runAction(internal.engagement.action.postUnipileReaction, {
       unipileId,
       urn,
       reactionType,
     })
 
-    await ctx.runMutation(internal.workflows.engagement.upsertEngagement, {
+    await ctx.runMutation(internal.engagement.mutate.upsertEngagement, {
       userId,
       postId,
       reactionType,
@@ -160,7 +154,7 @@ export const performOne = internalAction({
     })
 
     if (error) {
-      console.error("[workflows/engagement:performOne]", {
+      console.error("[engagement/action:performOne]", {
         reactionType,
         podId,
         postId,
@@ -170,160 +164,6 @@ export const performOne = internalAction({
 
     return true
   },
-})
-
-const SelectAvailableAccount = z.union([
-  z.null(),
-  z.object({
-    unipileId: z.string(),
-    userId: z.string(),
-  }),
-])
-
-type SelectAvailableAccount = z.infer<typeof SelectAvailableAccount>
-
-export const selectAvailableAccount = internalQuery({
-  args: {
-    podId: v.id("pods"),
-    postId: v.id("posts"),
-    skipUserIds: v.array(v.string()),
-  },
-  handler: async (ctx, { podId, postId, skipUserIds }): Promise<SelectAvailableAccount> => {
-    const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
-
-    const availableAccounts = await pflatMap(members, async ({ userId }) => {
-      if (skipUserIds.includes(userId)) {
-        return []
-      }
-
-      const didAccountAlreadyEngage = await ctx.db
-        .query("engagements")
-        .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
-        .first()
-      if (didAccountAlreadyEngage) {
-        return []
-      }
-
-      const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-      if (!account || requiresConnection(account?.status)) {
-        return []
-      }
-
-      const { ok } = await ratelimits.check(ctx, ...accountActionsRateLimit(account))
-      if (!ok) {
-        return []
-      }
-
-      const { success, data, error } = SelectAvailableAccount.safeParse(account)
-      if (!success) {
-        console.error("[workflows/engagement:selectAvailableAccount]", error)
-        return []
-      }
-
-      return [data]
-    })
-
-    const account = sample(availableAccounts)
-    if (!account) {
-      return null
-    }
-
-    return account
-  },
-})
-
-const PostUnipileReaction = z.union([
-  z.object({ object: z.literal("ReactionAdded") }),
-  z.object({
-    title: z.string(),
-    detail: z.string(),
-    instance: z.string(),
-    status: z.number(),
-    type: z.string(),
-  }),
-])
-
-type PostUnipileReaction = z.infer<typeof PostUnipileReaction>
-
-export const postUnipileReaction = internalAction({
-  args: {
-    unipileId: v.string(),
-    urn: v.string(),
-    reactionType: v.string(),
-  },
-  handler: async (_ctx, { unipileId, urn, reactionType }): Promise<string | null> => {
-    try {
-      const response = await unipile
-        .post<PostUnipileReaction>("api/v1/posts/reaction", {
-          json: {
-            account_id: unipileId,
-            post_id: urn,
-            reaction_type: LinkedInReaction.parse(reactionType),
-          },
-        })
-        .json()
-
-      if ("status" in response) {
-        throw new UnipileAPIError({
-          method: "POST",
-          path: "api/v1/posts/reaction",
-          status: response.status,
-          body: JSON.stringify(response),
-        })
-      }
-
-      return null
-    } catch (error: unknown) {
-      if (error instanceof UnipileAPIError) {
-        const status = error.data.status
-        const isTransient = [429, 500, 503, 504].includes(status)
-        if (isTransient) {
-          throw error // triggers retries
-        }
-      }
-
-      return errorMessage(error)
-    }
-  },
-})
-
-export const upsertEngagement = internalMutation({
-  args: {
-    postId: v.id("posts"),
-    userId: v.string(),
-    reactionType: v.string(),
-    error: v.union(v.string(), v.null()),
-  },
-  handler: async (ctx, { postId, userId, reactionType, ...args }) => {
-    const success = !args.error
-    const error = args.error ?? undefined
-    const state = { reactionType, success, error }
-
-    const engagement = await ctx.db
-      .query("engagements")
-      .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
-      .first()
-
-    if (engagement) {
-      await ctx.db.patch(engagement._id, state)
-      return engagement._id
-    }
-
-    return await ctx.db.insert("engagements", { postId, userId, ...state })
-  },
-})
-
-export const patchPostStatus = internalMutation({
-  args: {
-    postId: v.id("posts"),
-    status: v.union(
-      v.literal("canceled"),
-      v.literal("processing"),
-      v.literal("failed"),
-      v.literal("success"),
-    ),
-  },
-  handler: async (ctx, { postId, status }) => await ctx.db.patch(postId, update({ status })),
 })
 
 export const onComplete = internalMutation({

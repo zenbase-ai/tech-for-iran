@@ -91,7 +91,7 @@ export const requireMembership = async (
     }
     return { membership }
   } else {
-    const membership = await ctx.runQuery(api.fns.user.membership, { podId })
+    const membership = await ctx.runQuery(api.user.query.membership, { podId })
     if (!membership) {
       throw new UnauthorizedError("MEMBERSHIP")
     }
@@ -162,7 +162,7 @@ export const requireConnection = async (
     }
     return { account, profile }
   } else {
-    const { account, profile } = await ctx.runQuery(api.fns.linkedin.getState, {})
+    const { account, profile } = await ctx.runQuery(api.linkedin.query.getState, {})
     if (!account || !profile || requiresConnection(account?.status)) {
       throw new BadRequestError("CONNECTION")
     }

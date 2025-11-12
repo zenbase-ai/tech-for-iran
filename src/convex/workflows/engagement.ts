@@ -86,7 +86,9 @@ export const perform = workflow.define({
       status: "processing",
     })
 
-    for (let i = 0; i < targetCount; i++) {
+    let i = 1
+
+    for (; i <= targetCount; i++) {
       const [runAfter, reactionType] = await step.runAction(
         internal.workflows.engagement.performOneRandomParams,
         { i, minDelay, maxDelay, reactionTypes },

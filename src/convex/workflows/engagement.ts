@@ -214,7 +214,7 @@ export const selectAvailableAccount = internalQuery({
 
       const { success, data, error } = SelectAvailableAccount.safeParse(account)
       if (!success) {
-        console.error(error)
+        console.error("[workflows/engagement:selectAvailableAccount]", error)
         return []
       }
 
@@ -230,6 +230,19 @@ export const selectAvailableAccount = internalQuery({
   },
 })
 
+const PostUnipileReaction = z.union([
+  z.object({ object: z.literal("ReactionAdded") }),
+  z.object({
+    title: z.string(),
+    detail: z.string(),
+    instance: z.string(),
+    status: z.number(),
+    type: z.string(),
+  }),
+])
+
+type PostUnipileReaction = z.infer<typeof PostUnipileReaction>
+
 export const postUnipileReaction = internalAction({
   args: {
     unipileId: v.string(),
@@ -238,13 +251,20 @@ export const postUnipileReaction = internalAction({
   },
   handler: async (_ctx, { unipileId, urn, reactionType }): Promise<string | null> => {
     try {
-      await unipile.post<void>("api/v1/posts/reaction", {
-        json: {
-          account_id: unipileId,
-          post_id: urn,
-          reaction_type: LinkedInReaction.parse(reactionType),
-        },
-      })
+      const response = await unipile
+        .post<PostUnipileReaction>("api/v1/posts/reaction", {
+          json: {
+            account_id: unipileId,
+            post_id: urn,
+            reaction_type: LinkedInReaction.parse(reactionType),
+          },
+        })
+        .json()
+
+      console.info(
+        `[workflows/engagement:postUnipileReaction] ${unipileId} ${urn} ${reactionType}`,
+        response,
+      )
       return null
     } catch (error: unknown) {
       if (error instanceof UnipileAPIError) {
@@ -268,12 +288,14 @@ export const upsertEngagement = internalMutation({
     error: v.union(v.string(), v.null()),
   },
   handler: async (ctx, { postId, userId, reactionType, ...args }) => {
+    const success = !args.error
+    const error = args.error ?? undefined
+    const state = { reactionType, success, error }
+
     const engagement = await ctx.db
       .query("engagements")
       .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
       .first()
-
-    const state = { reactionType, success: !args.error, error: args.error ?? undefined }
 
     if (engagement) {
       await ctx.db.patch(engagement._id, state)
@@ -305,9 +327,8 @@ export const onComplete = internalMutation({
       postId: v.id("posts"),
     }),
   },
-  handler: async (ctx, { workflowId, result: { kind: status }, context: { postId } }) =>
-    await Promise.all([
-      workflow.cleanup(ctx, workflowId),
-      ctx.db.patch(postId, update({ status })),
-    ]),
+  handler: async (ctx, { workflowId, result: { kind: status }, context: { postId } }) => {
+    await Promise.all([workflow.cleanup(ctx, workflowId), ctx.db.patch(postId, update({ status }))])
+    return null
+  },
 })

@@ -1,3 +1,4 @@
+import { regex } from "arkregex"
 import * as z from "zod"
 
 /**
@@ -31,3 +32,15 @@ export const LinkedInReaction = z.enum([
 ])
 
 export type LinkedInReaction = z.infer<typeof LinkedInReaction>
+
+export const urlRegex = regex("activity-(\\d+)")
+export const urnRegex = regex("urn:li:activity:(\\d+)")
+
+export const parsePostURN = (url: string): string | null => {
+  const activityId = (urlRegex.exec(url) ?? urnRegex.exec(url))?.[1]
+  if (!activityId) {
+    return null
+  }
+
+  return `urn:li:activity:${activityId}`
+}

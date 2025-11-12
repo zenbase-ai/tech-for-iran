@@ -4,7 +4,7 @@ import { config } from "@/app/(auth)/settings/_config/schema"
 import { ConflictError, NotFoundError } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
 
-export const connectAccount = authMutation({
+export const connectOwn = authMutation({
   args: {
     unipileId: v.string(),
   },
@@ -41,7 +41,7 @@ export const connectAccount = authMutation({
   },
 })
 
-export const updateAccount = connectedMutation({
+export const configure = connectedMutation({
   args: {
     maxActions: v.number(),
   },
@@ -51,7 +51,7 @@ export const updateAccount = connectedMutation({
   },
 })
 
-export const deleteAccount = internalMutation({
+export const disconnect = internalMutation({
   args: {
     userId: v.string(),
   },

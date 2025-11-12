@@ -1,10 +1,12 @@
 import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
-import { randomInt, sample } from "es-toolkit"
+import { clamp, randomInt, sample } from "es-toolkit"
+import { calculateTargetCount } from "@/app/(auth)/pods/[podId]/posts/_submit/schema"
 import { components, internal } from "@/convex/_generated/api"
-import { internalAction } from "@/convex/_generated/server"
-import { internalMutation, update } from "@/convex/_helpers/server"
+import { internalAction, internalMutation } from "@/convex/_generated/server"
+import { update } from "@/convex/_helpers/server"
+import { podMembers } from "@/convex/aggregates"
 import { LinkedInReaction } from "@/lib/linkedin"
 
 export const workflow = new WorkflowManager(components.workflow, {
@@ -61,8 +63,8 @@ export const workflow = new WorkflowManager(components.workflow, {
 export const perform = workflow.define({
   args: {
     userId: v.string(),
-    postId: v.id("posts"),
     podId: v.id("pods"),
+    postId: v.id("posts"),
     urn: v.string(),
     reactionTypes: v.array(v.string()),
     targetCount: v.number(),
@@ -140,7 +142,7 @@ export const performOne = internalAction({
     }
 
     const { userId, unipileId } = account
-    const error = await ctx.runAction(internal.engagement.action.postUnipileReaction, {
+    const { error } = await ctx.runAction(internal.unipile.post.react, {
       unipileId,
       urn,
       reactionType,
@@ -163,6 +165,36 @@ export const performOne = internalAction({
     }
 
     return true
+  },
+})
+
+export const start = internalMutation({
+  args: {
+    podId: v.id("pods"),
+    userId: v.string(),
+    postId: v.id("posts"),
+    url: v.string(),
+    urn: v.string(),
+    reactionTypes: v.array(v.string()),
+    targetCount: v.number(),
+    minDelay: v.number(),
+    maxDelay: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [args.podId] } })
+    const { min: minTargetCount, max: maxTargetCount } = calculateTargetCount(memberCount)
+    const targetCount = clamp(args.targetCount, minTargetCount, maxTargetCount)
+
+    const context = { postId: args.postId }
+    const onComplete = internal.engagement.workflow.onComplete
+    const workflowId = await workflow.start(
+      ctx,
+      internal.engagement.workflow.perform,
+      { ...args, targetCount },
+      { context, onComplete, startAsync: true },
+    )
+
+    await ctx.db.patch(args.postId, { workflowId, status: "pending" })
   },
 })
 

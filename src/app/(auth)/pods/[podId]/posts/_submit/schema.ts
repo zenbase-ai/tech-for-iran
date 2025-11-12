@@ -1,6 +1,5 @@
-import { regex } from "arkregex"
 import * as z from "zod"
-import { LinkedInReaction } from "@/lib/linkedin"
+import { LinkedInReaction, parsePostURN, urlRegex, urnRegex } from "@/lib/linkedin"
 
 export const submitPost = {
   min: {
@@ -40,18 +39,6 @@ export const calculateTargetCount = (memberCount?: number) => {
   const defaultValue = Math.min(submitPost.defaultValues.targetCount, max)
 
   return { min, max, defaultValue }
-}
-
-export const urlRegex = regex("activity-(\\d+)")
-export const urnRegex = regex("urn:li:activity:(\\d+)")
-
-export const parsePostURN = (url: string): string | null => {
-  const activityId = (urlRegex.exec(url) ?? urnRegex.exec(url))?.[1]
-  if (!activityId) {
-    return null
-  }
-
-  return `urn:li:activity:${activityId}`
 }
 
 export const SubmitPost = z.object({

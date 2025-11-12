@@ -3,31 +3,29 @@ import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { authAction, connectedAction } from "@/convex/_helpers/server"
-import { unipile } from "@/lib/server/unipile"
 
-export const refreshState = connectedAction({
+export const syncOwn = connectedAction({
   args: {},
   handler: async (ctx) => {
     const { unipileId } = ctx.account
     try {
-      await ctx.runAction(internal.linkedin.action.refreshProfile, { unipileId })
-      return { success: "Your profile has been refreshed." }
+      await ctx.runAction(internal.linkedin.action.sync, { unipileId })
+      return { success: "Sync complete." }
     } catch (error) {
       return { error: errorMessage(error) }
     }
   },
 })
 
-export const disconnectAccount = authAction({
+export const disconnectOwn = authAction({
   args: {},
   handler: async (ctx) => {
     const { userId } = ctx
-    const { unipileId } = await ctx.runMutation(internal.linkedin.mutate.deleteAccount, {
+    const { unipileId } = await ctx.runMutation(internal.linkedin.mutate.disconnect, {
       userId,
     })
     try {
-      await unipile.delete<void>(`api/v1/accounts/${unipileId}`)
-      await ctx.runAction(internal.linkedin.action.deleteUnipileAccount, { unipileId })
+      await ctx.runAction(internal.unipile.account.disconnect, { unipileId })
       return { success: "LinkedIn disconnected." }
     } catch (error) {
       return { error: errorMessage(error) }
@@ -35,25 +33,12 @@ export const disconnectAccount = authAction({
   },
 })
 
-type FetchUnipileAccount = {
-  object: "AccountOwnerProfile"
-  first_name: string
-  last_name: string
-  profile_picture_url: string
-  public_profile_url?: string
-  public_identifier: string
-  location?: string
-  headline?: string
-}
-
-export const refreshProfile = internalAction({
+export const sync = internalAction({
   args: {
     unipileId: v.string(),
   },
   handler: async (ctx, { unipileId }) => {
-    const data = await unipile
-      .get<FetchUnipileAccount>("api/v1/users/me", { searchParams: { account_id: unipileId } })
-      .json()
+    const data = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
 
     await ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
       unipileId,
@@ -65,12 +50,4 @@ export const refreshProfile = internalAction({
       headline: data.headline,
     })
   },
-})
-
-export const deleteUnipileAccount = internalAction({
-  args: {
-    unipileId: v.string(),
-  },
-  handler: async (_ctx, { unipileId }) =>
-    await unipile.delete<void>(`api/v1/accounts/${unipileId}`),
 })

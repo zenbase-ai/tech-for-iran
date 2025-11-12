@@ -12,7 +12,6 @@ import type * as _helpers_errors from "../_helpers/errors.js";
 import type * as _helpers_server from "../_helpers/server.js";
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as engagement_action from "../engagement/action.js";
 import type * as engagement_mutate from "../engagement/mutate.js";
 import type * as engagement_query from "../engagement/query.js";
 import type * as engagement_workflow from "../engagement/workflow.js";
@@ -29,6 +28,9 @@ import type * as posts_mutate from "../posts/mutate.js";
 import type * as posts_query from "../posts/query.js";
 import type * as ratelimits from "../ratelimits.js";
 import type * as triggers from "../triggers.js";
+import type * as unipile_account from "../unipile/account.js";
+import type * as unipile_post from "../unipile/post.js";
+import type * as unipile_profile from "../unipile/profile.js";
 import type * as user_query from "../user/query.js";
 
 import type {
@@ -42,7 +44,6 @@ declare const fullApi: ApiFromModules<{
   "_helpers/server": typeof _helpers_server;
   aggregates: typeof aggregates;
   auth: typeof auth;
-  "engagement/action": typeof engagement_action;
   "engagement/mutate": typeof engagement_mutate;
   "engagement/query": typeof engagement_query;
   "engagement/workflow": typeof engagement_workflow;
@@ -59,6 +60,9 @@ declare const fullApi: ApiFromModules<{
   "posts/query": typeof posts_query;
   ratelimits: typeof ratelimits;
   triggers: typeof triggers;
+  "unipile/account": typeof unipile_account;
+  "unipile/post": typeof unipile_post;
+  "unipile/profile": typeof unipile_profile;
   "user/query": typeof user_query;
 }>;
 

@@ -8,14 +8,14 @@ import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
 
-export type RefreshButtonProps = ButtonProps
+export type SyncButtonProps = ButtonProps
 
-export const RefreshButton: React.FC<RefreshButtonProps> = ({
+export const SyncButton: React.FC<SyncButtonProps> = ({
   className,
   variant = "outline",
   ...props
 }) => {
-  const action = useAsyncFn(useAction(api.linkedin.action.refreshState))
+  const action = useAsyncFn(useAction(api.linkedin.action.syncOwn))
 
   return (
     <Button
@@ -27,7 +27,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       {...props}
     >
       {action.pending ? <Spinner variant="ellipsis" /> : <LuRefreshCcw className="size-4" />}
-      Refresh LinkedIn
+      Sync LinkedIn
     </Button>
   )
 }

@@ -7,7 +7,7 @@ import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
 import { pflatMap } from "@/lib/parallel"
 
-export const validate = authQuery({
+export const inviteCode = authQuery({
   args: {
     inviteCode: v.string(),
   },

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ConfigForm } from "./_config/form"
 import { DisconnectButton } from "./_disconnect"
-import { RefreshButton } from "./_refresh"
+import { SyncButton } from "./_sync"
 
 export const metadata: Metadata = {
   title: "Settings | Crackedbook",
@@ -30,7 +30,7 @@ export default function SettingsPage() {
       <Separator className="my-3" />
 
       <HStack wrap items="center" justify="between">
-        <RefreshButton />
+        <SyncButton />
 
         <DisconnectButton />
       </HStack>

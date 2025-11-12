@@ -34,7 +34,7 @@ type ActualConfigFormProps = ConfigFormProps & {
 }
 
 const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ maxActions, className }) => {
-  const mutate = useAsyncFn(useMutation(api.linkedin.mutate.updateAccount))
+  const mutate = useAsyncFn(useMutation(api.linkedin.mutate.configure))
   const form = useForm<Config>({
     resolver: zodResolver(Config),
     defaultValues: { ...config.defaultValues, maxActions },

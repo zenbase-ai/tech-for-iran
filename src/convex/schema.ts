@@ -54,15 +54,11 @@ const schema = defineSchema({
       v.union(
         v.literal("pending"),
         v.literal("processing"),
-        v.literal("completed"),
-        v.literal("success"),
-        v.literal("failed"),
         v.literal("canceled"),
+        v.literal("failed"),
+        v.literal("success"),
       ),
     ),
-    successCount: v.optional(v.number()),
-    failedCount: v.optional(v.number()),
-    completedAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
   })
     .index("by_userId", ["userId", "status"])

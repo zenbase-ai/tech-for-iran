@@ -28,23 +28,28 @@ export const workflow = new WorkflowManager(components.workflow, {
 /**
  * Main engagement workflow
  *
- * DUAL COUNTING SYSTEM:
- * This workflow uses both manual counting AND aggregates by design:
+ * HOW IT WORKS:
+ * 1. Sets post status to "processing"
+ * 2. Loops up to `targetCount` times attempting engagements:
+ *    - Generates random delay (minDelay to maxDelay + jitter) and reaction type
+ *    - Schedules `performOne` action with the delay (relative to step execution time)
+ *    - `performOne` returns:
+ *      * true: engagement succeeded (inserted to DB, counted via aggregates)
+ *      * false: API call failed (logs error, continues to next iteration)
+ *      * null: no available accounts (breaks loop early - stops trying)
+ * 3. On completion, `onComplete` handler updates post status based on workflow result
  *
- * 1. Manual Counts (successCount/failedCount in workflow):
- *    - Tracks what THIS specific workflow run accomplished
- *    - Includes failure tracking (failed API calls, no available members)
- *    - Useful for debugging specific workflow executions
- *    - Returned as workflow result and compared against aggregate
+ * ENGAGEMENT COUNTING:
+ * - Total engagements are tracked via aggregates (aggregatePostEngagements)
+ * - Aggregates automatically maintain counts across all workflow runs
+ * - Query aggregate to get actual engagement count for a post
+ * - Note: successCount/failedCount fields in posts schema exist but are unused (legacy)
  *
- * 2. Aggregate Count (engagementCount from aggregates.ts):
- *    - Source of truth for total engagements across ALL attempts
- *    - Automatically maintained by @convex-dev/aggregate
- *    - Only counts successful engagements (inserted into DB)
- *    - Survives workflow retries, failures, and cancellations
- *
- * In handleWorkflowCompletion, we validate the manual count against the aggregate
- * and always store the aggregate count as authoritative in the post document.
+ * ACCOUNT SELECTION:
+ * - Excludes post author and users who already engaged
+ * - Only selects healthy accounts (no reconnection needed)
+ * - Respects daily engagement limits (maxActions per user)
+ * - Randomly selects from available candidates
  */
 export const perform = workflow.define({
   args: {

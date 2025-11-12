@@ -85,7 +85,7 @@ src/
 
 **Core Features:**
 1. **User Onboarding:** Clerk authentication → Connect LinkedIn via Unipile Hosted Auth Wizard
-2. **Post Engagement Workflow:** User submits LinkedIn post URL + reaction types → System schedules ~40 reactions from pod members over ~5 minutes with random delays (jitter)
+2. **Post Engagement Workflow:** User submits LinkedIn post URL + reaction types + target count → Workflow attempts up to target count engagements with random delays (configurable min/max + jitter) from available pod members
 3. **Pod Management:** Currently single global "YC Alumni" pod, backend designed for multi-pod support (schema includes `pods`, `memberships` tables)
 4. **Daily Limits:** Each user configures max engagements/day (default 40, stored in `linkedinAccounts.maxActions`) to avoid LinkedIn anti-abuse triggers
 5. **Future: AI Auto-commenting** (not yet implemented but architecture accommodates)
@@ -105,19 +105,21 @@ src/
   - `linkedinProfiles`: LinkedIn profile data (firstName, lastName, picture, url)
   - `pods`: Groups of users (name, inviteCode, createdBy)
   - `memberships`: Many-to-many join table (userId ↔ podId)
-  - `posts`: Submitted posts (url, urn, podId, workflowId, status, successCount/failedCount)
+  - `posts`: Submitted posts (url, urn, podId, workflowId, status) - Note: successCount/failedCount fields exist but unused
   - `engagements`: Engagement log (postId, userId, reactionType)
-  - Indexes are critical: check `schema.ts` for all indexes (e.g., `byUserAndPod`, `byPostAndUser`)
+  - Indexes are critical: check `schema.ts` for all indexes (e.g., `by_podId`, `by_postId`)
 
 - **Workflow Architecture (Convex Workflow):**
   - Main workflow: `src/convex/workflows/engagement.ts` (`perform` function)
   - Uses `@convex-dev/workflow` for durable execution (survives failures, retries)
-  - **DUAL COUNTING SYSTEM** (see comments in `engagement.ts:28-47`):
-    1. Manual counts (successCount/failedCount) track workflow execution
-    2. Aggregate count (`aggregateEngagements` from `aggregates.ts`) is source of truth
-  - Workflow spawns tasks with random delays (5-15s jitter) to avoid LinkedIn rate limits
-  - Handles retries (max 3 attempts, exponential backoff) and API errors
-  - Updates post status: `pending` → `processing` → `success`/`failed`/`canceled`
+  - **Engagement Flow:**
+    1. Loops up to `targetCount` times attempting engagements
+    2. Each iteration: generates random delay + reaction type, schedules `performOne` action
+    3. `performOne` returns: true (success), false (API failed, continues), null (no accounts, stops)
+    4. Successful engagements inserted to DB and counted via aggregates (`aggregatePostEngagements`)
+  - Random delays (minDelay to maxDelay + up to 2.5s jitter) avoid LinkedIn rate limits
+  - Handles retries (max 3 attempts, exponential backoff) for transient API errors (429, 500, 503, 504)
+  - Updates post status: `pending` → `processing` → `success`/`failed`/`canceled` (via `onComplete`)
 
 - **External API Integration (Unipile):**
   - All Unipile API calls happen server-side (Convex actions or workflow steps)
@@ -127,10 +129,10 @@ src/
   - Reconnection logic: `needsReconnection()` helper checks account status
 
 - **Randomization & Deduplication:**
-  - Random member selection (exclude post author, already-engaged members)
-  - Random reaction types (from user-selected options)
-  - Random delays (5-15s jitter) between engagements
-  - Deduplication via `engagements` table index: `byPostAndUser`
+  - Random member selection: uses `sample()` to pick from available pod members (excludes post author, already-engaged members, unhealthy accounts, daily limit reached)
+  - Random reaction types: uses `sample()` from user-selected options
+  - Random delays: `randomInt(minDelay, maxDelay) * 1000 + randomInt(0, 2500)` ms (base delay + jitter)
+  - Deduplication via `engagements` table index: `by_postId` (postId + userId composite)
 
 **Next.js Configuration:**
 - Typed routes enabled (`typedRoutes: true`) - use `route("/path")` helper
@@ -158,8 +160,8 @@ src/
 **Convex Backend:**
 - `src/convex/schema.ts`: Database schema (source of truth) - defines all tables with indexes
 - `src/convex/auth.config.ts`: Clerk JWT integration config (requires `CLERK_JWT_ISSUER_DOMAIN`)
-- `src/convex/workflows/engagement.ts`: Main engagement workflow with dual counting system
-- `src/convex/aggregates.ts`: Aggregate counters (e.g., `aggregateEngagements`)
+- `src/convex/workflows/engagement.ts`: Main engagement workflow - loops up to targetCount, schedules reactions with delays
+- `src/convex/aggregates.ts`: Aggregate counters (e.g., `aggregatePostEngagements` - source of truth for engagement counts)
 - `src/convex/helpers/unipile.ts`: Unipile API client with error handling
 - `src/convex/helpers/linkedin.ts`: LinkedIn-specific logic (reaction types, URL parsing)
 - `src/convex/http.ts`: HTTP endpoints (webhooks, health checks)

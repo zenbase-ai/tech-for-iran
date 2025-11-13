@@ -10,7 +10,6 @@ import { url } from "@/lib/utils"
 
 const Authenticate = z.object({
   url: z.url(),
-  object: z.literal("HostedAuthURL"),
 })
 
 export const authenticate = authAction({

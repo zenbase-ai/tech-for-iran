@@ -1,5 +1,4 @@
 import { v } from "convex/values"
-import { getOneFrom } from "convex-helpers/server/relationships"
 import { internalMutation, update } from "@/convex/_helpers/server"
 import { rateLimitError, ratelimits } from "@/convex/ratelimits"
 
@@ -30,7 +29,10 @@ export const insert = internalMutation({
     postedAt: v.number(),
   },
   handler: async (ctx, args) => {
-    const exists = await ctx.db.query("posts").withIndex("by_urn", (q) => q.eq("urn", args.urn)).first()
+    const exists = await ctx.db
+      .query("posts")
+      .withIndex("by_urn", (q) => q.eq("urn", args.urn))
+      .first()
     if (exists) {
       return { postId: exists._id, error: "Cannot resubmit a post." }
     }

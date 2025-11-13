@@ -36,6 +36,7 @@ export const comment = internalAction({
       location: v.optional(v.string()),
       headline: v.optional(v.string()),
     }),
+    prompt: v.optional(v.string()),
     post: v.object({
       text: v.string(),
       author: v.object({
@@ -108,6 +109,7 @@ export const comment = internalAction({
         linkedinPost: args.post,
         userReaction: `The user reacted to this post with: ${args.reactionType}`,
         task: "Now generate a thoughtful LinkedIn comment for this post.",
+        userPrompt: args.prompt,
       }),
     })
 

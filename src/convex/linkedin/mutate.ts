@@ -44,6 +44,7 @@ export const connectOwn = authMutation({
 export const configure = connectedMutation({
   args: {
     maxActions: v.number(),
+    commentPrompt: v.string(),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(ctx.account._id, update(args))

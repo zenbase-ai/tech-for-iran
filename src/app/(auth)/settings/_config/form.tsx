@@ -9,6 +9,7 @@ import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/fie
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
@@ -20,24 +21,33 @@ export type ConfigFormProps = {
 }
 
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
-  const maxActions = useAuthQuery(api.linkedin.query.getState)?.account?.maxActions
+  const { account } = useAuthQuery(api.linkedin.query.getState) ?? {}
 
-  return maxActions == null ? (
+  return account == null ? (
     <Skeleton className={cn("w-full h-29", className)} />
   ) : (
-    <ActualConfigForm className={className} maxActions={maxActions} />
+    <ActualConfigForm
+      className={className}
+      maxActions={account.maxActions}
+      commentPrompt={account.commentPrompt ?? ""}
+    />
   )
 }
 
 type ActualConfigFormProps = ConfigFormProps & {
   maxActions: number
+  commentPrompt: string
 }
 
-const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ maxActions, className }) => {
+const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
+  maxActions,
+  commentPrompt,
+  className,
+}) => {
   const mutate = useAsyncFn(useMutation(api.linkedin.mutate.configure))
-  const form = useForm<Config>({
+  const form = useForm({
     resolver: zodResolver(Config),
-    defaultValues: { ...config.defaultValues, maxActions },
+    defaultValues: { maxActions, commentPrompt },
   })
 
   return (
@@ -61,6 +71,26 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ maxActions, classNa
                 aria-invalid={fieldState.invalid}
                 disabled={form.formState.isSubmitting}
                 onChange={(e) => field.onChange(e.target.valueAsNumber)}
+              />
+            </FieldContent>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
+
+      <Controller
+        name="commentPrompt"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor={field.name}>Comment Prompt</FieldLabel>
+            <FieldContent>
+              <Textarea
+                {...field}
+                id={field.name}
+                aria-invalid={fieldState.invalid}
+                disabled={form.formState.isSubmitting}
+                maxLength={config.max.commentPrompt}
               />
             </FieldContent>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

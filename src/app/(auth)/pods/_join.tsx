@@ -26,7 +26,7 @@ export type PodJoinFormProps = {
 }
 
 export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }) => {
-  const form = useForm<PodJoinSchema>({
+  const form = useForm({
     resolver: zodResolver(PodJoinSchema),
     defaultValues: { inviteCode: "" },
   })

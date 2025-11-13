@@ -11,6 +11,7 @@ const schema = defineSchema({
     status: v.string(),
     role: v.optional(v.union(v.literal("sudo"))),
     maxActions: v.number(),
+    commentPrompt: v.optional(v.string()),
     updatedAt: v.number(), // Timestamp
   })
     .index("by_userId", ["userId", "unipileId"])

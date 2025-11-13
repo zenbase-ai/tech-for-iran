@@ -1,7 +1,7 @@
 import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
-import { clamp, omit } from "es-toolkit"
+import { clamp } from "es-toolkit"
 import { calculateTargetCount } from "@/app/(auth)/pods/[podId]/posts/_submit/schema"
 import { components, internal } from "@/convex/_generated/api"
 import { internalMutation } from "@/convex/_generated/server"
@@ -123,16 +123,17 @@ export const perform = workflow.define({
     const post = await step.runQuery(internal.posts.query.get, { postId })
 
     for (let i = 1; i <= targetCount; i++) {
-      const profile = await step.runQuery(internal.engagement.query.availableProfile, {
+      const member = await step.runQuery(internal.engagement.query.availableMember, {
         podId,
         postId,
         skipUserIds,
       })
-      if (profile === null) {
+      if (member === null) {
         break // no available profiles, stop trying
       }
 
-      const { userId, unipileId } = profile
+      const { account, profile } = member
+      const { userId, unipileId } = account
       skipUserIds.push(userId)
 
       // React to the post
@@ -165,7 +166,8 @@ export const perform = workflow.define({
             maxDelay,
           }),
           step.runAction(internal.engagement.generate.comment, {
-            user: omit(profile, ["unipileId", "userId"]),
+            user: profile,
+            prompt: account.commentPrompt,
             post: { text: post.text, author: post.author },
             reactionType: reactionType,
           }),

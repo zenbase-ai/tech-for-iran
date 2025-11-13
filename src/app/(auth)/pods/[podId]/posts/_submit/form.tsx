@@ -54,7 +54,7 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
   const targetCount = calculateTargetCount(memberCount)
 
   const action = useAsyncFn(useAction(api.posts.action.submit))
-  const form = useForm<SubmitPost>({
+  const form = useForm({
     resolver: zodResolver(SubmitPost),
     defaultValues: { ...submitPost.defaultValues, targetCount: targetCount.defaultValue },
   })

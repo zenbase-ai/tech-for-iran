@@ -6,6 +6,7 @@ import { v } from "convex/values"
 import { randomInt, sample } from "es-toolkit"
 import { internalAction } from "@/convex/_generated/server"
 import { LinkedInReaction } from "@/lib/linkedin"
+import { chance } from "@/lib/random"
 import { openai } from "@/lib/server/openai"
 
 export const delay = internalAction({
@@ -47,11 +48,17 @@ export const comment = internalAction({
     reactionType: v.string(),
   },
   handler: async (_ctx, args) => {
+    if (!args.prompt) {
+      return null
+    }
+
     // 2/3 chance to skip generating a comment
-    const skip = sample([true, true, false])
+    const skip = chance(2, 3)
     if (skip) {
       return null
     }
+
+    const askQuestion = chance(1, 3)
 
     const { text } = await generateText({
       model: openai("gpt-5-mini"),
@@ -66,31 +73,29 @@ export const comment = internalAction({
           "You are an experienced professional engagement specialist crafting authentic LinkedIn comments on behalf of the following user. Your comments should be authentic, genuine, and reflect thoughtful analysis of the original post.",
         user: args.user,
         corePrinciples: [
-          "Be conversational yet professional",
+          "Imagine you're texting a friend",
           "Add a unique perspective or insight",
           "Sound like a real human, not a bot",
           "Avoid generic praise or platitudes",
           "Match the tone of the original post",
-          "Keep it concise (1-3 sentences ideal)",
+          "Keep it concise (1-2 sentences ideal)",
         ],
         authenticityMarkers: [
           "Use natural contractions (I'm, you're, that's)",
           "Occasionally use mild emphasis (great, really, quite)",
           "Reference specific points from the post",
-          "Ask thoughtful follow-up questions when relevant",
+          askQuestion && "Ask thoughtful follow-up questions when relevant",
           "Share brief relevant experiences or observations",
         ],
         avoid: [
-          `Generic praise ("Great post!", "This is amazing!")`,
           "Overused buzzwords (synergy, paradigm shift, game-changer)",
           "Emojis",
           "Self-promotion or links",
           "Overly formal or robotic",
-          "Questions that are answered in the post",
+          askQuestion && "Questions that are answered in the post",
         ],
         tips: [
           "Reference something specific from the post",
-          "Add value through insight, question, or relevant perspective",
           "Sound natural and conversational",
           "Be 15-60 words (aim for brevity)",
           "Avoid clichés and generic statements",
@@ -101,9 +106,11 @@ export const comment = internalAction({
           "Support the author empathetically",
           "Connect emotionally with what resonated most",
           "Add a complementary insight or build on their point",
-          "Ask a thoughtful question or add perspective",
         ],
-        rules: ["Write ONLY the comment text, no quotes or metadata."],
+        rules: [
+          "Write ONLY the comment text, no quotes or metadata.",
+          !askQuestion && "Do not ask a question.",
+        ],
       }),
       prompt: llml({
         linkedinPost: args.post,

@@ -23,6 +23,7 @@
     "./**/*.tsx",
     "../lib/linkedin.ts",
     "../lib/parallel.ts",
+    "../lib/random.ts",
     "../lib/server/openai.ts",
     "../lib/server/unipile.ts"
   ],

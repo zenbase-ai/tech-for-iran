@@ -1,28 +1,30 @@
-import { fetchAction, fetchMutation, fetchQuery } from "convex/nextjs"
+import { fetchMutation, fetchQuery } from "convex/nextjs"
 import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { requiresConnection } from "@/lib/linkedin"
 import { tokenAuth } from "@/lib/server/clerk"
 import { queryString } from "@/lib/utils"
+import { generateHostedAuthURL } from "./_actions"
 import { ConnectDialog } from "./_dialog"
 import { ConnectGate } from "./_gate"
 
-export type LinkedinConnectPageParams = {
+export const metadata: Metadata = {
+  title: "Connect | Crackedbook",
+}
+
+export type ConnectPageProps = {
   searchParams: Promise<{
     account_id?: string
     inviteCode?: string
   }>
 }
 
-export const metadata: Metadata = {
-  title: "Connect LinkedIn | Crackedbook",
-}
-
-export default async function LinkedinConnectPage({ searchParams }: LinkedinConnectPageParams) {
-  "use memo"
-
-  const [{ token }, { account_id, inviteCode }] = await Promise.all([tokenAuth(), searchParams])
+export default async function ConnectPage({ searchParams }: ConnectPageProps) {
+  const [{ userId, token }, { account_id, inviteCode }] = await Promise.all([
+    tokenAuth(),
+    searchParams,
+  ])
 
   if (account_id) {
     await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId: account_id }, { token })
@@ -37,11 +39,7 @@ export default async function LinkedinConnectPage({ searchParams }: LinkedinConn
     if (!account && !validInviteCode) {
       return <ConnectGate inviteCode={inviteCode} validInviteCode={validInviteCode} />
     } else if (requiresConnection(account?.status)) {
-      const hostedAuth = await fetchAction(
-        api.unipile.account.authenticate,
-        { inviteCode },
-        { token },
-      )
+      const hostedAuth = await generateHostedAuthURL(userId, inviteCode)
       return <ConnectDialog redirectURL={hostedAuth.url} />
     }
   }

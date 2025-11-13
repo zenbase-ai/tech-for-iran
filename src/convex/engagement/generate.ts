@@ -29,6 +29,8 @@ export const reaction = internalAction({
     LinkedInReaction.parse(sample(args.reactionTypes) ?? "like"),
 })
 
+type Comment = string | null
+
 export const comment = internalAction({
   args: {
     user: v.object({
@@ -47,12 +49,7 @@ export const comment = internalAction({
     }),
     reactionType: v.string(),
   },
-  handler: async (_ctx, args) => {
-    if (!args.prompt) {
-      return null
-    }
-
-    // 2/3 chance to skip generating a comment
+  handler: async (_ctx, args): Promise<Comment> => {
     const skip = chance(2, 3)
     if (skip) {
       return null
@@ -62,15 +59,10 @@ export const comment = internalAction({
 
     const { text } = await generateText({
       model: openai("gpt-5-mini"),
-      providerOptions: {
-        openai: {
-          reasoningEffort: "low",
-        },
-      },
       maxRetries: 3,
       system: llml({
         instructions:
-          "You are an experienced professional engagement specialist crafting authentic LinkedIn comments on behalf of the following user. Your comments should be authentic, genuine, and reflect thoughtful analysis of the original post.",
+          "You are crafting authentic LinkedIn comments on behalf of the following user. Your comments should be authentic, genuine, and reflect thoughtful analysis of the original post.",
         user: args.user,
         corePrinciples: [
           "Imagine you're texting a friend",
@@ -80,26 +72,13 @@ export const comment = internalAction({
           "Match the tone of the original post",
           "Keep it concise (1-2 sentences ideal)",
         ],
-        authenticityMarkers: [
-          "Use natural contractions (I'm, you're, that's)",
-          "Occasionally use mild emphasis (great, really, quite)",
-          "Reference specific points from the post",
-          askQuestion && "Ask thoughtful follow-up questions when relevant",
-          "Share brief relevant experiences or observations",
-        ],
         avoid: [
           "Overused buzzwords (synergy, paradigm shift, game-changer)",
           "Emojis",
-          "Self-promotion or links",
           "Overly formal or robotic",
           askQuestion && "Questions that are answered in the post",
         ],
-        tips: [
-          "Reference something specific from the post",
-          "Sound natural and conversational",
-          "Be 15-60 words (aim for brevity)",
-          "Avoid clichés and generic statements",
-        ],
+        tips: ["Sound natural and conversational", "Be 8-25 words (aim for brevity)"],
         ideas: [
           "Express agreement or appreciation with specific reasoning",
           "Share in the excitement with authentic enthusiasm",

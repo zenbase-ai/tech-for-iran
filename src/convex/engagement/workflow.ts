@@ -136,7 +136,6 @@ export const perform = workflow.define({
       const { userId, unipileId } = account
       skipUserIds.push(userId)
 
-      // React to the post
       const [runAfter, reactionType] = await Promise.all([
         step.runAction(internal.engagement.generate.delay, {
           minDelay,

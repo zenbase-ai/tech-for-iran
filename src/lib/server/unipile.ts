@@ -3,15 +3,6 @@ import ky from "ky"
 import * as z from "zod"
 import { env } from "@/lib/env.mjs"
 
-export const UnipileErrorResponse = z.object({
-  title: z.string(),
-  detail: z.string(),
-  instance: z.string(),
-  status: z.number(),
-  type: z.string(),
-})
-export type UnipileErrorResponse = z.infer<typeof UnipileErrorResponse>
-
 export type UnipileAPIErrorData = {
   method: string
   path: string
@@ -21,6 +12,15 @@ export type UnipileAPIErrorData = {
 
 export class UnipileAPIError extends ConvexError<UnipileAPIErrorData> {}
 
+export const UnipileErrorResponse = z.object({
+  title: z.string(),
+  detail: z.string(),
+  instance: z.string(),
+  status: z.number(),
+  type: z.string(),
+})
+
+export type UnipileErrorResponse = z.infer<typeof UnipileErrorResponse>
 export const unipile = ky.create({
   headers: { "X-API-KEY": env.UNIPILE_API_KEY, "Content-Type": "application/json" },
   prefixUrl: env.UNIPILE_API_URL,
@@ -36,13 +36,13 @@ export const unipile = ky.create({
           })
         }
 
-        const { success } = UnipileErrorResponse.safeParse(await response.clone().json())
-        if (!success) {
+        const { data, error } = UnipileErrorResponse.safeParse(await response.clone().json())
+        if (!error) {
           throw new UnipileAPIError({
             method: request.method,
             path: request.url,
             status: response.status,
-            body: await response.clone().text(),
+            body: JSON.stringify(data, null, 2),
           })
         }
       },

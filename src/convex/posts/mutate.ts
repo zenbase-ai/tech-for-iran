@@ -30,8 +30,9 @@ export const insert = internalMutation({
     postedAt: v.number(),
   },
   handler: async (ctx, args) => {
-    if (await getOneFrom(ctx.db, "posts", "by_urn", args.urn)) {
-      return { postId: null, error: "Cannot resubmit a post." }
+    const exists = await ctx.db.query("posts").withIndex("by_urn", (q) => q.eq("urn", args.urn)).first()
+    if (exists) {
+      return { postId: exists._id, error: "Cannot resubmit a post." }
     }
 
     const postId = await ctx.db.insert("posts", update(args))

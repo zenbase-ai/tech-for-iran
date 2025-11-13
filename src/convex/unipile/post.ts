@@ -1,8 +1,9 @@
 import { v } from "convex/values"
+import { DateTime } from "luxon"
 import * as z from "zod"
 import { internalAction } from "@/convex/_generated/server"
 import { LinkedInReaction, parsePostURN } from "@/lib/linkedin"
-import { UnipileAPIError, unipile } from "@/lib/server/unipile"
+import { unipile } from "@/lib/server/unipile"
 import { errorMessage } from "@/lib/utils"
 
 const Fetch = z.object({
@@ -12,7 +13,10 @@ const Fetch = z.object({
   social_id: z.string(),
   share_url: z.string(),
   text: z.string(),
-  parsed_datetime: z.iso.datetime(),
+  parsed_datetime: z.iso
+    .datetime()
+    .refine((s) => DateTime.fromISO(s).isValid, "Invalid datetime")
+    .transform((s) => DateTime.fromISO(s).toMillis()),
   is_repost: z.boolean(),
   author: z.object({
     public_identifier: z.string(),
@@ -65,21 +69,36 @@ export const react = internalAction({
         reaction_type: LinkedInReaction.parse(reactionType),
       }
       const request = unipile.post("api/v1/posts/reaction", { json: body })
-      const { success, data, error } = React.safeParse(await request.json())
-      if (!success) {
-        return { data: null, error: errorMessage(error) }
-      }
-
+      const data = React.parse(await request.json())
       return { data, error: null }
     } catch (error: unknown) {
-      if (error instanceof UnipileAPIError) {
-        const status = error.data.status
-        const isTransient = [429, 500, 503, 504].includes(status)
-        if (isTransient) {
-          throw error // triggers retries
-        }
-      }
+      return { data: null, error: errorMessage(error) }
+    }
+  },
+})
 
+const Comment = z.object({ object: z.literal("CommentSent") })
+
+export const comment = internalAction({
+  args: {
+    unipileId: v.string(),
+    urn: v.string(),
+    commentText: v.string(),
+  },
+  handler: async (_ctx, { unipileId, urn, commentText }) => {
+    if (commentText.length === 0 || 1250 < commentText.length) {
+      return { data: null, error: "Text must be between 1 and 1250 characters long." }
+    }
+
+    try {
+      const body = {
+        account_id: unipileId,
+        text: commentText,
+      }
+      const request = unipile.post(`api/v1/posts/${urn}/comments`, { json: body })
+      const data = Comment.parse(await request.json())
+      return { data, error: null }
+    } catch (error: unknown) {
       return { data: null, error: errorMessage(error) }
     }
   },

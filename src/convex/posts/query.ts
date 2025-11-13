@@ -1,7 +1,8 @@
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import { pick, zip } from "es-toolkit"
-import { BadRequestError } from "@/convex/_helpers/errors"
+import { internalQuery } from "@/convex/_generated/server"
+import { BadRequestError, NotFoundError } from "@/convex/_helpers/errors"
 import { memberQuery } from "@/convex/_helpers/server"
 import { pmap } from "@/lib/parallel"
 
@@ -40,5 +41,19 @@ export const latest = memberQuery({
 
       return [{ url, _creationTime, ...pick(profile, ["firstName", "lastName", "picture"]) }]
     })
+  },
+})
+
+export const get = internalQuery({
+  args: {
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, { postId }) => {
+    const post = await ctx.db.get(postId)
+    if (!post) {
+      throw new NotFoundError()
+    }
+
+    return post
   },
 })

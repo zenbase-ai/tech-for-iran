@@ -7,23 +7,22 @@ import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { requiresConnection } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/parallel"
 
-const SelectAvailableAccount = z.union([
-  z.null(),
-  z.object({
-    unipileId: z.string(),
-    userId: z.string(),
-  }),
-])
+const AvailableProfile = z.object({
+  unipileId: z.string(),
+  userId: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  location: z.optional(z.string()),
+  headline: z.optional(z.string()),
+})
 
-type SelectAvailableAccount = z.infer<typeof SelectAvailableAccount>
-
-export const selectAvailableAccount = internalQuery({
+export const availableProfile = internalQuery({
   args: {
     podId: v.id("pods"),
     postId: v.id("posts"),
     skipUserIds: v.array(v.string()),
   },
-  handler: async (ctx, { podId, postId, skipUserIds }): Promise<SelectAvailableAccount> => {
+  handler: async (ctx, { podId, postId, skipUserIds }) => {
     const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
 
     const availableAccounts = await pflatMap(members, async ({ userId }) => {
@@ -49,9 +48,14 @@ export const selectAvailableAccount = internalQuery({
         return []
       }
 
-      const { success, data, error } = SelectAvailableAccount.safeParse(account)
+      const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
+      if (!profile) {
+        return []
+      }
+
+      const { success, data, error } = AvailableProfile.safeParse(profile)
       if (!success) {
-        console.error("[workflows/engagement:selectAvailableAccount]", error)
+        console.error("workflows/engagement:selectAvailableAccount", error)
         return []
       }
 

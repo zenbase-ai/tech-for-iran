@@ -1,6 +1,5 @@
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
-import { pick } from "es-toolkit"
 import { internalMutation, update } from "@/convex/_helpers/server"
 import { rateLimitError, ratelimits } from "@/convex/ratelimits"
 
@@ -23,21 +22,19 @@ export const insert = internalMutation({
     userId: v.string(),
     url: v.string(),
     urn: v.string(),
-    reactionTypes: v.array(v.string()),
-    targetCount: v.number(),
-    minDelay: v.number(),
-    maxDelay: v.number(),
+    text: v.string(),
+    author: v.object({
+      name: v.string(),
+      headline: v.string(),
+    }),
+    postedAt: v.number(),
   },
   handler: async (ctx, args) => {
     if (await getOneFrom(ctx.db, "posts", "by_urn", args.urn)) {
       return { postId: null, error: "Cannot resubmit a post." }
     }
 
-    const postId = await ctx.db.insert(
-      "posts",
-      update(pick(args, ["userId", "podId", "url", "urn"])),
-    )
-
+    const postId = await ctx.db.insert("posts", update(args))
     return { postId, success: "Stay tuned for the engagements!" }
   },
 })

@@ -62,6 +62,14 @@ const schema = defineSchema({
         v.literal("success"),
       ),
     ),
+    text: v.optional(v.string()),
+    author: v.optional(
+      v.object({
+        name: v.string(),
+        headline: v.string(),
+      }),
+    ),
+    postedAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
   })
     .index("by_userId", ["userId", "status"])
@@ -75,9 +83,7 @@ const schema = defineSchema({
     reactionType: v.string(), // Type: like, celebrate, support, love, insightful, funny
     success: v.optional(v.boolean()),
     error: v.optional(v.string()),
-  })
-    .index("by_userId", ["userId"]) // For daily limit checks
-    .index("by_postId", ["postId", "userId"]), // Uniqueness constraint
+  }).index("by_postId", ["postId", "userId"]),
 })
 
 export default schema

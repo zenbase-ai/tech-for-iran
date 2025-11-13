@@ -17,11 +17,3 @@ export const podPosts = new TableAggregate<{
 }>(components.podPosts, {
   sortKey: (doc) => [doc.podId, doc._creationTime],
 })
-
-export const postEngagements = new TableAggregate<{
-  Key: [Id<"posts">, boolean]
-  DataModel: DataModel
-  TableName: "engagements"
-}>(components.postEngagements, {
-  sortKey: (doc) => [doc.postId, !!doc.success],
-})

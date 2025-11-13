@@ -15,8 +15,8 @@ export const submitPost = {
   defaultValues: {
     url: "",
     targetCount: 25,
-    minDelay: 10,
-    maxDelay: 30,
+    minDelay: 5,
+    maxDelay: 20,
     reactionTypes: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReaction[],
   },
   options: {

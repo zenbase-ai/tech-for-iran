@@ -1,4 +1,5 @@
 import { v } from "convex/values"
+import { pick } from "es-toolkit"
 import { SubmitPost } from "@/app/(auth)/pods/[podId]/posts/_submit/schema"
 import { internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
@@ -18,34 +19,38 @@ export const submit = connectedMemberAction({
   },
   handler: async (ctx, { podId, ...args }): Promise<Submit> => {
     const { userId } = ctx
-    const { data: params, success: parseSuccess, error: parseError } = SubmitPost.safeParse(args)
-    if (!parseSuccess) {
-      return { postId: null, error: errorMessage(parseError) }
+    const params = SubmitPost.safeParse(args)
+    if (!params.success) {
+      return { postId: null, error: errorMessage(params.error) }
     }
 
     if (ctx.account.role !== "sudo") {
-      const { error: limitError } = await ctx.runMutation(internal.posts.mutate.consumeRateLimit, {
+      const { error } = await ctx.runMutation(internal.posts.mutate.consumeRateLimit, {
         userId,
       })
-      if (limitError) {
-        return { postId: null, error: limitError }
+      if (error !== null) {
+        return { postId: null, error }
       }
     }
 
     const post = await ctx.runAction(internal.unipile.post.fetch, {
       unipileId: ctx.account.unipileId,
-      url: params.url,
+      url: params.data.url,
     })
     if (post.error !== null) {
       return { postId: null, error: post.error }
     }
 
-    const urn = post.data.social_id
+    const { share_url: url, social_id: urn, text, author, parsed_datetime: postedAt } = post.data
+
     const { postId, success, error } = await ctx.runMutation(internal.posts.mutate.insert, {
       userId,
       podId,
+      url,
       urn,
-      ...params,
+      postedAt,
+      text,
+      author: pick(author, ["name", "headline"]),
     })
     if (error != null) {
       return { postId: null, error }
@@ -56,7 +61,7 @@ export const submit = connectedMemberAction({
       podId,
       postId,
       urn,
-      ...params,
+      ...pick(params.data, ["reactionTypes", "targetCount", "minDelay", "maxDelay"]),
     })
 
     return { postId, success }

@@ -1,13 +1,60 @@
 import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
-import { clamp, randomInt, sample } from "es-toolkit"
+import { clamp, omit } from "es-toolkit"
 import { calculateTargetCount } from "@/app/(auth)/pods/[podId]/posts/_submit/schema"
 import { components, internal } from "@/convex/_generated/api"
-import { internalAction, internalMutation } from "@/convex/_generated/server"
+import { internalMutation } from "@/convex/_generated/server"
 import { update } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
-import { LinkedInReaction } from "@/lib/linkedin"
+
+const args = {
+  userId: v.string(),
+  podId: v.id("pods"),
+  postId: v.id("posts"),
+  urn: v.string(),
+  reactionTypes: v.array(v.string()),
+  targetCount: v.number(),
+  minDelay: v.number(),
+  maxDelay: v.number(),
+}
+
+export const start = internalMutation({
+  args,
+  handler: async (ctx, args) => {
+    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [args.podId] } })
+    const { min: minTargetCount, max: maxTargetCount } = calculateTargetCount(memberCount)
+    const targetCount = clamp(args.targetCount, minTargetCount, maxTargetCount)
+
+    const context = { postId: args.postId }
+    const onComplete = internal.engagement.workflow.onComplete
+    const workflowId = await workflow.start(
+      ctx,
+      internal.engagement.workflow.perform,
+      { ...args, targetCount },
+      { context, onComplete, startAsync: true },
+    )
+
+    await ctx.db.patch(args.postId, { workflowId, status: "pending" })
+  },
+})
+
+export const onComplete = internalMutation({
+  args: {
+    workflowId: vWorkflowId,
+    result: vResultValidator,
+    context: v.object({
+      postId: v.id("posts"),
+    }),
+  },
+  handler: async (ctx, { workflowId, result, context }) => {
+    await Promise.all([
+      workflow.cleanup(ctx, workflowId),
+      ctx.db.patch(context.postId, update({ status: result.kind })),
+    ])
+    return null
+  },
+})
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
@@ -61,16 +108,7 @@ export const workflow = new WorkflowManager(components.workflow, {
  * - Example: minDelay=1, maxDelay=30 → 1-30 seconds + 0-2.5s jitter per reaction
  */
 export const perform = workflow.define({
-  args: {
-    userId: v.string(),
-    podId: v.id("pods"),
-    postId: v.id("posts"),
-    urn: v.string(),
-    reactionTypes: v.array(v.string()),
-    targetCount: v.number(),
-    minDelay: v.number(),
-    maxDelay: v.number(),
-  },
+  args,
   handler: async (
     step,
     { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay },
@@ -82,132 +120,71 @@ export const perform = workflow.define({
       status: "processing",
     })
 
-    let i = 1
+    const post = await step.runQuery(internal.posts.query.get, { postId })
 
-    for (; i <= targetCount; i++) {
-      const [runAfter, reactionType] = await step.runAction(
-        internal.engagement.workflow.performOneRandomParams,
-        { i, minDelay, maxDelay, reactionTypes },
-      )
-
-      const success = await step.runAction(
-        internal.engagement.workflow.performOne,
-        { podId, postId, urn, reactionType, skipUserIds },
-        { runAfter }, // runAfter is relative to now; not workflow start
-      )
-
-      if (success === null) {
-        break
-      }
-    }
-  },
-})
-
-export const performOneRandomParams = internalAction({
-  args: {
-    i: v.number(), // cache buster
-    minDelay: v.number(),
-    maxDelay: v.number(),
-    reactionTypes: v.array(v.string()),
-  },
-  handler: async (_ctx, args): Promise<[number, LinkedInReaction]> => {
-    const delay = randomInt(args.minDelay, args.maxDelay + 1) * 1000
-    const jitter = randomInt(0, 2500 + 1)
-    const reactionType = LinkedInReaction.parse(sample(args.reactionTypes) ?? "like")
-
-    return [delay + jitter, reactionType]
-  },
-})
-
-type PerformOne =
-  | boolean // was the action successful?
-  | null // unable to find an available account
-
-export const performOne = internalAction({
-  args: {
-    podId: v.id("pods"),
-    postId: v.id("posts"),
-    urn: v.string(),
-    reactionType: v.string(),
-    skipUserIds: v.array(v.string()),
-  },
-  handler: async (ctx, { podId, urn, reactionType, postId, skipUserIds }): Promise<PerformOne> => {
-    const account = await ctx.runQuery(internal.engagement.query.selectAvailableAccount, {
-      podId,
-      postId,
-      skipUserIds,
-    })
-    if (!account) {
-      return null
-    }
-
-    const { userId, unipileId } = account
-    const { error } = await ctx.runAction(internal.unipile.post.react, {
-      unipileId,
-      urn,
-      reactionType,
-    })
-
-    await ctx.runMutation(internal.engagement.mutate.upsertEngagement, {
-      userId,
-      postId,
-      reactionType,
-      error,
-    })
-
-    if (error) {
-      console.error("[engagement/action:performOne]", {
-        reactionType,
+    for (let i = 1; i <= targetCount; i++) {
+      const profile = await step.runQuery(internal.engagement.query.availableProfile, {
         podId,
         postId,
+        skipUserIds,
       })
-      return false
+      if (profile === null) {
+        break // no available profiles, stop trying
+      }
+
+      const { userId, unipileId } = profile
+      skipUserIds.push(userId)
+
+      // React to the post
+      const [runAfter, reactionType] = await Promise.all([
+        step.runAction(internal.engagement.generate.delay, {
+          minDelay,
+          maxDelay,
+        }),
+        step.runAction(internal.engagement.generate.reaction, {
+          reactionTypes,
+        }),
+      ])
+
+      const { error } = await step.runAction(
+        internal.unipile.post.react,
+        { unipileId, urn, reactionType },
+        { runAfter },
+      )
+      await step.runMutation(internal.engagement.mutate.upsertEngagement, {
+        userId,
+        postId,
+        reactionType,
+        error,
+      })
+
+      if (post.text && post.author) {
+        const [runAfter, commentText] = await Promise.all([
+          step.runAction(internal.engagement.generate.delay, {
+            minDelay,
+            maxDelay,
+          }),
+          step.runAction(internal.engagement.generate.comment, {
+            user: omit(profile, ["unipileId", "userId"]),
+            post: { text: post.text, author: post.author },
+            reactionType: reactionType,
+          }),
+        ])
+
+        if (commentText) {
+          const { error } = await step.runAction(
+            internal.unipile.post.comment,
+            { unipileId, urn, commentText },
+            { runAfter },
+          )
+          await step.runMutation(internal.engagement.mutate.upsertEngagement, {
+            userId,
+            postId,
+            reactionType: "comment",
+            error,
+          })
+        }
+      }
     }
-
-    return true
-  },
-})
-
-export const start = internalMutation({
-  args: {
-    podId: v.id("pods"),
-    userId: v.string(),
-    postId: v.id("posts"),
-    url: v.string(),
-    urn: v.string(),
-    reactionTypes: v.array(v.string()),
-    targetCount: v.number(),
-    minDelay: v.number(),
-    maxDelay: v.number(),
-  },
-  handler: async (ctx, args) => {
-    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [args.podId] } })
-    const { min: minTargetCount, max: maxTargetCount } = calculateTargetCount(memberCount)
-    const targetCount = clamp(args.targetCount, minTargetCount, maxTargetCount)
-
-    const context = { postId: args.postId }
-    const onComplete = internal.engagement.workflow.onComplete
-    const workflowId = await workflow.start(
-      ctx,
-      internal.engagement.workflow.perform,
-      { ...args, targetCount },
-      { context, onComplete, startAsync: true },
-    )
-
-    await ctx.db.patch(args.postId, { workflowId, status: "pending" })
-  },
-})
-
-export const onComplete = internalMutation({
-  args: {
-    workflowId: vWorkflowId,
-    result: vResultValidator,
-    context: v.object({
-      postId: v.id("posts"),
-    }),
-  },
-  handler: async (ctx, { workflowId, result: { kind: status }, context: { postId } }) => {
-    await Promise.all([workflow.cleanup(ctx, workflowId), ctx.db.patch(postId, update({ status }))])
-    return null
   },
 })

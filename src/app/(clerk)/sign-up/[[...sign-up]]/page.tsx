@@ -19,7 +19,7 @@ export default async function SignUpPage(props: SignUpPageProps) {
   return (
     <VStack as="main" justify="center" items="center" className="min-h-[60vh] mx-auto">
       <SignUp
-        forceRedirectUrl={route("/settings/connect", { searchParams })}
+        forceRedirectUrl={route("/connect", { searchParams })}
         signInUrl={route("/sign-in", { searchParams })}
       />
     </VStack>

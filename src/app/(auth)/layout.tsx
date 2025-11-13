@@ -14,10 +14,10 @@ import { Nav } from "./_nav"
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const linkedin = useAuthQuery(api.linkedin.query.getState)
   const status = linkedin?.account?.status
-  const isConnectPage = usePathname() === "/settings/connect"
+  const isConnectPage = usePathname() === "/connect"
 
   const forceConnect = !isConnectPage && status != null && requiresConnection(status)
-  useTimeout(() => redirect("/settings/connect"), forceConnect ? 1000 : null)
+  useTimeout(() => redirect("/connect"), forceConnect ? 1000 : null)
   useEffect(() => {
     if (forceConnect) toast.info("Please connect your LinkedIn.")
   }, [forceConnect])

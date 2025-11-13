@@ -570,7 +570,7 @@ This section documents the common coding patterns used throughout the codebase. 
 
 **Server Actions:**
 - Use `-actions.ts` for Next.js server actions (with `"use server"`)
-- Example: `src/app/(auth)/settings/connect/-actions.ts`
+- Example: `src/app/(auth)/connect/-actions.ts`
 
 **Convex Organization:**
 - `src/convex/fns/*.ts` - Public functions (queries, mutations, actions)
@@ -770,7 +770,7 @@ src/
 **App Router:**
 - `src/app/layout.tsx`: Root layout with providers, fonts, and React Scan (dev only)
 - `src/app/(auth)/pods/[podId]/page.tsx`: Pod detail page (post submission)
-- `src/app/(auth)/settings/connect/page.tsx`: LinkedIn connection page
+- `src/app/(auth)/connect/page.tsx`: LinkedIn connection page
 
 ## Working with Convex
 

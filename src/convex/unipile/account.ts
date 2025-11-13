@@ -25,7 +25,7 @@ export const authenticate = authAction({
         providers: ["LINKEDIN"],
         expiresOn: DateTime.utc().plus({ minutes: 10 }).toISO(),
         name: userId, // so we can identify the account in the webhook
-        success_redirect_url: url("/settings/connect", {
+        success_redirect_url: url("/connect", {
           searchParams: { inviteCode, success: "Account connected!" },
         }),
         failure_redirect_url: url("/settings", {

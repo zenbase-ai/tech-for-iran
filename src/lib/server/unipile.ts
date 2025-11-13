@@ -36,13 +36,13 @@ export const unipile = ky.create({
           })
         }
 
-        const { success } = UnipileErrorResponse.safeParse(await response.json())
+        const { success } = UnipileErrorResponse.safeParse(await response.clone().json())
         if (!success) {
           throw new UnipileAPIError({
             method: request.method,
             path: request.url,
             status: response.status,
-            body: await response.text(),
+            body: await response.clone().text(),
           })
         }
       },

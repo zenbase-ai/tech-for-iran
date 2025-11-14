@@ -12,22 +12,23 @@ export type SyncButtonProps = ButtonProps
 
 export const SyncButton: React.FC<SyncButtonProps> = ({
   className,
-  variant = "outline",
+  variant,
+  children,
   ...props
 }) => {
-  const action = useAsyncFn(useAction(api.linkedin.action.syncOwn))
+  const sync = useAsyncFn(useAction(api.linkedin.action.syncOwn))
 
   return (
     <Button
       type="button"
-      disabled={action.pending}
+      disabled={sync.pending}
       className={cn("w-fit", className)}
       variant={variant}
-      onClick={() => action.execute()}
+      onClick={() => sync.execute()}
       {...props}
     >
-      {action.pending ? <Spinner variant="ellipsis" /> : <LuRefreshCcw className="size-4" />}
-      Sync LinkedIn
+      {children}
+      {sync.pending ? <Spinner variant="ellipsis" /> : <LuRefreshCcw className="size-4" />}
     </Button>
   )
 }

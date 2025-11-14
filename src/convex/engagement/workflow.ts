@@ -2,7 +2,7 @@ import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
 import { clamp } from "es-toolkit"
-import { calculateTargetCount } from "@/app/(auth)/pods/[podId]/posts/_submit/schema"
+import { calculateTargetCount } from "@/app/(auth)/(connected)/pods/[podId]/posts/_submit/schema"
 import { components, internal } from "@/convex/_generated/api"
 import { internalMutation } from "@/convex/_generated/server"
 import { update } from "@/convex/_helpers/server"
@@ -154,12 +154,11 @@ export const perform = workflow.define({
       await step.runMutation(internal.engagement.mutate.upsertEngagement, {
         userId,
         postId,
-        reactionType,
         error,
+        reactionType,
       })
 
       if (post.text && post.author) {
-        const prompt = account.commentPrompt ?? ""
         const [runAfter, commentText] = await Promise.all([
           step.runAction(internal.engagement.generate.delay, {
             minDelay,
@@ -167,9 +166,9 @@ export const perform = workflow.define({
           }),
           step.runAction(internal.engagement.generate.comment, {
             profile,
-            prompt,
-            post: { text: post.text, author: post.author },
             reactionType,
+            post: { text: post.text, author: post.author },
+            prompt: account.commentPrompt ?? "",
           }),
         ])
 
@@ -182,8 +181,8 @@ export const perform = workflow.define({
           await step.runMutation(internal.engagement.mutate.upsertEngagement, {
             userId,
             postId,
-            reactionType: "comment",
             error,
+            reactionType: "comment",
           })
         }
       }

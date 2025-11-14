@@ -29,6 +29,7 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
   return (
     <HStack justify="between" items="center" className={cn("w-full gap-2", className)}>
       <PageTitle>{pod.name}</PageTitle>
+
       <Tooltip>
         <TooltipTrigger asChild>
           <CopyButton icon={LuSend} content={inviteURL} variant="muted" className="-mt-1" />

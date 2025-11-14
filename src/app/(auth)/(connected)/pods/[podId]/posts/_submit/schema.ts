@@ -4,8 +4,8 @@ import { LinkedInReaction, parsePostURN, urlRegex, urnRegex } from "@/lib/linked
 export const submitPost = {
   min: {
     targetCount: 1,
-    minDelay: 1,
-    maxDelay: 1,
+    minDelay: 5,
+    maxDelay: 5,
   },
   max: {
     targetCount: 50,
@@ -16,7 +16,7 @@ export const submitPost = {
     url: "",
     targetCount: 25,
     minDelay: 5,
-    maxDelay: 20,
+    maxDelay: 15,
     reactionTypes: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReaction[],
   },
   options: {
@@ -41,17 +41,22 @@ export const calculateTargetCount = (memberCount?: number) => {
   return { min, max, defaultValue }
 }
 
-export const SubmitPost = z.object({
-  url: z
-    .url("Please enter a valid URL")
-    .refine(
-      (url) => !!parsePostURN(url),
-      `URL must include ${urlRegex.source} or ${urnRegex.source}`,
-    ),
-  reactionTypes: z.array(LinkedInReaction).min(1, "Select at least one reaction type"),
-  targetCount: z.number().int().min(submitPost.min.targetCount).max(submitPost.max.targetCount),
-  minDelay: z.number().int().min(submitPost.min.minDelay).max(submitPost.max.minDelay),
-  maxDelay: z.number().int().min(submitPost.min.maxDelay).max(submitPost.max.maxDelay),
-})
+export const SubmitPost = z
+  .object({
+    url: z
+      .url("Please enter a valid URL")
+      .refine(
+        (url) => !!parsePostURN(url),
+        `URL must include ${urlRegex.source} or ${urnRegex.source}`,
+      ),
+    reactionTypes: z.array(LinkedInReaction).min(1, "Select at least one reaction type"),
+    targetCount: z.number().int().min(submitPost.min.targetCount).max(submitPost.max.targetCount),
+    minDelay: z.number().int().min(submitPost.min.minDelay).max(submitPost.max.minDelay),
+    maxDelay: z.number().int().min(submitPost.min.maxDelay).max(submitPost.max.maxDelay),
+  })
+  .refine((data) => data.minDelay <= data.maxDelay, {
+    message: "Minimum delay must be less than maximum delay",
+    path: ["minDelay", "maxDelay"],
+  })
 
 export type SubmitPost = z.infer<typeof SubmitPost>

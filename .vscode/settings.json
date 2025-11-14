@@ -9,13 +9,12 @@
   },
   "editor.wordWrapColumn": 120,
   "files.associations": {
-    "*.mdx": "markdown",
-    "*.css": "tailwindcss"
+    "*.css": "tailwindcss",
+    "*.mdx": "markdown"
   },
   "files.exclude": {
-    ".husky/": true,
-    "**/.cache": true,
     "**/.DS_Store": true,
+    "**/.cache": true,
     "**/.next": true,
     "**/.output": true,
     "**/.pnpm": true,
@@ -25,8 +24,10 @@
     "**/coverage": true,
     "**/dist": true,
     "**/node_modules": true,
-    "src/convex/_generated/": true,
+    ".claude/": true,
+    ".husky/": true,
     "next-env.d.ts": true,
+    "src/convex/_generated/": true,
     "tsconfig.tsbuildinfo/": true
   },
   "search.exclude": {

@@ -12,7 +12,7 @@ const schema = defineSchema({
     role: v.optional(v.union(v.literal("sudo"))),
     maxActions: v.number(),
     commentPrompt: v.optional(v.string()),
-    updatedAt: v.number(), // Timestamp
+    updatedAt: v.number(),
   })
     .index("by_userId", ["userId", "unipileId"])
     .index("by_unipileId", ["unipileId"]),
@@ -20,6 +20,7 @@ const schema = defineSchema({
   linkedinProfiles: defineTable({
     userId: v.optional(v.string()),
     unipileId: v.string(),
+    providerId: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
     picture: v.string(),
@@ -40,8 +41,8 @@ const schema = defineSchema({
 
   // Pod members (join table for many-to-many relationship)
   memberships: defineTable({
-    userId: v.string(), // Reference to userId
-    podId: v.id("pods"), // Reference to pod
+    userId: v.string(),
+    podId: v.id("pods"),
   })
     .index("by_podId", ["podId", "userId"])
     .index("by_userId", ["userId", "podId"]),
@@ -49,11 +50,11 @@ const schema = defineSchema({
   // Posts submitted for engagement
   posts: defineTable({
     userId: v.string(),
-    podId: v.id("pods"), // Pod where post was submitted
-    url: v.string(), // LinkedIn post URL
-    urn: v.string(), // LinkedIn post URN (extracted from URL)
+    podId: v.id("pods"),
+    url: v.string(),
+    urn: v.string(),
     workflowId: v.optional(v.string()),
-    // Workflow completion tracking
+    // Workflow status tracking
     status: v.optional(
       v.union(
         v.literal("pending"),
@@ -80,8 +81,8 @@ const schema = defineSchema({
   // Engagement log (tracks reactions on posts)
   engagements: defineTable({
     postId: v.id("posts"),
-    userId: v.string(), // User who reacted
-    reactionType: v.string(), // Type: like, celebrate, support, love, insightful, funny
+    userId: v.string(),
+    reactionType: v.string(), // Type: like, celebrate, support, love, insightful, funny, comment
     success: v.optional(v.boolean()),
     error: v.optional(v.string()),
   }).index("by_postId", ["postId", "userId"]),

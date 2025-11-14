@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia } from "@/components/ui/item"
-import { StaticRelativeTime } from "@/components/ui/relative-time"
+import { RelativeTime } from "@/components/ui/relative-time"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
@@ -17,11 +17,11 @@ export type PodPostsToastsProps = {
 }
 
 export const PodPostsToasts: React.FC<PodPostsToastsProps> = ({ podId, take = 5 }) => {
-  const posts = useAuthQuery(api.posts.query.latest, { podId, take })?.toReversed()
+  const posts = useAuthQuery(api.posts.query.latest, { podId, take })?.toReversed() ?? []
 
   return (
     <>
-      {posts?.map((p) => (
+      {posts.map((p) => (
         <PostToast key={p.url} {...p} />
       ))}
     </>
@@ -40,7 +40,7 @@ export const PostToast: React.FC<PostToastProps> = ({
 }) => {
   useEffect(() => {
     toast(
-      <Item className="p-0">
+      <Item className="p-0 w-full">
         <ItemMedia className="-mt-0.5">
           <Avatar className="size-6">
             <AvatarImage src={picture} alt={`${firstName} ${lastName}`} />
@@ -53,7 +53,7 @@ export const PostToast: React.FC<PostToastProps> = ({
         <ItemContent className="gap-0">
           <ItemDescription className="font-medium">
             <span className="text-foreground">{firstName}</span>&nbsp;posted&nbsp;
-            <StaticRelativeTime date={_creationTime} />
+            <RelativeTime date={_creationTime} />
           </ItemDescription>
         </ItemContent>
         <ItemActions>
@@ -64,7 +64,7 @@ export const PostToast: React.FC<PostToastProps> = ({
           </Button>
         </ItemActions>
       </Item>,
-      { position: "bottom-left", duration: 5_000 },
+      { position: "bottom-center", duration: 5_000 },
     )
   }, [firstName, lastName, picture, url, _creationTime])
 

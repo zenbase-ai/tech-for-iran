@@ -2,7 +2,6 @@
 
 import { useAction } from "convex/react"
 import { useState } from "react"
-import { LuUnplug } from "react-icons/lu"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,19 +21,19 @@ import { cn } from "@/lib/utils"
 export type DisconnectButtonProps = ButtonProps
 
 export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
-  variant = "ghost",
+  variant,
   className,
+  children,
   ...props
 }) => {
-  const action = useAsyncFn(useAction(api.linkedin.action.disconnectOwn))
+  const disconnect = useAsyncFn(useAction(api.linkedin.action.disconnectOwn))
   const [isOpen, setOpen] = useState(false)
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant={variant} className={cn("w-fit", className)} {...props}>
-          Disconnect
-          <LuUnplug className="size-4" />
+          {children}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -46,14 +45,14 @@ export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel type="button" disabled={action.pending}>
+          <AlertDialogCancel type="button" disabled={disconnect.pending}>
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             type="button"
-            disabled={action.pending}
+            disabled={disconnect.pending}
             variant="destructive"
-            onClick={() => action.execute()}
+            onClick={() => disconnect.execute()}
           >
             Disconnect
           </AlertDialogAction>

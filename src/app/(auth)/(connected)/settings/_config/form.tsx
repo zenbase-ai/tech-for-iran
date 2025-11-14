@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/convex/_generated/api"
-import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 import { Config, config } from "./schema"
@@ -44,7 +43,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
   commentPrompt,
   className,
 }) => {
-  const mutate = useAsyncFn(useMutation(api.linkedin.mutate.configure))
+  const configure = useMutation(api.linkedin.mutate.configure)
   const form = useForm({
     resolver: zodResolver(Config),
     defaultValues: { maxActions, commentPrompt },
@@ -52,7 +51,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
 
   return (
     <form
-      onSubmit={form.handleSubmit(mutate.execute)}
+      onSubmit={form.handleSubmit(configure)}
       className={cn("w-full flex flex-col gap-4", className)}
     >
       <Controller
@@ -99,7 +98,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
       />
 
       <Button type="submit" disabled={form.formState.isSubmitting} className="w-fit">
-        Update
+        Save
         {form.formState.isSubmitting ? (
           <Spinner variant="ellipsis" />
         ) : (

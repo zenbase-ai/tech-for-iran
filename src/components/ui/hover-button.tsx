@@ -5,7 +5,7 @@ import { Box } from "@/components/layout/box"
 import { cn } from "@/lib/utils"
 
 const hoverButtonVariants = cva(
-  "group relative w-auto cursor-pointer overflow-hidden border border-transparent border-2 rounded-full p-2 px-4 sm:px-6 text-center text-sm sm:text-base font-semibold disabled:pointer-events-none disabled:opacity-50 ",
+  "group relative w-auto cursor-pointer overflow-hidden border border-transparent border-2 rounded-lg p-2 px-4 sm:px-6 text-center text-sm sm:text-base font-semibold disabled:pointer-events-none disabled:opacity-50 ",
   {
     variants: {
       variant: {
@@ -19,7 +19,7 @@ const hoverButtonVariants = cva(
 )
 
 const dotVariants = cva(
-  "h-2 w-2 rounded-full transition-all duration-300 group-hover:scale-[100.8]",
+  "h-2 w-2 rounded-lg transition-all duration-300 group-hover:scale-[100.8]",
   {
     variants: {
       variant: {

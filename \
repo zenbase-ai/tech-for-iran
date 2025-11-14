@@ -1,0 +1,61 @@
+refinements
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Date:      Fri Nov 14 17:53:43 2025 +0000
+#
+# On branch main
+# Changes to be committed:
+#	modified:   .vscode/settings.json
+#	modified:   bun.lock
+#	modified:   package.json
+#	new file:   src/app/(auth)/(connected)/_nav.tsx
+#	new file:   src/app/(auth)/(connected)/layout.tsx
+#	renamed:    src/app/(auth)/pods/[podId]/_header.tsx -> src/app/(auth)/(connected)/pods/[podId]/_header.tsx
+#	renamed:    src/app/(auth)/pods/[podId]/_members.tsx -> src/app/(auth)/(connected)/pods/[podId]/_members.tsx
+#	renamed:    src/app/(auth)/pods/[podId]/page.tsx -> src/app/(auth)/(connected)/pods/[podId]/page.tsx
+#	renamed:    src/app/(auth)/pods/[podId]/posts/_latest/toasts.tsx -> src/app/(auth)/(connected)/pods/[podId]/posts/_latest/toasts.tsx
+#	renamed:    src/app/(auth)/pods/[podId]/posts/_submit/form.tsx -> src/app/(auth)/(connected)/pods/[podId]/posts/_submit/form.tsx
+#	renamed:    src/app/(auth)/pods/[podId]/posts/_submit/schema.ts -> src/app/(auth)/(connected)/pods/[podId]/posts/_submit/schema.ts
+#	renamed:    src/app/(auth)/pods/_join.tsx -> src/app/(auth)/(connected)/pods/_join.tsx
+#	new file:   src/app/(auth)/(connected)/pods/_list.tsx
+#	renamed:    src/app/(auth)/pods/page.client.tsx -> src/app/(auth)/(connected)/pods/page.client.tsx
+#	renamed:    src/app/(auth)/pods/page.tsx -> src/app/(auth)/(connected)/pods/page.tsx
+#	renamed:    src/app/(auth)/settings/_config/form.tsx -> src/app/(auth)/(connected)/settings/_config/form.tsx
+#	renamed:    src/app/(auth)/settings/_config/schema.ts -> src/app/(auth)/(connected)/settings/_config/schema.ts
+#	renamed:    src/app/(auth)/settings/_disconnect.tsx -> src/app/(auth)/(connected)/settings/_disconnect.tsx
+#	renamed:    src/app/(auth)/settings/_sync.tsx -> src/app/(auth)/(connected)/settings/_sync.tsx
+#	new file:   src/app/(auth)/(connected)/settings/page.tsx
+#	deleted:    src/app/(auth)/_nav.tsx
+#	modified:   src/app/(auth)/connect/page.tsx
+#	deleted:    src/app/(auth)/layout.tsx
+#	deleted:    src/app/(auth)/pods/_list.tsx
+#	deleted:    src/app/(auth)/settings/page.tsx
+#	new file:   src/app/(clerk)/layout.tsx
+#	modified:   src/app/(clerk)/sign-in/[[...sign-in]]/page.tsx
+#	modified:   src/app/(clerk)/sign-up/[[...sign-up]]/page.tsx
+#	modified:   src/app/layout.tsx
+#	modified:   src/app/page.client.tsx
+#	modified:   src/components/ui/button.tsx
+#	modified:   src/components/ui/copy-button.tsx
+#	modified:   src/components/ui/hover-button.tsx
+#	modified:   src/components/ui/input.tsx
+#	modified:   src/components/ui/item.tsx
+#	modified:   src/components/ui/loading.tsx
+#	modified:   src/components/ui/relative-time.tsx
+#	modified:   src/components/ui/sonner.tsx
+#	modified:   src/components/ui/textarea.tsx
+#	new file:   src/components/ui/timeout.tsx
+#	modified:   src/convex/engagement/workflow.ts
+#	modified:   src/convex/http.ts
+#	modified:   src/convex/linkedin/action.ts
+#	modified:   src/convex/linkedin/mutate.ts
+#	modified:   src/convex/pods/query.ts
+#	modified:   src/convex/posts/action.ts
+#	modified:   src/convex/ratelimits.ts
+#	modified:   src/convex/schema.ts
+#	modified:   src/convex/unipile/post.ts
+#	modified:   src/convex/unipile/profile.ts
+#	modified:   src/lib/server/unipile.ts
+#

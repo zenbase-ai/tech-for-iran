@@ -16,7 +16,7 @@ export type LoadingProps = {
 
 export const Loading: React.FC<LoadingProps> = ({
   message,
-  variant = "pinwheel",
+  variant = "ellipsis",
   size = 24,
   delay = 100,
   className,

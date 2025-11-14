@@ -1,6 +1,6 @@
 import { v } from "convex/values"
 import { pick } from "es-toolkit"
-import { SubmitPost } from "@/app/(auth)/pods/[podId]/posts/_submit/schema"
+import { SubmitPost } from "@/app/(auth)/(connected)/pods/[podId]/posts/_submit/schema"
 import { internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { errorMessage } from "@/convex/_helpers/errors"

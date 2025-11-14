@@ -20,15 +20,12 @@ export const get = memberQuery({
     podId: v.id("pods"),
   },
   handler: async (ctx, { podId }) => {
-    const [pod, memberCount] = await Promise.all([
-      ctx.db.get(podId),
-      podMembers.count(ctx, { bounds: { prefix: [podId] } }),
-    ])
+    const pod = await ctx.db.get(podId)
     if (!pod) {
       throw new NotFoundError()
     }
 
-    return { ...pod, memberCount }
+    return pod
   },
 })
 

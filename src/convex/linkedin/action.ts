@@ -10,7 +10,7 @@ export const syncOwn = connectedAction({
     const { unipileId } = ctx.account
     try {
       await ctx.runAction(internal.linkedin.action.sync, { unipileId })
-      return { success: "Sync complete." }
+      return {}
     } catch (error) {
       return { error: errorMessage(error) }
     }
@@ -26,7 +26,7 @@ export const disconnectOwn = authAction({
     })
     try {
       await ctx.runAction(internal.unipile.account.disconnect, { unipileId })
-      return { success: "LinkedIn disconnected." }
+      return {}
     } catch (error) {
       return { error: errorMessage(error) }
     }
@@ -39,9 +39,9 @@ export const sync = internalAction({
   },
   handler: async (ctx, { unipileId }) => {
     const data = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
-
     await ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
       unipileId,
+      providerId: data.provider_id,
       firstName: data.first_name,
       lastName: data.last_name,
       picture: data.profile_picture_url,

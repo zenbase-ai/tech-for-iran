@@ -1,6 +1,6 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
-import { config } from "@/app/(auth)/settings/_config/schema"
+import { config } from "@/app/(auth)/(connected)/settings/_config/schema"
 import { ConflictError, NotFoundError } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
 
@@ -48,7 +48,6 @@ export const configure = connectedMutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(ctx.account._id, update(args))
-    return { success: "Settings updated." }
   },
 })
 
@@ -91,6 +90,7 @@ export const upsertAccount = internalMutation({
 export const upsertProfile = internalMutation({
   args: {
     unipileId: v.string(),
+    providerId: v.string(),
     url: v.string(),
     picture: v.string(),
     firstName: v.string(),

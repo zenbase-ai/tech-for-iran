@@ -2,8 +2,9 @@
 
 import { cva, type VariantProps } from "class-variance-authority"
 import { AnimatePresence, type HTMLMotionProps, motion } from "motion/react"
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 import { LuCheck, LuCopy } from "react-icons/lu"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 export const buttonVariants = cva(
@@ -64,33 +65,26 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
     setLocalIsCopied(isCopied ?? false)
   }, [isCopied])
 
-  const handleIsCopied = useCallback(
-    (isCopied: boolean) => {
-      setLocalIsCopied(isCopied)
-      onCopyChange?.(isCopied)
-    },
-    [onCopyChange],
-  )
+  const handleIsCopied = useEffectEvent((isCopied: boolean) => {
+    setLocalIsCopied(isCopied)
+    onCopyChange?.(isCopied)
+  })
 
-  const handleCopy = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      if (isCopied) return
-      if (content) {
-        navigator.clipboard
-          .writeText(content)
-          .then(() => {
-            handleIsCopied(true)
-            setTimeout(() => handleIsCopied(false), delay)
-            onCopy?.(content)
-          })
-          .catch((error) => {
-            console.error("Error copying command", error)
-          })
+  const handleCopy = useEffectEvent(async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (isCopied) return
+    if (content) {
+      try {
+        await navigator.clipboard.writeText(content)
+        handleIsCopied(true)
+        setTimeout(() => handleIsCopied(false), delay)
+        onCopy?.(content)
+      } catch (error) {
+        console.error("Error copying command", error)
+        toast.error("Failed to copy.")
       }
-      onClick?.(e)
-    },
-    [isCopied, content, delay, onClick, onCopy, handleIsCopied],
-  )
+    }
+    onClick?.(e)
+  })
 
   return (
     <motion.button

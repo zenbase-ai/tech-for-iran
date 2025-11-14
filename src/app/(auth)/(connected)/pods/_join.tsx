@@ -2,10 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
-import { useRouter } from "next/navigation"
+import { redirect } from "next/navigation"
+import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
-import { useTimeout } from "usehooks-ts"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,15 +31,17 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
     defaultValues: { inviteCode: "" },
   })
 
-  const router = useRouter()
-  const mutate = useAsyncFn(useMutation(api.pods.mutate.join))
-
-  const podId = mutate.data?.pod?._id
-  useTimeout(() => podId && router.push(`/pods/${podId}`), podId ? 1000 : null)
+  const join = useAsyncFn(useMutation(api.pods.mutate.join))
+  const handleSubmit = useEffectEvent(async (data: PodJoinSchema) => {
+    const podId = (await join.execute(data))?.pod?._id
+    if (podId) {
+      redirect(`/pods/${podId}`)
+    }
+  })
 
   return (
     <form
-      onSubmit={form.handleSubmit(mutate.execute)}
+      onSubmit={form.handleSubmit(handleSubmit)}
       className={cn("flex flex-row items-center gap-3", className)}
     >
       <Controller

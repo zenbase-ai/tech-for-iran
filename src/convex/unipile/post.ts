@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import { DateTime } from "luxon"
 import * as z from "zod"
 import { internalAction } from "@/convex/_generated/server"
-import { LinkedInReaction, parsePostURN } from "@/lib/linkedin"
+import { parsePostURN } from "@/lib/linkedin"
 import { unipile } from "@/lib/server/unipile"
 import { errorMessage } from "@/lib/utils"
 
@@ -32,17 +32,16 @@ export const fetch = internalAction({
     unipileId: v.string(),
     url: v.string(),
   },
-  handler: async (_ctx, { unipileId, url }) => {
+  handler: async (_ctx, { url, unipileId: account_id }) => {
     const urn = parsePostURN(url)
     if (!urn) {
       return { data: null, error: "Unsupported URL." }
     }
 
-    const searchParams = { account_id: unipileId }
-    const { data, success, error } = Fetch.safeParse(
-      await unipile.get(`api/v1/posts/${urn}`, { searchParams }).json(),
+    const { data, error } = Fetch.safeParse(
+      await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json(),
     )
-    if (!success) {
+    if (error) {
       return { data: null, error: errorMessage(error) }
     }
     if (data.is_repost) {
@@ -53,7 +52,9 @@ export const fetch = internalAction({
   },
 })
 
-const React = z.object({ object: z.literal("ReactionAdded") })
+type React = {
+  object: "ReactionAdded"
+}
 
 export const react = internalAction({
   args: {
@@ -61,15 +62,11 @@ export const react = internalAction({
     urn: v.string(),
     reactionType: v.string(),
   },
-  handler: async (_ctx, { unipileId, urn, reactionType }) => {
+  handler: async (_ctx, { urn: post_id, unipileId: account_id, reactionType: reaction_type }) => {
     try {
-      const body = {
-        account_id: unipileId,
-        post_id: urn,
-        reaction_type: LinkedInReaction.parse(reactionType),
-      }
-      const request = unipile.post("api/v1/posts/reaction", { json: body })
-      const data = React.parse(await request.json())
+      const data = await unipile
+        .post<React>("api/v1/posts/reaction", { json: { account_id, post_id, reaction_type } })
+        .json()
       return { data, error: null }
     } catch (error: unknown) {
       return { data: null, error: errorMessage(error) }
@@ -77,7 +74,9 @@ export const react = internalAction({
   },
 })
 
-const Comment = z.object({ object: z.literal("CommentSent") })
+type Comment = {
+  object: "CommentSent"
+}
 
 export const comment = internalAction({
   args: {
@@ -85,18 +84,15 @@ export const comment = internalAction({
     urn: v.string(),
     commentText: v.string(),
   },
-  handler: async (_ctx, { unipileId, urn, commentText }) => {
-    if (commentText.length === 0 || 1250 < commentText.length) {
+  handler: async (_ctx, { urn, unipileId: account_id, commentText: text }) => {
+    if (text.length === 0 || 1250 < text.length) {
       return { data: null, error: "Text must be between 1 and 1250 characters long." }
     }
 
     try {
-      const body = {
-        account_id: unipileId,
-        text: commentText,
-      }
-      const request = unipile.post(`api/v1/posts/${urn}/comments`, { json: body })
-      const data = Comment.parse(await request.json())
+      const data = await unipile
+        .post<Comment>(`api/v1/posts/${urn}/comments`, { json: { account_id, text } })
+        .json()
       return { data, error: null }
     } catch (error: unknown) {
       return { data: null, error: errorMessage(error) }

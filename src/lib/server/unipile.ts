@@ -21,6 +21,7 @@ export const UnipileErrorResponse = z.object({
 })
 
 export type UnipileErrorResponse = z.infer<typeof UnipileErrorResponse>
+
 export const unipile = ky.create({
   headers: { "X-API-KEY": env.UNIPILE_API_KEY, "Content-Type": "application/json" },
   prefixUrl: env.UNIPILE_API_URL,
@@ -48,20 +49,4 @@ export const unipile = ky.create({
       },
     ],
   },
-})
-
-export const UnipileAccountStatus = z.object({
-  AccountStatus: z.object({
-    account_id: z.string(),
-    account_type: z.literal("LINKEDIN"),
-    message: z.string(),
-  }),
-})
-export type UnipileAccountStatus = z.infer<typeof UnipileAccountStatus>
-
-export const unipileAccountStatus = ({
-  AccountStatus: { account_id, message },
-}: UnipileAccountStatus) => ({
-  unipileId: account_id,
-  status: message,
 })

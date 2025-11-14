@@ -42,7 +42,8 @@ export const PodMembers: React.FC<PodMembersProps> = ({
     { initialNumItems: membersPageSize },
   )
 
-  const isLoading = members.isLoading && members.results.length === 0
+  const noMembers = members.results.length === 0
+  const isLoading = members.isLoading && noMembers
   const loadMore = useEffectEvent(() => members.loadMore(membersPageSize))
   const canLoadMore =
     stats?.memberCount != null &&
@@ -61,7 +62,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
 
       {isLoading ? (
         <Skeleton className="w-full h-20" />
-      ) : members.results.length === 0 ? (
+      ) : noMembers ? (
         <Empty className="text-muted-foreground">
           <EmptyHeader>
             <EmptyMedia>
@@ -71,41 +72,43 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           </EmptyHeader>
         </Empty>
       ) : (
-        <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <ItemGroup className="contents">
-            {members.results.map((member) => (
-              <Item key={member.userId} variant="outline" size="sm" asChild>
-                <a href={member.url} target="_blank" rel="noopener noreferrer">
-                  <ItemMedia variant="image">
-                    <Avatar className="size-10">
-                      <AvatarImage
-                        src={member.picture}
-                        alt={`${member.firstName} ${member.lastName}`}
-                      />
-                      <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-                        {member.firstName[0]}
-                        {member.lastName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                  </ItemMedia>
-                  <ItemContent className="overflow-hidden">
-                    <ItemTitle className="truncate">
-                      {member.firstName} {member.lastName}
-                    </ItemTitle>
-                    <ItemDescription>
-                      Joined {new Date(member.joinedAt).toLocaleDateString()}
-                    </ItemDescription>
-                  </ItemContent>
-                </a>
-              </Item>
-            ))}
-          </ItemGroup>
+        <VStack className="gap-3">
+          <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ItemGroup className="contents">
+              {members.results.map((member) => (
+                <Item key={member.userId} variant="outline" size="sm" asChild>
+                  <a href={member.url} target="_blank" rel="noopener noreferrer">
+                    <ItemMedia variant="image">
+                      <Avatar className="size-10">
+                        <AvatarImage
+                          src={member.picture}
+                          alt={`${member.firstName} ${member.lastName}`}
+                        />
+                        <AvatarFallback className="text-sm font-semibold text-muted-foreground">
+                          {member.firstName[0]}
+                          {member.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                    </ItemMedia>
+                    <ItemContent className="overflow-hidden">
+                      <ItemTitle className="truncate">
+                        {member.firstName} {member.lastName}
+                      </ItemTitle>
+                      <ItemDescription>
+                        Joined {new Date(member.joinedAt).toLocaleDateString()}
+                      </ItemDescription>
+                    </ItemContent>
+                  </a>
+                </Item>
+              ))}
+            </ItemGroup>
+          </Box>
           {canLoadMore && (
             <Button variant="outline" onClick={loadMore} className="max-w-fit">
-              Show More
+              More
             </Button>
           )}
-        </Box>
+        </VStack>
       )}
     </VStack>
   )

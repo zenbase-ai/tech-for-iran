@@ -6,7 +6,7 @@ import { capitalize } from "es-toolkit/string"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
-import { HStack } from "@/components/layout/stack"
+import { Stack } from "@/components/layout/stack"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
@@ -53,14 +53,14 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
 }) => {
   const targetCount = calculateTargetCount(memberCount)
 
-  const action = useAsyncFn(useAction(api.posts.action.submit))
   const form = useForm({
     resolver: zodResolver(SubmitPost),
     defaultValues: { ...submitPost.defaultValues, targetCount: targetCount.defaultValue },
   })
 
+  const submit = useAsyncFn(useAction(api.posts.action.submit))
   const handleSubmit = useEffectEvent(async (data: SubmitPost) => {
-    if (await action.execute({ podId, ...data })) {
+    if (await submit.execute({ podId, ...data })) {
       form.reset()
     } else {
       form.setError("root", { message: "Something went really wrong." })
@@ -73,7 +73,7 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
     >
       {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
-      <HStack className="gap-4">
+      <Stack items="center" justify="center" className="gap-4 flex-col md:flex-row">
         <Controller
           name="url"
           control={form.control}
@@ -83,7 +83,7 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
                 {...field}
                 id={field.name}
                 type="url"
-                className="h-11"
+                className="h-9 sm:h-11"
                 placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
                 aria-invalid={fieldState.invalid}
                 disabled={form.formState.isSubmitting}
@@ -94,12 +94,12 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
           )}
         />
 
-        <Box>
-          <HoverButton type="submit" disabled={form.formState.isSubmitting} className="max-w-fit">
+        <Box className="max-w-fit">
+          <HoverButton type="submit" disabled={form.formState.isSubmitting}>
             Submit
           </HoverButton>
         </Box>
-      </HStack>
+      </Stack>
 
       <Controller
         name="reactionTypes"

@@ -11,6 +11,6 @@ export const LiveRelativeTime: React.FC<RelativeTimeProps> = (props) => (
   <TimeAgo formatter={formatter} live {...props} />
 )
 
-export const StaticRelativeTime: React.FC<RelativeTimeProps> = (props) => (
+export const RelativeTime: React.FC<RelativeTimeProps> = (props) => (
   <TimeAgo formatter={formatter} live={false} {...props} />
 )

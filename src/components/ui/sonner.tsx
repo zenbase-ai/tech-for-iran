@@ -28,12 +28,14 @@ export const Toaster: React.FC<ToasterProps> = ({ className, ...props }) => {
       })}
       toastOptions={{
         unstyled: true,
-        className:
-          "p-3 rounded-full flex flex-row items-center gap-2 bg-muted/80 backdrop-blur-md border-1 border-muted",
+        className: cn(
+          "w-full p-3 rounded-full flex flex-row items-center justify-between gap-2",
+          "bg-muted/80 backdrop-blur-md border-1 border-muted",
+        ),
         classNames: {
           icon: "size-4",
           loader: "!left-[20%]",
-          content: "leading-[1.2]",
+          content: "leading-[1.2] w-full",
           title: "text-sm font-medium",
           description: "text-xs font-medium",
           success: "!bg-green-500 text-white",

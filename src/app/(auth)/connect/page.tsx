@@ -53,9 +53,9 @@ export default async function ConnectPage({ searchParams }: ConnectPageProps) {
 
     if (pod) {
       return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
+    } else {
+      return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
     }
-
-    return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
   }
 
   return redirect("/pods", RedirectType.replace)

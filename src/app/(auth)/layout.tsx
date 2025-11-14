@@ -22,13 +22,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     if (forceConnect) toast.info("Please connect your LinkedIn.")
   }, [forceConnect])
 
-  if (status == null) {
+  if (linkedin == null) {
     return <Loading delay={0} />
   }
 
   return (
     <>
-      {!isConnectPage && <Nav className="z-50 fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" />}
+      {!isConnectPage && (
+        <Nav className="z-50 fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" />
+      )}
       <Box as="main" className="mx-auto">
         {children}
       </Box>

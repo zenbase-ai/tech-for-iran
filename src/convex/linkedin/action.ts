@@ -21,7 +21,7 @@ export const disconnectOwn = authAction({
   args: {},
   handler: async (ctx) => {
     const { userId } = ctx
-    const { unipileId } = await ctx.runMutation(internal.linkedin.mutate.disconnect, {
+    const { unipileId } = await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, {
       userId,
     })
     try {

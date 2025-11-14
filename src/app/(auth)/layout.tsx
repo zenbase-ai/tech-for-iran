@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      {!isConnectPage && <Nav className="fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" />}
+      {!isConnectPage && <Nav className="z-50 fixed top-4 left-0 right-0 w-full max-w-fit mx-auto" />}
       <Box as="main" className="mx-auto">
         {children}
       </Box>

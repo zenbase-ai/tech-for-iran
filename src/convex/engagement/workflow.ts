@@ -159,16 +159,17 @@ export const perform = workflow.define({
       })
 
       if (post.text && post.author) {
+        const prompt = account.commentPrompt ?? ""
         const [runAfter, commentText] = await Promise.all([
           step.runAction(internal.engagement.generate.delay, {
             minDelay,
             maxDelay,
           }),
           step.runAction(internal.engagement.generate.comment, {
-            user: profile,
-            prompt: account.commentPrompt,
+            profile,
+            prompt,
             post: { text: post.text, author: post.author },
-            reactionType: reactionType,
+            reactionType,
           }),
         ])
 

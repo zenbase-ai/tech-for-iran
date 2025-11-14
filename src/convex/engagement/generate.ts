@@ -33,7 +33,7 @@ type Comment = string | null
 
 export const comment = internalAction({
   args: {
-    user: v.object({
+    profile: v.object({
       firstName: v.string(),
       lastName: v.string(),
       location: v.optional(v.string()),
@@ -63,7 +63,7 @@ export const comment = internalAction({
       system: llml({
         instructions:
           "You are crafting authentic LinkedIn comments on behalf of the following user. Your comments should be authentic, genuine, and reflect thoughtful analysis of the original post.",
-        user: args.user,
+        user: args.profile,
         corePrinciples: [
           "Imagine you're texting a friend",
           "Add a unique perspective or insight",

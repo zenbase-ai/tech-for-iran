@@ -26,7 +26,10 @@ export default async function ConnectPage({ searchParams }: ConnectPageProps) {
     searchParams,
   ])
 
+  console.info("Connect page", { userId, account_id, inviteCode })
+
   if (account_id) {
+    console.info("Linking account to unipile", { userId, unipileId: account_id })
     await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId: account_id }, { token })
   } else {
     const [{ account }, validInviteCode] = await Promise.all([
@@ -37,9 +40,11 @@ export default async function ConnectPage({ searchParams }: ConnectPageProps) {
     ])
 
     if (!account && !validInviteCode) {
+      console.info("No account found, showing connect gate", { userId, inviteCode })
       return <ConnectGate inviteCode={inviteCode} validInviteCode={validInviteCode} />
     } else if (requiresConnection(account?.status)) {
       const hostedAuth = await generateHostedAuthURL(userId, inviteCode)
+      console.info("Account requires connection, showing connect dialog", { userId, hostedAuth })
       return <ConnectDialog redirectURL={hostedAuth.url} />
     }
   }

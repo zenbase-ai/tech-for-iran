@@ -3,7 +3,8 @@
 import type { UsePaginatedQueryReturnType } from "convex/react"
 import Link from "next/link"
 import { useEffectEvent } from "react"
-import { LuUsers } from "react-icons/lu"
+import { LuArrowDown, LuUsers } from "react-icons/lu"
+import { useIntersectionObserver } from "usehooks-ts"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
@@ -21,8 +22,12 @@ export type PodsListProps = {
 export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
   const noPods = pods.results.length === 0
   const isLoading = pods.isLoading && noPods
-  const loadMore = useEffectEvent(() => pods.loadMore(12))
   const canLoadMore = pods.status === "CanLoadMore"
+  const loadMore = useEffectEvent(() => pods.loadMore(12))
+
+  const observer = useIntersectionObserver({
+    onChange: (isVisible) => isVisible && loadMore(),
+  })
 
   return isLoading ? (
     <Skeleton className={cn("w-full h-19", className)} />
@@ -55,8 +60,15 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
         </ItemGroup>
       </Box>
       {canLoadMore && (
-        <Button variant="outline" onClick={loadMore} className="max-w-fit">
+        <Button
+          ref={observer.ref}
+          variant="outline"
+          className="max-w-fit"
+          onClick={loadMore}
+          disabled={isLoading}
+        >
           More
+          <LuArrowDown className="size-4" />
         </Button>
       )}
     </VStack>

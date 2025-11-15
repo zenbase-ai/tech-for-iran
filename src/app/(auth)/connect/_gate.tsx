@@ -79,7 +79,7 @@ export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode = "", valid
           />
 
           <AlertDialogFooter>
-            <SignOutButton>
+            <SignOutButton redirectUrl="/">
               <AlertDialogCancel
                 type="button"
                 disabled={form.formState.isSubmitting}

@@ -54,7 +54,7 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ redirectURL }) => 
           <AlertDialogCancel asChild>
             <Link href="/">Cancel</Link>
           </AlertDialogCancel>
-          <AlertDialogAction onClick={connect} disabled={countdown <= 1}>
+          <AlertDialogAction onClick={connect} disabled={countdown <= 1} autoFocus>
             Connect
           </AlertDialogAction>
         </AlertDialogFooter>

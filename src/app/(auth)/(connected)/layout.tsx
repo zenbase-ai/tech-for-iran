@@ -4,7 +4,6 @@ import { redirect } from "next/navigation"
 import { toast } from "sonner"
 import { Box } from "@/components/layout/box"
 import { Loading } from "@/components/ui/loading"
-import { Timeout } from "@/components/ui/timeout"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { requiresConnection } from "@/lib/linkedin"
@@ -17,10 +16,9 @@ export default function ConnectedLayout({ children }: { children: React.ReactNod
     return <Loading delay={0} />
   }
 
-  const status = linkedin?.account?.status
-  if (status != null && requiresConnection(status)) {
+  if (requiresConnection(linkedin.account?.status)) {
     toast.warning("Please connect your LinkedIn.")
-    return <Timeout delay={250} callback={() => redirect("/connect")} />
+    return redirect("/connect")
   }
 
   return (

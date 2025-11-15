@@ -43,7 +43,7 @@ export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode = "", valid
   })
 
   const router = useRouter()
-  const onSubmit = useEffectEvent(async (data: ConnectGateSchema) => {
+  const onSubmit = useEffectEvent((data: ConnectGateSchema) => {
     form.clearErrors("inviteCode")
     router.replace(`/connect?${queryString(data)}`)
   })

@@ -29,16 +29,14 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ redirectURL }) => 
   })
 
   useEffect(() => {
+    countdown === 0 && connect()
+  }, [countdown])
+
+  useEffect(() => {
     resetCountdown()
     startCountdown()
     return stopCountdown
   }, [resetCountdown, startCountdown, stopCountdown])
-
-  useEffect(() => {
-    if (countdown === 0) {
-      connect()
-    }
-  }, [countdown])
 
   return (
     <AlertDialog open>

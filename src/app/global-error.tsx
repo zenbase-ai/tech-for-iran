@@ -4,7 +4,7 @@ import Image from "next/image"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Badge } from "@/components/ui/badge"
-import { HoverButton } from "@/components/ui/hover-button"
+import { Button } from "@/components/ui/button"
 import NotFoundIllustration from "@/public/not-found.png"
 
 type GlobalErrorProps = {
@@ -24,9 +24,8 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           className="text-center mt-[20vh] size-full gap-4 md:gap-6 lg:gap-8"
         >
           <h1 className="text-xl font-serif italic bold">Something went terribly wrong.</h1>
-          <HoverButton variant="primary" onClick={reset}>
-            Reset
-          </HoverButton>
+          <Button onClick={reset}>Refresh</Button>
+
           <Box className="object-contain w-full max-w-[360px]">
             <Image
               src={NotFoundIllustration}

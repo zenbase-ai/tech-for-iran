@@ -20,3 +20,11 @@ export default function useAuthPaginatedQuery<T extends FunctionReference<"query
   const { isSignedIn } = useAuth()
   return usePaginatedQuery(query, isSignedIn ? args : "skip", options)
 }
+
+export const paginatedState = <T extends FunctionReference<"query">>(
+  queryReturn: UsePaginatedQueryReturn<T>,
+) => ({
+  canLoadMore: queryReturn.status === "CanLoadMore",
+  isLoading: queryReturn.isLoading && queryReturn.results.length === 0,
+  noResults: queryReturn.results.length === 0,
+})

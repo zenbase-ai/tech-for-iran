@@ -21,7 +21,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import useAuthPaginatedQuery from "@/hooks/use-auth-paginated-query"
+import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
@@ -43,13 +43,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
     { podId },
     { initialNumItems: membersPageSize },
   )
-
-  const noMembers = members.results.length === 0
-  const isLoading = members.isLoading && noMembers
-  const canLoadMore =
-    stats?.memberCount != null &&
-    members.status === "CanLoadMore" &&
-    members.results.length < stats.memberCount
+  const { isLoading, noResults, canLoadMore } = paginatedState(members)
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(membersPageSize))
 
   const observer = useIntersectionObserver({
@@ -68,7 +62,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
 
       {isLoading ? (
         <Skeleton className="w-full h-20" />
-      ) : noMembers ? (
+      ) : noResults ? (
         <Empty className="text-muted-foreground">
           <EmptyHeader>
             <EmptyMedia>

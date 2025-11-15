@@ -12,6 +12,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { api } from "@/convex/_generated/api"
+import { paginatedState } from "@/hooks/use-auth-paginated-query"
 import { cn } from "@/lib/utils"
 
 export type PodsListProps = {
@@ -20,9 +21,7 @@ export type PodsListProps = {
 }
 
 export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
-  const noPods = pods.results.length === 0
-  const isLoading = pods.isLoading && noPods
-  const canLoadMore = pods.status === "CanLoadMore"
+  const { isLoading, noResults, canLoadMore } = paginatedState(pods)
   const loadMore = useEffectEvent(() => pods.loadMore(12))
 
   const observer = useIntersectionObserver({
@@ -31,7 +30,7 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
 
   return isLoading ? (
     <Skeleton className={cn("w-full h-19", className)} />
-  ) : noPods ? (
+  ) : noResults ? (
     <Empty className="text-muted-foreground">
       <EmptyHeader>
         <EmptyMedia>

@@ -23,6 +23,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
+import { fullName, initials } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 
 export type PodMembersProps = {
@@ -80,20 +81,14 @@ export const PodMembers: React.FC<PodMembersProps> = ({
                   <a href={member.url} target="_blank" rel="noopener noreferrer">
                     <ItemMedia variant="image">
                       <Avatar className="size-10">
-                        <AvatarImage
-                          src={member.picture}
-                          alt={`${member.firstName} ${member.lastName}`}
-                        />
+                        <AvatarImage src={member.picture} alt={fullName(member)} />
                         <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-                          {member.firstName[0]}
-                          {member.lastName[0]}
+                          {initials(member)}
                         </AvatarFallback>
                       </Avatar>
                     </ItemMedia>
                     <ItemContent className="overflow-hidden">
-                      <ItemTitle className="truncate">
-                        {member.firstName} {member.lastName}
-                      </ItemTitle>
+                      <ItemTitle className="truncate">{fullName(member)}</ItemTitle>
                       <ItemDescription>
                         Joined {new Date(member.joinedAt).toLocaleDateString()}
                       </ItemDescription>

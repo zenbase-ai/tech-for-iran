@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
+import { fullName, initials } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 
 export type NavProps = {
@@ -21,7 +22,6 @@ const variants: Variants = {
 
 export const Nav: React.FC<NavProps> = ({ className }) => {
   const { profile } = useAuthQuery(api.linkedin.query.getState) ?? {}
-  const fullName = `${profile?.firstName} ${profile?.lastName}`
 
   return (
     <AnimatePresence>
@@ -43,14 +43,13 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
           <Link href="/pods">
             <HStack items="center" justify="center" className="ml-1 gap-3">
               <Avatar className="size-7">
-                <AvatarImage src={profile.picture} alt={fullName} />
+                <AvatarImage src={profile.picture} alt={fullName(profile)} />
                 <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-                  {profile.firstName[0]}
-                  {profile.lastName[0]}
+                  {initials(profile)}
                 </AvatarFallback>
               </Avatar>
 
-              <span className="text-base font-medium">{fullName}</span>
+              <span className="text-base font-medium">{fullName(profile)}</span>
             </HStack>
           </Link>
 

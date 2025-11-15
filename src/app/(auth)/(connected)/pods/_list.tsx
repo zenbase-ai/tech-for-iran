@@ -4,7 +4,6 @@ import type { UsePaginatedQueryReturnType } from "convex/react"
 import Link from "next/link"
 import { useEffectEvent } from "react"
 import { LuArrowDown, LuUsers } from "react-icons/lu"
-import { useIntersectionObserver } from "usehooks-ts"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
@@ -13,6 +12,7 @@ import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/comp
 import { Skeleton } from "@/components/ui/skeleton"
 import type { api } from "@/convex/_generated/api"
 import { paginatedState } from "@/hooks/use-auth-paginated-query"
+import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { cn } from "@/lib/utils"
 
 export type PodsListProps = {
@@ -23,10 +23,7 @@ export type PodsListProps = {
 export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
   const { isLoading, noResults, canLoadMore } = paginatedState(pods)
   const loadMore = useEffectEvent(() => pods.loadMore(12))
-
-  const observer = useIntersectionObserver({
-    onChange: (isVisible) => isVisible && loadMore(),
-  })
+  const observer = useInfiniteScroll({ loadMore })
 
   return isLoading ? (
     <Skeleton className={cn("w-full h-19", className)} />

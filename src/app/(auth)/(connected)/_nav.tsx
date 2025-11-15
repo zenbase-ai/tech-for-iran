@@ -15,7 +15,7 @@ export type NavProps = {
   className?: string
 }
 
-const variants: Variants = {
+const navVariants: Variants = {
   hidden: { opacity: 0, y: -16 },
   visible: { opacity: 1, y: 0 },
 }
@@ -35,7 +35,7 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
             className,
           )}
-          variants={variants}
+          variants={navVariants}
           initial="hidden"
           animate="visible"
           exit="hidden"

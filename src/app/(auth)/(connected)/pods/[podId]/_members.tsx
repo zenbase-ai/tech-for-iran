@@ -2,7 +2,6 @@
 
 import { useEffectEvent } from "react"
 import { LuArrowDown, LuUsers } from "react-icons/lu"
-import { useIntersectionObserver } from "usehooks-ts"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
@@ -22,6 +21,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
+import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { fullName } from "@/lib/linkedin"
 import pluralize from "@/lib/pluralize"
 import { cn } from "@/lib/utils"
@@ -47,9 +47,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
   const { isLoading, noResults, canLoadMore } = paginatedState(members)
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(membersPageSize))
 
-  const observer = useIntersectionObserver({
-    onChange: (isVisible) => isVisible && loadMore(),
-  })
+  const observer = useInfiniteScroll({ loadMore })
 
   return (
     <VStack className={cn("w-full gap-6", className)}>

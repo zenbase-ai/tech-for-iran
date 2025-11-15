@@ -2,7 +2,8 @@
 
 import plur from "plur"
 import { useEffectEvent } from "react"
-import { LuUsers } from "react-icons/lu"
+import { LuArrowDown, LuUsers } from "react-icons/lu"
+import { useIntersectionObserver } from "usehooks-ts"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
@@ -36,6 +37,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
   membersPageSize = 8,
 }) => {
   const stats = useAuthQuery(api.pods.query.stats, { podId })
+
   const members = useAuthPaginatedQuery(
     api.pods.query.members,
     { podId },
@@ -44,11 +46,15 @@ export const PodMembers: React.FC<PodMembersProps> = ({
 
   const noMembers = members.results.length === 0
   const isLoading = members.isLoading && noMembers
-  const loadMore = useEffectEvent(() => members.loadMore(membersPageSize))
   const canLoadMore =
     stats?.memberCount != null &&
     members.status === "CanLoadMore" &&
     members.results.length < stats.memberCount
+  const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(membersPageSize))
+
+  const observer = useIntersectionObserver({
+    onChange: (isVisible) => isVisible && loadMore(),
+  })
 
   return (
     <VStack className={cn("w-full gap-6", className)}>
@@ -104,8 +110,15 @@ export const PodMembers: React.FC<PodMembersProps> = ({
             </ItemGroup>
           </Box>
           {canLoadMore && (
-            <Button variant="outline" onClick={loadMore} className="max-w-fit">
+            <Button
+              ref={observer.ref}
+              variant="outline"
+              className="max-w-fit"
+              disabled={isLoading}
+              onClick={loadMore}
+            >
               More
+              <LuArrowDown className="size-4" />
             </Button>
           )}
         </VStack>

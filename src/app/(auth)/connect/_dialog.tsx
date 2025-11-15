@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import plur from "plur"
 import { useEffect, useEffectEvent } from "react"
 import { useCountdown } from "usehooks-ts"
 import {
@@ -14,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import pluralize from "@/lib/pluralize"
 
 export type ConnectDialogProps = {
   redirectURL: string
@@ -49,7 +49,7 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ redirectURL }) => 
             This lets us handle engagements for you automatically.
           </AlertDialogDescription>
           <AlertDialogDescription className="text-muted-foreground">
-            We&apos;ll redirect you in {countdown} {plur("second", countdown)}.
+            We&apos;ll redirect you in {pluralize(countdown, "second")}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

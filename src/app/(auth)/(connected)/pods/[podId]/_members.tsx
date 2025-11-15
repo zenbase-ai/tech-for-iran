@@ -1,6 +1,5 @@
 "use client"
 
-import plur from "plur"
 import { useEffectEvent } from "react"
 import { LuArrowDown, LuUsers } from "react-icons/lu"
 import { useIntersectionObserver } from "usehooks-ts"
@@ -24,6 +23,7 @@ import type { Id } from "@/convex/_generated/dataModel"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { fullName } from "@/lib/linkedin"
+import pluralize from "@/lib/pluralize"
 import { cn } from "@/lib/utils"
 
 export type PodMembersProps = {
@@ -56,9 +56,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
       {stats?.memberCount == null ? (
         <Skeleton className="w-full h-8" />
       ) : (
-        <SectionTitle>
-          {stats.memberCount} {plur("member", stats.memberCount)}
-        </SectionTitle>
+        <SectionTitle>{pluralize(stats.memberCount, "member")}</SectionTitle>
       )}
 
       {isLoading ? (
@@ -77,7 +75,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ItemGroup className="contents">
               {members.results.map((member) => (
-                <Item key={member.userId} variant="outline" size="sm" asChild>
+                <Item key={member.url} variant="outline" size="sm" asChild>
                   <a href={member.url} target="_blank" rel="noopener noreferrer">
                     <ItemMedia variant="image">
                       <LinkedInProfileAvatar profile={member} />

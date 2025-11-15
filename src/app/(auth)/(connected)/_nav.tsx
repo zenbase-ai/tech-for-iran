@@ -4,11 +4,11 @@ import { AnimatePresence, motion, type Variants } from "motion/react"
 import Link from "next/link"
 import { LuSettings } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { LinkedInProfileAvatar } from "@/components/presenters/linkedinProfiles/avatar"
 import { Button } from "@/components/ui/button"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { fullName, initials } from "@/lib/linkedin"
+import { fullName } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 
 export type NavProps = {
@@ -42,12 +42,7 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
         >
           <Link href="/pods">
             <HStack items="center" justify="center" className="ml-1 gap-3">
-              <Avatar className="size-7">
-                <AvatarImage src={profile.picture} alt={fullName(profile)} />
-                <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-                  {initials(profile)}
-                </AvatarFallback>
-              </Avatar>
+              <LinkedInProfileAvatar profile={profile} />
 
               <span className="text-base font-medium">{fullName(profile)}</span>
             </HStack>

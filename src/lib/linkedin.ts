@@ -45,18 +45,13 @@ export const parsePostURN = (url: string): string | null => {
   return `urn:li:activity:${activityId}`
 }
 
-export const fullName = ({
-  firstName,
-  lastName,
-}: {
+type ProfileName = {
   firstName: string
   lastName: string
-}): string => `${firstName} ${lastName}`.trim()
+}
 
-export const initials = ({
-  firstName,
-  lastName,
-}: {
-  firstName: string
-  lastName: string
-}): string => `${firstName[0]}${lastName[0]}`.trim()
+export const fullName = ({ firstName, lastName }: ProfileName): string =>
+  `${firstName} ${lastName}`.trim()
+
+export const initials = ({ firstName, lastName }: ProfileName): string =>
+  `${firstName[0]}${lastName[0]}`.trim()

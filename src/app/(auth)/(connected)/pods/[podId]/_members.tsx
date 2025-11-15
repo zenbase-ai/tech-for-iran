@@ -7,7 +7,7 @@ import { useIntersectionObserver } from "usehooks-ts"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { LinkedInProfileAvatar } from "@/components/presenters/linkedinProfiles/avatar"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import {
@@ -23,7 +23,7 @@ import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { fullName, initials } from "@/lib/linkedin"
+import { fullName } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 
 export type PodMembersProps = {
@@ -80,12 +80,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
                 <Item key={member.userId} variant="outline" size="sm" asChild>
                   <a href={member.url} target="_blank" rel="noopener noreferrer">
                     <ItemMedia variant="image">
-                      <Avatar className="size-10">
-                        <AvatarImage src={member.picture} alt={fullName(member)} />
-                        <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-                          {initials(member)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <LinkedInProfileAvatar profile={member} />
                     </ItemMedia>
                     <ItemContent className="overflow-hidden">
                       <ItemTitle className="truncate">{fullName(member)}</ItemTitle>

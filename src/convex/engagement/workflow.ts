@@ -118,7 +118,6 @@ export const perform = workflow.define({
     for (let i = 1; i <= targetCount; i++) {
       const member = await step.runQuery(internal.engagement.query.availableMember, {
         podId,
-        postId,
         skipUserIds,
       })
       if (member === null) {

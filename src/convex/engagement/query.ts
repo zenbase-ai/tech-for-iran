@@ -24,10 +24,9 @@ const AvailableMember = z.object({
 export const availableMember = internalQuery({
   args: {
     podId: v.id("pods"),
-    postId: v.id("posts"),
     skipUserIds: v.array(v.string()),
   },
-  handler: async (ctx, { podId, postId, skipUserIds }) => {
+  handler: async (ctx, { podId, skipUserIds }) => {
     const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
 
     const availableMembers = await pflatMap(members, async ({ userId }) => {
@@ -35,13 +34,6 @@ export const availableMember = internalQuery({
         return []
       }
 
-      const didAccountAlreadyEngage = await ctx.db
-        .query("engagements")
-        .withIndex("by_postId", (q) => q.eq("postId", postId).eq("userId", userId))
-        .first()
-      if (didAccountAlreadyEngage) {
-        return []
-      }
 
       const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
       if (!account || requiresConnection(account?.status)) {

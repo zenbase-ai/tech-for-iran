@@ -1,10 +1,11 @@
 import { v } from "convex/values"
-import { pick } from "es-toolkit"
 import { SubmitPost } from "@/app/(auth)/(connected)/pods/[podId]/posts/_submit/schema"
 import { internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { connectedMemberAction } from "@/convex/_helpers/server"
+import { podMembers } from "@/convex/aggregates"
+import pluralize from "@/lib/pluralize"
 
 type Submit = { postId: Id<"posts">; success: string } | { postId: null; error: string }
 
@@ -13,15 +14,18 @@ export const submit = connectedMemberAction({
     podId: v.id("pods"),
     url: v.string(),
     reactionTypes: v.array(v.string()),
-    targetCount: v.number(),
-    minDelay: v.number(),
-    maxDelay: v.number(),
   },
   handler: async (ctx, { podId, ...args }): Promise<Submit> => {
     const { userId } = ctx
     const params = SubmitPost.safeParse(args)
     if (!params.success) {
       return { postId: null, error: errorMessage(params.error) }
+    }
+
+    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [podId] } })
+    const targetCount = Math.min(50, Math.ceil((memberCount - 1) / 2))
+    if (targetCount === 0) {
+      return { postId: null, error: "0 members to engage." }
     }
 
     if (ctx.account.role !== "sudo") {
@@ -43,27 +47,37 @@ export const submit = connectedMemberAction({
 
     const { share_url: url, social_id: urn, text, author, parsed_datetime: postedAt } = post.data
 
-    const { postId, success, error } = await ctx.runMutation(internal.posts.mutate.insert, {
+    const insert = await ctx.runMutation(internal.posts.mutate.insert, {
       userId,
       podId,
       url,
       urn,
       postedAt,
       text,
-      author: pick(author, ["name", "headline"]),
+      author: {
+        name: author.name,
+        headline: author.headline,
+        url: `https://linkedin.com/in/${author.public_identifier}`,
+      },
     })
-    if (error != null) {
-      return { postId: null, error }
+    if (insert.error != null) {
+      return { postId: null, error: insert.error }
     }
 
-    await ctx.runMutation(internal.engagement.workflow.start, {
+    const { postId } = insert
+    const { reactionTypes } = params.data
+    const start = await ctx.runMutation(internal.engagement.workflow.start, {
       userId,
       podId,
       postId,
       urn,
-      ...pick(params.data, ["reactionTypes", "targetCount", "minDelay", "maxDelay"]),
+      targetCount,
+      reactionTypes,
     })
+    if (start.error) {
+      return { postId: null, error: start.error }
+    }
 
-    return { postId, success }
+    return { postId, success: `Stay tuned for up to ${pluralize(targetCount, "engagement")}!` }
   },
 })

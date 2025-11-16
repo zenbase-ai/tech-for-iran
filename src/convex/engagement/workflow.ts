@@ -1,41 +1,35 @@
 import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
-import { clamp } from "es-toolkit"
-import { calculateTargetCount } from "@/app/(auth)/(connected)/pods/[podId]/posts/_submit/schema"
 import { components, internal } from "@/convex/_generated/api"
 import { internalMutation } from "@/convex/_generated/server"
+import { errorMessage } from "@/convex/_helpers/errors"
 import { update } from "@/convex/_helpers/server"
-import { podMembers } from "@/convex/aggregates"
 
 const args = {
   userId: v.string(),
   podId: v.id("pods"),
   postId: v.id("posts"),
   urn: v.string(),
-  reactionTypes: v.array(v.string()),
   targetCount: v.number(),
-  minDelay: v.number(),
-  maxDelay: v.number(),
+  reactionTypes: v.array(v.string()),
 }
 
 export const start = internalMutation({
   args,
   handler: async (ctx, args) => {
-    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [args.podId] } })
-    const { min: minTargetCount, max: maxTargetCount } = calculateTargetCount(memberCount)
-    const targetCount = clamp(args.targetCount, minTargetCount, maxTargetCount)
+    try {
+      const workflowId = await workflow.start(ctx, internal.engagement.workflow.perform, args, {
+        context: { postId: args.postId },
+        onComplete: internal.engagement.workflow.onComplete,
+        startAsync: true,
+      })
 
-    const context = { postId: args.postId }
-    const onComplete = internal.engagement.workflow.onComplete
-    const workflowId = await workflow.start(
-      ctx,
-      internal.engagement.workflow.perform,
-      { ...args, targetCount },
-      { context, onComplete, startAsync: true },
-    )
-
-    await ctx.db.patch(args.postId, { workflowId, status: "pending" })
+      await ctx.db.patch(args.postId, update({ workflowId, status: "pending" } as const))
+      return {}
+    } catch (error) {
+      return { error: errorMessage(error) }
+    }
   },
 })
 
@@ -109,10 +103,9 @@ export const workflow = new WorkflowManager(components.workflow, {
  */
 export const perform = workflow.define({
   args,
-  handler: async (
-    step,
-    { userId, postId, podId, urn, reactionTypes, targetCount, minDelay, maxDelay },
-  ) => {
+  handler: async (step, { userId, postId, podId, urn, reactionTypes, targetCount }) => {
+    const minDelay = 5
+    const maxDelay = 30
     const skipUserIds = [userId]
 
     await step.runMutation(internal.engagement.mutate.patchPostStatus, {

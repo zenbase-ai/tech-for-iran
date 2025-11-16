@@ -10,7 +10,5 @@ app.use(rateLimiter)
 app.use(workflow)
 app.use(aggregate, { name: "podMembers" })
 app.use(aggregate, { name: "podPosts" })
-app.use(aggregate, { name: "postEngagements" })
-app.use(aggregate, { name: "userEngagements" })
 
 export default app

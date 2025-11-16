@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { requiresConnection } from "@/lib/linkedin"
-import { tokenAuth } from "@/lib/server/clerk"
+import { clerkAuth } from "@/lib/server/clerk"
 import { queryString } from "@/lib/utils"
 import { generateHostedAuthURL } from "./_actions"
 import { ConnectDialog } from "./_dialog"
@@ -22,7 +22,7 @@ export type ConnectPageProps = {
 
 export default async function ConnectPage({ searchParams }: ConnectPageProps) {
   const [{ userId, token }, { account_id, inviteCode }] = await Promise.all([
-    tokenAuth(),
+    clerkAuth(),
     searchParams,
   ])
 
@@ -51,11 +51,11 @@ export default async function ConnectPage({ searchParams }: ConnectPageProps) {
       { token },
     )
 
-    if (pod) {
-      return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
-    } else {
+    if (pod == null) {
       return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
     }
+
+    return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
   }
 
   return redirect("/pods", RedirectType.replace)

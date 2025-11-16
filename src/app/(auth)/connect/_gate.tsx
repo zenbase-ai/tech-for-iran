@@ -2,7 +2,7 @@
 
 import { SignOutButton } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
+import { RedirectType, redirect } from "next/navigation"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
@@ -42,10 +42,9 @@ export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode = "", valid
         : undefined,
   })
 
-  const router = useRouter()
   const onSubmit = useEffectEvent((data: ConnectGateSchema) => {
     form.clearErrors("inviteCode")
-    router.replace(`/connect?${queryString(data)}`)
+    redirect(`/connect?${queryString(data)}`, RedirectType.replace)
   })
 
   return (

@@ -25,6 +25,7 @@ export const insert = internalMutation({
     author: v.object({
       name: v.string(),
       headline: v.string(),
+      url: v.string(),
     }),
     postedAt: v.number(),
   },
@@ -38,6 +39,6 @@ export const insert = internalMutation({
     }
 
     const postId = await ctx.db.insert("posts", update(args))
-    return { postId, success: "Stay tuned for the engagements!" }
+    return { postId }
   },
 })

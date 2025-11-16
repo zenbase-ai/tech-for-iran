@@ -10,7 +10,6 @@ import { Stack } from "@/components/layout/stack"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -19,13 +18,11 @@ import {
 } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import useAsyncFn from "@/hooks/use-async-fn"
-import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import { calculateTargetCount, SubmitPost, submitPost } from "./schema"
+import { SubmitPost, submitPost } from "./schema"
 
 export type SubmitPostFormProps = {
   podId: Id<"pods">
@@ -33,29 +30,9 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const stats = useAuthQuery(api.pods.query.stats, { podId })
-
-  return stats == null ? (
-    <Skeleton className={cn("w-full h-84 mt-1", className)} />
-  ) : (
-    <ActualSubmitPostForm podId={podId} className={className} memberCount={stats.memberCount} />
-  )
-}
-
-type ActualSubmitPostFormProps = SubmitPostFormProps & {
-  memberCount: number
-}
-
-const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
-  podId,
-  className,
-  memberCount,
-}) => {
-  const targetCount = calculateTargetCount(memberCount)
-
   const form = useForm({
     resolver: zodResolver(SubmitPost),
-    defaultValues: { ...submitPost.defaultValues, targetCount: targetCount.defaultValue },
+    defaultValues: submitPost.defaultValues,
   })
 
   const submit = useAsyncFn(useAction(api.posts.action.submit))
@@ -66,6 +43,7 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
       form.setError("root", { message: "Something went really wrong." })
     }
   })
+
   return (
     <form
       onSubmit={form.handleSubmit(handleSubmit)}
@@ -73,7 +51,7 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
     >
       {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
-      <Stack items="center" justify="center" className="gap-4 flex-col md:flex-row">
+      <Stack items="start" justify="center" className="gap-4 flex-col md:flex-row">
         <Controller
           name="url"
           control={form.control}
@@ -106,7 +84,7 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
         control={form.control}
         render={({ field, fieldState }) => (
           <FieldSet className="w-full" data-invalid={fieldState.invalid}>
-            <FieldLegend variant="label">Reaction types</FieldLegend>
+            <FieldLegend variant="label">Which reactions do you want?</FieldLegend>
             <FieldGroup
               className="grid grid-cols-2 sm:grid-cols-3 gap-2"
               data-slot="checkbox-group"
@@ -136,73 +114,6 @@ const ActualSubmitPostForm: React.FC<ActualSubmitPostFormProps> = ({
           </FieldSet>
         )}
       />
-
-      <Controller
-        name="targetCount"
-        control={form.control}
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor={field.name}>Target engagement count</FieldLabel>
-            <Input
-              {...field}
-              id={field.name}
-              type="number"
-              min={targetCount.min}
-              max={targetCount.max}
-              aria-invalid={fieldState.invalid}
-              disabled={form.formState.isSubmitting}
-              onChange={(e) => field.onChange(e.target.valueAsNumber)}
-            />
-            <FieldDescription>
-              Default: {targetCount.defaultValue}, Min: {targetCount.min}, Max: {targetCount.max}
-            </FieldDescription>
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
-
-      <FieldGroup className="grid grid-cols-2 gap-4">
-        <Controller
-          name="minDelay"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Min delay between reactions in seconds</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="number"
-                min={submitPost.min.minDelay}
-                max={submitPost.max.minDelay}
-                aria-invalid={fieldState.invalid}
-                disabled={form.formState.isSubmitting}
-                onChange={(e) => field.onChange(e.target.valueAsNumber)}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          name="maxDelay"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Max delay between reactions in seconds</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="number"
-                min={submitPost.min.maxDelay}
-                max={submitPost.max.maxDelay}
-                aria-invalid={fieldState.invalid}
-                disabled={form.formState.isSubmitting}
-                onChange={(e) => field.onChange(e.target.valueAsNumber)}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-      </FieldGroup>
     </form>
   )
 }

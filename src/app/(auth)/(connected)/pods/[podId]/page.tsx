@@ -4,7 +4,7 @@ import { SubmitPostForm } from "@/app/(auth)/(connected)/pods/[podId]/posts/_sub
 import { VStack } from "@/components/layout/stack"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { tokenAuth } from "@/lib/server/clerk"
+import { clerkAuth } from "@/lib/server/clerk"
 import { PodHeader } from "./_header"
 import { PodMembers } from "./_members"
 import { PodPostsToasts } from "./posts/_latest/toasts"
@@ -14,7 +14,7 @@ export type PodPageProps = {
 }
 
 export const generateMetadata = async (props: PodPageProps): Promise<Metadata> => {
-  const [{ token }, { podId }] = await Promise.all([tokenAuth(), props.params])
+  const [{ token }, { podId }] = await Promise.all([clerkAuth(), props.params])
   const pod = await fetchQuery(api.pods.query.get, { podId }, { token })
 
   return {

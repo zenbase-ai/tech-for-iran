@@ -5,6 +5,7 @@ import { components, internal } from "@/convex/_generated/api"
 import { internalMutation } from "@/convex/_generated/server"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { update } from "@/convex/_helpers/server"
+import { AvailableMember } from "./query"
 
 const args = {
   userId: v.string(),
@@ -116,15 +117,18 @@ export const perform = workflow.define({
     const post = await step.runQuery(internal.posts.query.get, { postId })
 
     for (let i = 1; i <= targetCount; i++) {
-      const member = await step.runQuery(internal.engagement.query.availableMember, {
+      const availableMembers = await step.runQuery(internal.engagement.query.availableMembers, {
         podId,
         skipUserIds,
       })
-      if (member === null) {
+      if (availableMembers.length === null) {
         break // no available profiles, stop trying
       }
 
-      const { account, profile } = member
+      const { account, profile } = AvailableMember.parse(
+        await step.runAction(internal.engagement.generate.sample, { items: availableMembers }),
+      )
+
       const { userId, unipileId } = account
       skipUserIds.push(userId)
 

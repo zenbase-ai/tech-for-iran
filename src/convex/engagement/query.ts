@@ -1,13 +1,12 @@
 import { v } from "convex/values"
 import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
-import { sample } from "es-toolkit"
 import * as z from "zod"
 import { internalQuery } from "@/convex/_generated/server"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { requiresConnection } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/parallel"
 
-const AvailableMember = z.object({
+export const AvailableMember = z.object({
   account: z.object({
     unipileId: z.string(),
     userId: z.string(),
@@ -20,13 +19,14 @@ const AvailableMember = z.object({
     headline: z.optional(z.string()),
   }),
 })
+export type AvailableMember = z.infer<typeof AvailableMember>
 
-export const availableMember = internalQuery({
+export const availableMembers = internalQuery({
   args: {
     podId: v.id("pods"),
     skipUserIds: v.array(v.string()),
   },
-  handler: async (ctx, { podId, skipUserIds }) => {
+  handler: async (ctx, { podId, skipUserIds }): Promise<AvailableMember[]> => {
     const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
 
     const availableMembers = await pflatMap(members, async ({ userId }) => {
@@ -58,11 +58,6 @@ export const availableMember = internalQuery({
       return [data]
     })
 
-    const member = sample(availableMembers)
-    if (!member) {
-      return null
-    }
-
-    return member
+    return availableMembers
   },
 })

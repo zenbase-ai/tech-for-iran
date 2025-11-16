@@ -3,11 +3,18 @@
 import { llml } from "@zenbase/llml"
 import { generateText } from "ai"
 import { v } from "convex/values"
-import { randomInt, sample } from "es-toolkit"
+import { randomInt, sample as randomSample } from "es-toolkit"
 import { internalAction } from "@/convex/_generated/server"
 import { LinkedInReaction } from "@/lib/linkedin"
 import { chance } from "@/lib/random"
 import { openai } from "@/lib/server/openai"
+
+export const sample = internalAction({
+  args: {
+    items: v.array(v.any()),
+  },
+  handler: async (_ctx, { items }) => randomSample(items),
+})
 
 export const delay = internalAction({
   args: {
@@ -26,7 +33,7 @@ export const reaction = internalAction({
     reactionTypes: v.array(v.string()),
   },
   handler: async (_ctx, args): Promise<LinkedInReaction> =>
-    LinkedInReaction.parse(sample(args.reactionTypes) ?? "like"),
+    LinkedInReaction.parse(randomSample(args.reactionTypes) ?? "like"),
 })
 
 type Comment = string | null

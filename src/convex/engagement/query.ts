@@ -34,7 +34,6 @@ export const availableMember = internalQuery({
         return []
       }
 
-
       const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
       if (!account || requiresConnection(account?.status)) {
         return []

@@ -69,6 +69,7 @@ const schema = defineSchema({
       v.object({
         name: v.string(),
         headline: v.string(),
+        url: v.optional(v.string()),
       }),
     ),
     postedAt: v.optional(v.number()),

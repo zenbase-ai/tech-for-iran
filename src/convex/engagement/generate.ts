@@ -45,6 +45,7 @@ export const comment = internalAction({
       author: v.object({
         name: v.string(),
         headline: v.string(),
+        url: v.optional(v.string()),
       }),
     }),
     reactionType: v.string(),

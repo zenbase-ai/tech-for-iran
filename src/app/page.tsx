@@ -1,5 +1,10 @@
 import type { Metadata } from "next"
-import HomeClientPage from "./page.client"
+import Link from "next/link"
+import { LuBookOpenText, LuGem } from "react-icons/lu"
+import { HStack, VStack } from "@/components/layout/stack"
+import { PageTitle, SectionTitle } from "@/components/layout/text"
+import { HoverButton } from "@/components/ui/hover-button"
+import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Crackedbook",
@@ -8,5 +13,34 @@ export const metadata: Metadata = {
 export default function HomePage() {
   "use memo"
 
-  return <HomeClientPage />
+  return (
+    <VStack
+      as="section"
+      id="hero"
+      items="start"
+      justify="center"
+      className={cn("w-fit min-w-[320px] max-w-[1280px] mx-auto", "gap-4")}
+    >
+      <HStack wrap items="center" justify="center" className="gap-2">
+        <LuGem className="size-24 stroke-[1px]" />
+        <LuBookOpenText className="size-24 stroke-[1px]" />
+      </HStack>
+
+      <PageTitle>Crackedbook.</PageTitle>
+
+      <VStack items="start" className="gap-2">
+        <SectionTitle>The rules:</SectionTitle>
+        <ol className="list-decimal list-inside space-y-1 text-sm md:text-base">
+          <li>You do not talk about Crackedbook.</li>
+          <li>
+            You <strong>DO NOT</strong> talk about Crackedbook.
+          </li>
+        </ol>
+      </VStack>
+
+      <Link href="/pods" className="my-4">
+        <HoverButton>Enter</HoverButton>
+      </Link>
+    </VStack>
+  )
 }

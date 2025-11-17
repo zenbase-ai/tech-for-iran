@@ -24,6 +24,7 @@ export const generateMetadata = async (props: PodPageProps): Promise<Metadata> =
 
 export default async function PodPage(props: PodPageProps) {
   const { podId } = await props.params
+
   return (
     <VStack items="center" className="w-full px-4 max-w-[640px] mx-auto gap-6">
       <PodPostsToasts podId={podId} />

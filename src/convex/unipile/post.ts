@@ -25,6 +25,10 @@ const Fetch = z.object({
     is_company: z.boolean(),
     headline: z.string(),
   }),
+  comment_counter: z.number().int(),
+  impressions_counter: z.number().int(),
+  reaction_counter: z.number().int(),
+  repost_counter: z.number().int(),
 })
 
 export const fetch = internalAction({

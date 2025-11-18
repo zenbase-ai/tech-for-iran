@@ -1,19 +1,5 @@
 import { v } from "convex/values"
 import { internalMutation, update } from "@/convex/_helpers/server"
-import { rateLimitError, ratelimits } from "@/convex/ratelimits"
-
-export const consumeRateLimit = internalMutation({
-  args: {
-    userId: v.string(),
-  },
-  handler: async (ctx, { userId }) => {
-    const limit = await ratelimits.limit(ctx, "submitPost", { key: userId })
-    if (!limit.ok) {
-      return { error: rateLimitError(limit) }
-    }
-    return { error: null }
-  },
-})
 
 export const insert = internalMutation({
   args: {
@@ -41,4 +27,11 @@ export const insert = internalMutation({
     const postId = await ctx.db.insert("posts", update(args))
     return { postId }
   },
+})
+
+export const remove = internalMutation({
+  args: {
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, { postId }) => await ctx.db.delete(postId),
 })

@@ -33,6 +33,7 @@ import type * as triggers from "../triggers.js";
 import type * as unipile_account from "../unipile/account.js";
 import type * as unipile_post from "../unipile/post.js";
 import type * as unipile_profile from "../unipile/profile.js";
+import type * as user_mutate from "../user/mutate.js";
 import type * as user_query from "../user/query.js";
 
 import type {
@@ -67,6 +68,7 @@ declare const fullApi: ApiFromModules<{
   "unipile/account": typeof unipile_account;
   "unipile/post": typeof unipile_post;
   "unipile/profile": typeof unipile_profile;
+  "user/mutate": typeof user_mutate;
   "user/query": typeof user_query;
 }>;
 

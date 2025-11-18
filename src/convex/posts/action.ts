@@ -30,8 +30,9 @@ export const submit = connectedMemberAction({
     }
 
     if (ctx.account.role !== "sudo") {
-      const { error } = await ctx.runMutation(internal.posts.mutate.consumeRateLimit, {
+      const { error } = await ctx.runMutation(internal.user.mutate.consumeRateLimit, {
         userId,
+        name: "submitPost",
       })
       if (error !== null) {
         return { postId: null, error }
@@ -77,6 +78,7 @@ export const submit = connectedMemberAction({
       comments,
     })
     if (start.error) {
+      await ctx.runMutation(internal.posts.mutate.remove, { postId })
       return { postId: null, error: start.error }
     }
 

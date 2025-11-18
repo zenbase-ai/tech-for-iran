@@ -34,6 +34,7 @@
     "**/.venv/": true,
     "**/node_modules/": true
   },
+  "typescript.preferences.autoImportFileExcludePatterns": ["@radix-ui/*"],
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.updateImportsOnFileMove.enabled": "always"
 }

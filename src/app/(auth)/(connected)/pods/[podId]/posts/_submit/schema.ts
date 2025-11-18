@@ -4,6 +4,7 @@ import { LinkedInReaction, parsePostURN, urlRegex, urnRegex } from "@/lib/linked
 export const submitPost = {
   defaultValues: {
     url: "",
+    comments: true,
     reactionTypes: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReaction[],
   },
   options: {
@@ -18,6 +19,7 @@ export const SubmitPost = z.object({
       (url) => !!parsePostURN(url),
       `URL must include ${urlRegex.source} or ${urnRegex.source}`,
     ),
+  comments: z.boolean().default(true),
   reactionTypes: z.array(LinkedInReaction).min(1, "Select at least one reaction type"),
 })
 

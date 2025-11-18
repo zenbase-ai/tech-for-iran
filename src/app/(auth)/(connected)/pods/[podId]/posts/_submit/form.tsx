@@ -7,7 +7,6 @@ import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
 import { Stack } from "@/components/layout/stack"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
   FieldError,
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import useAsyncFn from "@/hooks/use-async-fn"
@@ -80,18 +80,42 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
       </Stack>
 
       <Controller
+        name="comments"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid} orientation="horizontal" className="flex-1">
+            <Switch
+              id={field.name}
+              name={field.name}
+              checked={field.value}
+              onCheckedChange={field.onChange}
+              aria-invalid={fieldState.invalid}
+              disabled={form.formState.isSubmitting}
+            />
+            <FieldLabel
+              htmlFor={field.name}
+              className={cn(!field.value && "line-through text-muted-foreground")}
+            >
+              Generate comments
+            </FieldLabel>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
+
+      <Controller
         name="reactionTypes"
         control={form.control}
         render={({ field, fieldState }) => (
           <FieldSet className="w-full" data-invalid={fieldState.invalid}>
-            <FieldLegend variant="label">Which reactions do you want?</FieldLegend>
+            <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
             <FieldGroup
               className="grid grid-cols-2 sm:grid-cols-3 gap-2"
               data-slot="checkbox-group"
             >
               {submitPost.options.reactionTypes.map((reaction) => (
                 <Field key={reaction} orientation="horizontal" data-invalid={fieldState.invalid}>
-                  <Checkbox
+                  <Switch
                     id={`reaction-${reaction}`}
                     name={field.name}
                     checked={field.value.includes(reaction)}
@@ -104,7 +128,12 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
                     aria-invalid={fieldState.invalid}
                     disabled={form.formState.isSubmitting}
                   />
-                  <FieldLabel htmlFor={`reaction-${reaction}`} className="font-normal">
+                  <FieldLabel
+                    htmlFor={`reaction-${reaction}`}
+                    className={cn(
+                      !field.value.includes(reaction) && "line-through text-muted-foreground",
+                    )}
+                  >
                     {capitalize(reaction)}
                   </FieldLabel>
                 </Field>

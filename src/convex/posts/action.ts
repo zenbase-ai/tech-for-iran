@@ -14,6 +14,7 @@ export const submit = connectedMemberAction({
     podId: v.id("pods"),
     url: v.string(),
     reactionTypes: v.array(v.string()),
+    comments: v.boolean(),
   },
   handler: async (ctx, { podId, ...args }): Promise<Submit> => {
     const { userId } = ctx
@@ -65,7 +66,7 @@ export const submit = connectedMemberAction({
     }
 
     const { postId } = insert
-    const { reactionTypes } = params.data
+    const { reactionTypes, comments } = params.data
     const start = await ctx.runMutation(internal.engagement.workflow.start, {
       userId,
       podId,
@@ -73,6 +74,7 @@ export const submit = connectedMemberAction({
       urn,
       targetCount,
       reactionTypes,
+      comments,
     })
     if (start.error) {
       return { postId: null, error: start.error }

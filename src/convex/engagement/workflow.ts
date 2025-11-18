@@ -14,6 +14,7 @@ const args = {
   urn: v.string(),
   targetCount: v.number(),
   reactionTypes: v.array(v.string()),
+  comments: v.boolean(),
 }
 
 export const start = internalMutation({
@@ -104,7 +105,7 @@ export const workflow = new WorkflowManager(components.workflow, {
  */
 export const perform = workflow.define({
   args,
-  handler: async (step, { userId, postId, podId, urn, reactionTypes, targetCount }) => {
+  handler: async (step, { userId, postId, podId, urn, reactionTypes, targetCount, comments }) => {
     const minDelay = 5
     const maxDelay = 30
     const skipUserIds = [userId]
@@ -154,7 +155,7 @@ export const perform = workflow.define({
         reactionType,
       })
 
-      if (post.text && post.author) {
+      if (comments && post.text && post.author) {
         const [runAfter, commentText] = await Promise.all([
           step.runAction(internal.engagement.generate.delay, {
             minDelay,

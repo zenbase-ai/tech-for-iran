@@ -67,7 +67,7 @@ const statusConfig = {
 } as const
 
 export default function PostsClientPage() {
-  const posts = useAuthPaginatedQuery(api.posts.query.list, {}, { initialNumItems: 10 })
+  const posts = useAuthPaginatedQuery(api.user.query.posts, {}, { initialNumItems: 10 })
   const { isLoading, noResults, canLoadMore } = paginatedState(posts)
 
   const loadMore = useEffectEvent(() => canLoadMore && posts.loadMore(10))

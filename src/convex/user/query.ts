@@ -1,8 +1,8 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
-import { zip } from "es-toolkit"
+import { omit, zip } from "es-toolkit"
 import { authQuery } from "@/convex/_helpers/server"
-import { pmap } from "@/lib/parallel"
+import { pflatMap, pmap } from "@/lib/parallel"
 
 export const pods = authQuery({
   args: { paginationOpts: paginationOptsValidator },
@@ -31,4 +31,47 @@ export const membership = authQuery({
       .query("memberships")
       .withIndex("by_userId", (q) => q.eq("userId", ctx.userId).eq("podId", podId))
       .first(),
+})
+
+export const posts = authQuery({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, { paginationOpts }) => {
+    const { userId } = ctx
+
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .order("desc")
+      .paginate(paginationOpts)
+
+    const page = await pflatMap(posts.page, async (post) => {
+      if (!post.text) {
+        return []
+      }
+
+      const [pod, stats] = await Promise.all([
+        ctx.db.get(post.podId),
+        ctx.db
+          .query("stats")
+          .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", post._id))
+          .first(),
+      ])
+
+      if (!pod) {
+        return []
+      }
+
+      return [
+        {
+          post: omit(post, ["author"]),
+          stats,
+          pod,
+        },
+      ]
+    })
+
+    return { ...posts, page }
+  },
 })

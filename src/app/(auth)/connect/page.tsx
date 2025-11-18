@@ -4,7 +4,7 @@ import { RedirectType, redirect, useSearchParams } from "next/navigation"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { requiresConnection } from "@/lib/linkedin"
+import { isConnected } from "@/lib/linkedin"
 import { queryString } from "@/lib/utils"
 import { ConnectGate } from "./_gate"
 
@@ -20,7 +20,7 @@ export default function ConnectClientPage() {
     return <ConnectGate inviteCode={inviteCode} />
   }
 
-  if (requiresConnection(linkedin.account?.status)) {
+  if (!isConnected(linkedin.account?.status)) {
     return redirect(`/connect/dialog?${queryString({ inviteCode })}`, RedirectType.replace)
   }
 

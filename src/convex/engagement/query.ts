@@ -3,7 +3,7 @@ import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import * as z from "zod"
 import { internalQuery } from "@/convex/_generated/server"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
-import { requiresConnection } from "@/lib/linkedin"
+import { isConnected } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/parallel"
 
 export const AvailableMember = z.object({
@@ -35,7 +35,7 @@ export const availableMembers = internalQuery({
       }
 
       const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-      if (!account || requiresConnection(account?.status)) {
+      if (!account || !isConnected(account?.status)) {
         return []
       }
 

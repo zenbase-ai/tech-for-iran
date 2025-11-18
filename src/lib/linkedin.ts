@@ -19,8 +19,8 @@ export const LinkedInStatus = z.enum([
 
 export type LinkedInStatus = z.infer<typeof LinkedInStatus>
 
-export const requiresConnection = (status?: string | null): boolean =>
-  status == null || ["CREDENTIALS", "ERROR", "STOPPED", "DELETED"].includes(status)
+export const isConnected = (status?: string | null): boolean =>
+  status != null && !["CREDENTIALS", "ERROR", "STOPPED", "DELETED"].includes(status)
 
 export const LinkedInReaction = z.enum([
   "like",

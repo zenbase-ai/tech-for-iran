@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia } from "@/components/ui/item"
 import { RelativeTime } from "@/components/ui/relative-time"
 import { api } from "@/convex/_generated/api"
-import type { Doc, Id } from "@/convex/_generated/dataModel"
+import type { Doc } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
+import { fullName, initials } from "@/lib/linkedin"
+import type { PodId } from "./_types"
 
 export type PodPostsToastsProps = {
-  podId: Id<"pods">
+  podId: PodId
   take?: number
 }
 
@@ -43,10 +45,9 @@ export const PostToast: React.FC<PostToastProps> = ({
       <Item className="p-0 w-full">
         <ItemMedia className="-mt-0.5">
           <Avatar className="size-6">
-            <AvatarImage src={picture} alt={`${firstName} ${lastName}`} />
+            <AvatarImage src={picture} alt={fullName({ firstName, lastName })} />
             <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-              {firstName[0]}
-              {lastName[0]}
+              {initials({ firstName, lastName })}
             </AvatarFallback>
           </Avatar>
         </ItemMedia>

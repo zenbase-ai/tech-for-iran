@@ -18,16 +18,16 @@ import {
 } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { fullName } from "@/lib/linkedin"
 import pluralize from "@/lib/pluralize"
 import { cn } from "@/lib/utils"
+import type { PodId } from "./_types"
 
 export type PodMembersProps = {
-  podId: Id<"pods">
+  podId: PodId
   className?: string
   membersPageSize?: number
 }

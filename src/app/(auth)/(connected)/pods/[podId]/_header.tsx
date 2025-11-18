@@ -7,12 +7,12 @@ import { CopyButton } from "@/components/ui/copy-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn, url } from "@/lib/utils"
+import type { PodId } from "./_types"
 
 export type PodHeaderProps = {
-  podId: Id<"pods">
+  podId: PodId
   className?: string
 }
 

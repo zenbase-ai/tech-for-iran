@@ -1,5 +1,5 @@
 import { v } from "convex/values"
-import { SubmitPost } from "@/app/(auth)/(connected)/pods/[podId]/posts/_submit/schema"
+import { SubmitPost } from "@/app/(auth)/(connected)/pods/[podId]/_submit/schema"
 import { internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { errorMessage } from "@/convex/_helpers/errors"

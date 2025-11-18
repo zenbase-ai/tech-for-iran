@@ -19,13 +19,13 @@ import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
+import type { PodId } from "../_types"
 import { SubmitPost, submitPost } from "./schema"
 
 export type SubmitPostFormProps = {
-  podId: Id<"pods">
+  podId: PodId
   className?: string
 }
 

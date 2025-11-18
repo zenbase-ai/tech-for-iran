@@ -1,16 +1,16 @@
 import { fetchQuery } from "convex/nextjs"
 import type { Metadata } from "next"
-import { SubmitPostForm } from "@/app/(auth)/(connected)/pods/[podId]/posts/_submit/form"
+import { SubmitPostForm } from "@/app/(auth)/(connected)/pods/[podId]/_submit/form"
 import { VStack } from "@/components/layout/stack"
 import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
 import { clerkAuth } from "@/lib/server/clerk"
 import { PodHeader } from "./_header"
 import { PodMembers } from "./_members"
-import { PodPostsToasts } from "./posts/_latest/toasts"
+import { PodPostsToasts } from "./_toasts"
+import type { PodId } from "./_types"
 
 export type PodPageProps = {
-  params: Promise<{ podId: Id<"pods"> }>
+  params: Promise<{ podId: PodId }>
 }
 
 export const generateMetadata = async (props: PodPageProps): Promise<Metadata> => {

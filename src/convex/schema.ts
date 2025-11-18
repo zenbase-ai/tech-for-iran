@@ -79,6 +79,15 @@ const schema = defineSchema({
     .index("by_podId", ["podId", "status"])
     .index("by_urn", ["urn"]),
 
+  stats: defineTable({
+    userId: v.string(),
+    postId: v.id("posts"),
+    commentCount: v.number(),
+    impressionCount: v.number(),
+    reactionCount: v.number(),
+    repostCount: v.number(),
+  }).index("by_userId", ["userId", "postId"]),
+
   // Engagement log (tracks reactions on posts)
   engagements: defineTable({
     postId: v.id("posts"),

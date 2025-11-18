@@ -1,6 +1,6 @@
 import { v } from "convex/values"
-import { internalMutation } from "@/convex/_generated/server"
 import { BadRequestError } from "@/convex/_helpers/errors"
+import { internalMutation } from "@/convex/_helpers/server"
 import { rateLimitError, ratelimits } from "@/convex/ratelimits"
 
 export const consumeRateLimit = internalMutation({

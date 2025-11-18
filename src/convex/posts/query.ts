@@ -1,10 +1,11 @@
+import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
-import { getOneFrom } from "convex-helpers/server/relationships"
-import { pick, zip } from "es-toolkit"
+import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
+import { omit, pick, zip } from "es-toolkit"
 import { internalQuery } from "@/convex/_generated/server"
 import { BadRequestError, NotFoundError } from "@/convex/_helpers/errors"
-import { memberQuery } from "@/convex/_helpers/server"
-import { pmap } from "@/lib/parallel"
+import { authQuery, memberQuery } from "@/convex/_helpers/server"
+import { pflatMap, pmap } from "@/lib/parallel"
 
 type Latest = Array<{
   firstName: string
@@ -55,5 +56,48 @@ export const get = internalQuery({
     }
 
     return post
+  },
+})
+
+export const list = authQuery({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, { paginationOpts }) => {
+    const { userId } = ctx
+
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .order("desc")
+      .paginate(paginationOpts)
+
+    const page = await pflatMap(posts.page, async (post) => {
+      if (!post.text) {
+        return []
+      }
+
+      const [pod, stats] = await Promise.all([
+        ctx.db.get(post.podId),
+        ctx.db
+          .query("stats")
+          .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", post._id))
+          .first(),
+      ])
+
+      if (!pod) {
+        return []
+      }
+
+      return [
+        {
+          post: omit(post, ["author"]),
+          stats,
+          pod,
+        },
+      ]
+    })
+
+    return { ...posts, page }
   },
 })

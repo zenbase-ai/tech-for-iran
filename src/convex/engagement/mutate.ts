@@ -1,6 +1,5 @@
 import { v } from "convex/values"
-import { internalMutation } from "@/convex/_generated/server"
-import { update } from "@/convex/_helpers/server"
+import { internalMutation, update } from "@/convex/_helpers/server"
 
 export const upsertEngagement = internalMutation({
   args: {

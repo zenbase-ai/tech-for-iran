@@ -48,7 +48,6 @@ export const submit = connectedMemberAction({
     }
 
     const { share_url: url, social_id: urn, text, author, parsed_datetime: postedAt } = post.data
-
     const insert = await ctx.runMutation(internal.posts.mutate.insert, {
       userId,
       podId,
@@ -67,6 +66,22 @@ export const submit = connectedMemberAction({
     }
 
     const { postId } = insert
+
+    const {
+      comment_counter: commentCount,
+      impressions_counter: impressionCount,
+      reaction_counter: reactionCount,
+      repost_counter: repostCount,
+    } = post.data
+    await ctx.runMutation(internal.stats.mutate.insert, {
+      userId,
+      postId,
+      commentCount,
+      impressionCount,
+      reactionCount,
+      repostCount,
+    })
+
     const { reactionTypes, comments } = params.data
     const start = await ctx.runMutation(internal.engagement.workflow.start, {
       userId,

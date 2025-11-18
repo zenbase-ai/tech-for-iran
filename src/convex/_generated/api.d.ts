@@ -29,6 +29,7 @@ import type * as posts_action from "../posts/action.js";
 import type * as posts_mutate from "../posts/mutate.js";
 import type * as posts_query from "../posts/query.js";
 import type * as ratelimits from "../ratelimits.js";
+import type * as stats_mutate from "../stats/mutate.js";
 import type * as triggers from "../triggers.js";
 import type * as unipile_account from "../unipile/account.js";
 import type * as unipile_post from "../unipile/post.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   "posts/mutate": typeof posts_mutate;
   "posts/query": typeof posts_query;
   ratelimits: typeof ratelimits;
+  "stats/mutate": typeof stats_mutate;
   triggers: typeof triggers;
   "unipile/account": typeof unipile_account;
   "unipile/post": typeof unipile_post;

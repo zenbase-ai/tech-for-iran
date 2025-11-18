@@ -2,6 +2,7 @@
 
 import { SignOutButton } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useAction } from "convex/react"
 import { RedirectType, redirect } from "next/navigation"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -12,6 +13,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -19,6 +21,7 @@ import {
 import { Field, FieldContent, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
+import { api } from "@/convex/_generated/api"
 import { queryString } from "@/lib/utils"
 
 const ConnectGateSchema = z.object({
@@ -27,24 +30,22 @@ const ConnectGateSchema = z.object({
 
 type ConnectGateSchema = z.infer<typeof ConnectGateSchema>
 
-type ConnectGateProps = {
-  inviteCode?: string
-  validInviteCode?: boolean
-}
+export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
+  const validate = useAction(api.pods.action.validate)
 
-export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode = "", validInviteCode }) => {
   const form = useForm({
     resolver: zodResolver(ConnectGateSchema),
     defaultValues: { inviteCode },
-    errors:
-      validInviteCode === false
-        ? { inviteCode: { message: "Invalid invite code.", type: "value" } }
-        : undefined,
   })
 
-  const onSubmit = useEffectEvent((data: ConnectGateSchema) => {
+  const onSubmit = useEffectEvent(async (data: ConnectGateSchema) => {
     form.clearErrors("inviteCode")
-    redirect(`/connect?${queryString(data)}`, RedirectType.replace)
+
+    if (await validate(data)) {
+      redirect(`/connect/dialog?${queryString(data)}`, RedirectType.replace)
+    } else {
+      form.setError("inviteCode", { message: "Invalid invite code.", type: "value" })
+    }
   })
 
   return (
@@ -52,7 +53,10 @@ export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode = "", valid
       <AlertDialogContent className="max-w-md">
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <AlertDialogHeader>
-            <AlertDialogTitle>Enter invite code</AlertDialogTitle>
+            <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Please enter your invite code.
+            </AlertDialogDescription>
           </AlertDialogHeader>
 
           <Controller
@@ -65,7 +69,7 @@ export const ConnectGate: React.FC<ConnectGateProps> = ({ inviteCode = "", valid
                     {...field}
                     id={field.name}
                     type="text"
-                    placeholder="super secret"
+                    placeholder="your super secret invite code"
                     disabled={form.formState.isSubmitting}
                     required
                     autoFocus

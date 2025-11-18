@@ -23,6 +23,8 @@ export const generateMetadata = async (props: PodPageProps): Promise<Metadata> =
 }
 
 export default async function PodPage(props: PodPageProps) {
+  "use memo"
+
   const { podId } = await props.params
 
   return (

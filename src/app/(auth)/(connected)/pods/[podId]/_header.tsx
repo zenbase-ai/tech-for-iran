@@ -20,7 +20,7 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
   const pod = useAuthQuery(api.pods.query.get, { podId })
 
   if (!pod) {
-    return <Skeleton className={cn("w-full h-15", className)} />
+    return <Skeleton className={cn("w-full h-[66px]", className)} />
   }
 
   const { inviteCode } = pod

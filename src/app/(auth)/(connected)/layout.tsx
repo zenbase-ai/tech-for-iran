@@ -1,6 +1,7 @@
 "use client"
 
 import { redirect } from "next/navigation"
+import { useEffect } from "react"
 import { toast } from "sonner"
 import { Box } from "@/components/layout/box"
 import { Loading } from "@/components/ui/loading"
@@ -9,16 +10,18 @@ import useAuthQuery from "@/hooks/use-auth-query"
 import { requiresConnection } from "@/lib/linkedin"
 import { Nav } from "./_nav"
 
-export default function ConnectedLayout({ children }: { children: React.ReactNode }) {
+export default function ConnectedLayout({ children }: React.PropsWithChildren) {
   const linkedin = useAuthQuery(api.linkedin.query.getState)
 
-  if (linkedin == null) {
-    return <Loading delay={0} />
-  }
+  useEffect(() => {
+    if (linkedin != null && requiresConnection(linkedin.account?.status)) {
+      toast.warning("Please connect your LinkedIn.")
+      redirect("/connect")
+    }
+  }, [linkedin])
 
-  if (requiresConnection(linkedin.account?.status)) {
-    toast.warning("Please connect your LinkedIn.")
-    return redirect("/connect")
+  if (linkedin == null) {
+    return <Loading />
   }
 
   return (

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { LuBookOpenText, LuGem } from "react-icons/lu"
-import { HStack, VStack } from "@/components/layout/stack"
+import { Logo } from "@/components/assets/logo"
+import { VStack } from "@/components/layout/stack"
 import { PageTitle, SectionTitle } from "@/components/layout/text"
 import { HoverButton } from "@/components/ui/hover-button"
 import { cn } from "@/lib/utils"
@@ -21,10 +21,7 @@ export default function HomePage() {
       justify="center"
       className={cn("w-fit min-w-[320px] max-w-[1280px] mx-auto", "gap-4")}
     >
-      <HStack wrap items="center" justify="center" className="gap-2">
-        <LuGem className="size-24 stroke-[1px]" />
-        <LuBookOpenText className="size-24 stroke-[1px]" />
-      </HStack>
+      <Logo />
 
       <PageTitle>Crackedbook.</PageTitle>
 

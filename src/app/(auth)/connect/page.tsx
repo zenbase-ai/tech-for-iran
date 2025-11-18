@@ -1,61 +1,27 @@
-import { fetchMutation, fetchQuery } from "convex/nextjs"
-import type { Metadata } from "next"
-import { RedirectType, redirect } from "next/navigation"
+"use client"
+
+import { RedirectType, redirect, useSearchParams } from "next/navigation"
+import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
+import useAuthQuery from "@/hooks/use-auth-query"
 import { requiresConnection } from "@/lib/linkedin"
-import { clerkAuth } from "@/lib/server/clerk"
 import { queryString } from "@/lib/utils"
-import { generateHostedAuthURL } from "./_actions"
-import { ConnectDialog } from "./_dialog"
 import { ConnectGate } from "./_gate"
 
-export const metadata: Metadata = {
-  title: "Connect | Crackedbook",
-}
+export default function ConnectClientPage() {
+  const inviteCode = useSearchParams().get("inviteCode") ?? ""
+  const linkedin = useAuthQuery(api.linkedin.query.getState)
 
-export type ConnectPageProps = {
-  searchParams: Promise<{
-    account_id?: string
-    inviteCode?: string
-  }>
-}
-
-export default async function ConnectPage({ searchParams }: ConnectPageProps) {
-  const [{ userId, token }, { account_id, inviteCode }] = await Promise.all([
-    clerkAuth(),
-    searchParams,
-  ])
-
-  if (account_id) {
-    await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId: account_id }, { token })
-  } else {
-    const [{ account }, validInviteCode] = await Promise.all([
-      fetchQuery(api.linkedin.query.getState, {}, { token }),
-      inviteCode
-        ? fetchQuery(api.pods.query.inviteCode, { inviteCode }, { token })
-        : Promise.resolve(undefined),
-    ])
-
-    if (!account && !validInviteCode) {
-      return <ConnectGate inviteCode={inviteCode} validInviteCode={validInviteCode} />
-    } else if (requiresConnection(account?.status)) {
-      const hostedAuth = await generateHostedAuthURL(userId, inviteCode)
-      return <ConnectDialog redirectURL={hostedAuth.url} />
-    }
+  if (linkedin == null) {
+    return <Loading />
   }
 
-  if (inviteCode) {
-    const { pod, success, error } = await fetchMutation(
-      api.pods.mutate.join,
-      { inviteCode },
-      { token },
-    )
+  if (linkedin?.account == null) {
+    return <ConnectGate inviteCode={inviteCode} />
+  }
 
-    if (pod == null) {
-      return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
-    }
-
-    return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
+  if (requiresConnection(linkedin.account?.status)) {
+    return redirect(`/connect/dialog?${queryString({ inviteCode })}`, RedirectType.replace)
   }
 
   return redirect("/pods", RedirectType.replace)

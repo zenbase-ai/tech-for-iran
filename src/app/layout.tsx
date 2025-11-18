@@ -16,7 +16,7 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: React.PropsWithChildren) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

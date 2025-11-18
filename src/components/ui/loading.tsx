@@ -1,34 +1,27 @@
 "use client"
 
 import { motion } from "motion/react"
-import { Spinner, type SpinnerProps } from "@/components/ui/spinner"
+import { Logo } from "@/components/assets/logo"
 import { TextShimmer } from "@/components/ui/text-shimmer"
 import useMounted from "@/hooks/use-mounted"
 import { cn } from "@/lib/utils"
 
 export type LoadingProps = {
   message?: string
-  variant?: SpinnerProps["variant"]
-  size?: number
   delay?: number
   className?: string
 }
 
-export const Loading: React.FC<LoadingProps> = ({
-  message,
-  variant = "ellipsis",
-  size = 24,
-  delay = 100,
-  className,
-}) => {
+export const Loading: React.FC<LoadingProps> = ({ message, delay = 0, className }) => {
   const isMounted = useMounted({ delay })
 
   return (
     <motion.div
-      className={cn("flex flex-col items-center justify-center", className)}
+      className={cn("flex flex-col items-center justify-center py-1 w-fit mx-auto", className)}
       animate={isMounted ? { opacity: 1 } : { opacity: 0 }}
     >
-      <Spinner variant={variant} size={size} className="mt-1 text-muted-foreground" />
+      <Logo animate className="text-muted" />
+
       {message && (
         <TextShimmer className="text-lg font-serif italic" as="h2">
           {message}

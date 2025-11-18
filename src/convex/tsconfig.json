@@ -25,6 +25,7 @@
     "../lib/parallel.ts",
     "../lib/pluralize.ts",
     "../lib/random.ts",
+    "../lib/server/convex.ts",
     "../lib/server/openai.ts",
     "../lib/server/unipile.ts"
   ],

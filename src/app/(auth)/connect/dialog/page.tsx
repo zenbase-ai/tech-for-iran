@@ -1,6 +1,8 @@
 "use client"
 
+import { useAction } from "convex/react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useEffect, useEffectEvent } from "react"
 import { useCountdown } from "usehooks-ts"
 import {
@@ -13,23 +15,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { api } from "@/convex/_generated/api"
+import useAsyncEffect from "@/hooks/use-async-effect"
 import pluralize from "@/lib/pluralize"
 
-export type ConnectDialogProps = {
-  redirectURL: string
-}
-
-export const ConnectDialog: React.FC<ConnectDialogProps> = ({ redirectURL }) => {
+export default function ConnectDialogPage() {
+  const inviteCode = useSearchParams().get("inviteCode") ?? ""
   const [countdown, { startCountdown, stopCountdown, resetCountdown }] = useCountdown({
     countStart: 5,
   })
 
+  const generateHostedAuthURL = useAction(api.linkedin.action.generateHostedAuthURL)
   const connect = useEffectEvent(async () => {
-    window.location.href = redirectURL
+    const { url } = await generateHostedAuthURL({ inviteCode })
+    window.location.href = url
   })
 
-  useEffect(() => {
-    countdown === 0 && connect()
+  useAsyncEffect(async () => {
+    if (countdown === 0) {
+      await connect()
+    }
   }, [countdown])
 
   useEffect(() => {
@@ -40,7 +45,7 @@ export const ConnectDialog: React.FC<ConnectDialogProps> = ({ redirectURL }) => 
 
   return (
     <AlertDialog open>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>Let's connect your LinkedIn</AlertDialogTitle>
           <AlertDialogDescription>

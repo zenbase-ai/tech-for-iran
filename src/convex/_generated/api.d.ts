@@ -22,6 +22,7 @@ import type * as linkedin_mutate from "../linkedin/mutate.js";
 import type * as linkedin_query from "../linkedin/query.js";
 import type * as migrations from "../migrations.js";
 import type * as moderation from "../moderation.js";
+import type * as pods_action from "../pods/action.js";
 import type * as pods_mutate from "../pods/mutate.js";
 import type * as pods_query from "../pods/query.js";
 import type * as posts_action from "../posts/action.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   "linkedin/query": typeof linkedin_query;
   migrations: typeof migrations;
   moderation: typeof moderation;
+  "pods/action": typeof pods_action;
   "pods/mutate": typeof pods_mutate;
   "pods/query": typeof pods_query;
   "posts/action": typeof posts_action;

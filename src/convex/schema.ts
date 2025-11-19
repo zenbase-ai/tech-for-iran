@@ -64,16 +64,14 @@ const schema = defineSchema({
         v.literal("success"),
       ),
     ),
-    text: v.optional(v.string()),
-    author: v.optional(
-      v.object({
-        name: v.string(),
-        headline: v.string(),
-        url: v.optional(v.string()),
-      }),
-    ),
-    postedAt: v.optional(v.number()),
-    updatedAt: v.optional(v.number()),
+    text: v.string(),
+    author: v.object({
+      name: v.string(),
+      headline: v.string(),
+      url: v.optional(v.string()),
+    }),
+    postedAt: v.number(),
+    updatedAt: v.number(),
   })
     .index("by_userId", ["userId", "status"])
     .index("by_podId", ["podId", "status"])

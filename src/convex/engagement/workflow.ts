@@ -1,6 +1,7 @@
 import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
+import { pick } from "es-toolkit"
 import { components, internal } from "@/convex/_generated/api"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { internalMutation, update } from "@/convex/_helpers/server"
@@ -154,7 +155,7 @@ export const perform = workflow.define({
         reactionType,
       })
 
-      if (comments && post.text && post.author) {
+      if (comments) {
         const [runAfter, commentText] = await Promise.all([
           step.runAction(internal.engagement.generate.delay, {
             minDelay,
@@ -163,7 +164,7 @@ export const perform = workflow.define({
           step.runAction(internal.engagement.generate.comment, {
             profile,
             reactionType,
-            post: { text: post.text, author: post.author },
+            post: pick(post, ["text", "author"]),
             prompt: account.commentPrompt ?? "",
           }),
         ])

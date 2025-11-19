@@ -3,4 +3,5 @@ import { components } from "@/convex/_generated/api"
 import type { DataModel } from "@/convex/_generated/dataModel"
 
 export const migrations = new Migrations<DataModel>(components.migrations)
+
 export const run = migrations.runner()

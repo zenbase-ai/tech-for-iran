@@ -1,5 +1,6 @@
 "use client"
 
+import { capitalize } from "es-toolkit"
 import Link from "next/link"
 import { useEffectEvent } from "react"
 import {
@@ -34,27 +35,22 @@ import { cn } from "@/lib/utils"
 const statusConfig = {
   pending: {
     icon: LuClock,
-    label: "Pending",
     color: "text-muted-foreground",
   },
   processing: {
     icon: LuLoader,
-    label: "Processing",
     color: "text-blue-600 dark:text-blue-400",
   },
   success: {
     icon: LuCircleCheck,
-    label: "Success",
     color: "text-green-600 dark:text-green-400",
   },
   failed: {
     icon: LuX,
-    label: "Failed",
     color: "text-destructive",
   },
   canceled: {
     icon: LuX,
-    label: "Canceled",
     color: "text-muted-foreground",
   },
 } as const
@@ -113,7 +109,7 @@ export default function PostsClientPage() {
                           status === "processing" && "animate-spin",
                         )}
                       />
-                      {config.label}
+                      {capitalize(status)}
                     </Badge>
 
                     <Badge>

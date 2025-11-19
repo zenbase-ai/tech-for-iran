@@ -61,8 +61,8 @@ const schema = defineSchema({
         v.literal("processing"),
         v.literal("canceled"),
         v.literal("failed"),
-        v.literal("success"),
-      ),
+        v.literal("success")
+      )
     ),
     text: v.string(),
     author: v.object({

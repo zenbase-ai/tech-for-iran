@@ -18,7 +18,7 @@ export default function PodsClientPage() {
         Pods are groups that engage with each other&apos;s LinkedIn posts.
       </PageDescription>
 
-      <PodsList pods={pods} className="my-8" />
+      <PodsList className="my-8" pods={pods} />
 
       <PodJoinForm autoFocus={!pods.isLoading && pods.results.length === 0} />
     </Box>

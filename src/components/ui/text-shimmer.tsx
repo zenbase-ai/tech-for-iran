@@ -30,8 +30,9 @@ export const TextShimmer: React.FC<TextShimmerProps> = ({
   const reducedMotion = useReducedMotion()
 
   const transition: Transition = useMemo(
-    () => (reducedMotion ? { duration } : { duration, repeat: Infinity, ease: "linear" }),
-    [reducedMotion, duration],
+    () =>
+      reducedMotion ? { duration } : { duration, repeat: Number.POSITIVE_INFINITY, ease: "linear" },
+    [reducedMotion, duration]
   )
 
   const dynamicSpread = useMemo(() => onlyText(children).length * spread * 0.25, [children, spread])
@@ -40,24 +41,24 @@ export const TextShimmer: React.FC<TextShimmerProps> = ({
     () =>
       css({
         "--spread": `${dynamicSpread}px`,
-        backgroundImage: `var(--bg), linear-gradient(var(--base-color), var(--base-color))`,
+        backgroundImage: "var(--bg), linear-gradient(var(--base-color), var(--base-color))",
       }),
-    [dynamicSpread],
+    [dynamicSpread]
   )
 
   return (
     <MotionComponent
+      animate={animate}
       className={cn(
         "relative inline-block bg-size-[250%_100%,auto] bg-clip-text",
         "text-transparent [--base-color:#91918d] [--base-gradient-color:#191919]",
         "[background-repeat:no-repeat,padding-box] [--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--base-gradient-color),#0000_calc(50%+var(--spread)))]",
         "dark:[--base-color:#91918d] dark:[--base-gradient-color:#fafaf7] dark:[--bg:linear-gradient(90deg,#0000_calc(50%-var(--spread)),var(--base-gradient-color),#0000_calc(50%+var(--spread)))]",
-        className,
+        className
       )}
       initial={initial}
-      animate={animate}
-      transition={transition}
       style={style}
+      transition={transition}
     >
       {children}
     </MotionComponent>

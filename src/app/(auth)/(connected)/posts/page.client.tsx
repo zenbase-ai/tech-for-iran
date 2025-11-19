@@ -63,7 +63,7 @@ export default function PostsClientPage() {
   const observer = useInfiniteScroll({ loadMore })
 
   return (
-    <VStack items="center" className="w-full px-4 max-w-[800px] mx-auto gap-6 py-8">
+    <VStack className="w-full px-4 max-w-[800px] mx-auto gap-6 py-8" items="center">
       <PageTitle>Posts</PageTitle>
 
       {isLoading ? (
@@ -85,7 +85,7 @@ export default function PostsClientPage() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <VStack items="stretch" className="w-full gap-3">
+        <VStack className="w-full gap-3" items="stretch">
           <ItemGroup className="contents">
             {posts.results.map(({ post, pod }) => {
               const status = post.status ?? "pending"
@@ -93,20 +93,20 @@ export default function PostsClientPage() {
               const StatusIcon = config.icon
 
               return (
-                <Item key={post._id} variant="outline" className="flex-row items-start">
+                <Item className="flex-row items-start" key={post._id} variant="outline">
                   <ItemHeader className="flex-col">
-                    <Button variant="outline" className="text-xs" asChild>
+                    <Button asChild className="text-xs" variant="outline">
                       <Link href={`/pods/${pod._id}`}>{pod.name}</Link>
                     </Button>
                     <Badge
-                      variant="outline"
                       className={cn("gap-1.5", status === "processing" && "animate-pulse")}
+                      variant="outline"
                     >
                       <StatusIcon
                         className={cn(
                           "size-4",
                           config.color,
-                          status === "processing" && "animate-spin",
+                          status === "processing" && "animate-spin"
                         )}
                       />
                       {capitalize(status)}
@@ -123,8 +123,8 @@ export default function PostsClientPage() {
                   </ItemContent>
 
                   <ItemActions>
-                    <Button variant="ghost" size="icon" asChild>
-                      <a href={post.url} target="_blank" rel="noopener noreferrer">
+                    <Button asChild size="icon" variant="ghost">
+                      <a href={post.url} rel="noopener noreferrer" target="_blank">
                         <LuExternalLink className="size-4" />
                       </a>
                     </Button>
@@ -136,11 +136,11 @@ export default function PostsClientPage() {
 
           {canLoadMore && (
             <Button
-              ref={observer.ref}
-              variant="outline"
               className="max-w-fit mx-auto"
               disabled={isLoading}
               onClick={loadMore}
+              ref={observer.ref}
+              variant="outline"
             >
               Load More
               <LuArrowDown className="size-4" />

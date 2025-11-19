@@ -59,7 +59,7 @@ export const sendConnectionRequest = internalAction({
   },
   handler: async (_ctx, { message, unipileId: account_id, id: provider_id }) =>
     await unipile
-      .post<SendConnectionRequest>(`api/v1/users/invite`, {
+      .post<SendConnectionRequest>("api/v1/users/invite", {
         json: { account_id, provider_id, message },
       })
       .json(),

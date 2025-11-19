@@ -15,14 +15,14 @@ export type UsePaginatedQueryReturn<T extends FunctionReference<"query">> = Retu
 export default function useAuthPaginatedQuery<T extends FunctionReference<"query">>(
   query: T,
   args: UsePaginatedQueryArgs<T>,
-  options: UsePaginatedQueryOptions<T>,
+  options: UsePaginatedQueryOptions<T>
 ): UsePaginatedQueryReturn<T> {
   const { isSignedIn } = useAuth()
   return usePaginatedQuery(query, isSignedIn ? args : "skip", options)
 }
 
 export const paginatedState = <T extends FunctionReference<"query">>(
-  queryReturn: UsePaginatedQueryReturn<T>,
+  queryReturn: UsePaginatedQueryReturn<T>
 ) => ({
   canLoadMore: queryReturn.status === "CanLoadMore",
   isLoading: queryReturn.isLoading && queryReturn.results.length === 0,

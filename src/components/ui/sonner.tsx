@@ -11,7 +11,6 @@ export const Toaster: React.FC<ToasterProps> = ({ className, ...props }) => {
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
       className={cn("toaster group", className)}
       icons={{
         success: <LuCircleCheck />,
@@ -26,11 +25,12 @@ export const Toaster: React.FC<ToasterProps> = ({ className, ...props }) => {
         "--normal-border": "var(--border)",
         "--border-radius": "var(--radius)",
       })}
+      theme={theme as ToasterProps["theme"]}
       toastOptions={{
         unstyled: true,
         className: cn(
           "w-full p-3 rounded-full flex flex-row items-center justify-between gap-2",
-          "bg-muted/80 backdrop-blur-md border-1 border-muted",
+          "bg-muted/80 backdrop-blur-md border-1 border-muted"
         ),
         classNames: {
           icon: "size-4",

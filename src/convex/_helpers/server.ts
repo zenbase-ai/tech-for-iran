@@ -78,7 +78,7 @@ export type Membership = {
 export const requireMembership = async (
   ctx: ActionCtx | QueryCtx | MutationCtx,
   userId: string,
-  podId: Id<"pods">,
+  podId: Id<"pods">
 ): Promise<Membership> => {
   if ("db" in ctx) {
     const membership = await ctx.db
@@ -90,13 +90,12 @@ export const requireMembership = async (
       throw new UnauthorizedError("MEMBERSHIP")
     }
     return { membership }
-  } else {
-    const membership = await ctx.runQuery(api.user.query.membership, { podId })
-    if (!membership) {
-      throw new UnauthorizedError("MEMBERSHIP")
-    }
-    return { membership }
   }
+  const membership = await ctx.runQuery(api.user.query.membership, { podId })
+  if (!membership) {
+    throw new UnauthorizedError("MEMBERSHIP")
+  }
+  return { membership }
 }
 
 export const memberAction = customAction(authAction, {
@@ -150,24 +149,24 @@ export type Connection = {
 
 export const requireConnection = async (
   ctx: ActionCtx | QueryCtx | MutationCtx,
-  userId: string,
+  userId: string
 ): Promise<Connection> => {
+  let account: Doc<"linkedinAccounts"> | null = null
+  let profile: Doc<"linkedinProfiles"> | null = null
+
   if ("db" in ctx) {
-    const [account, profile] = await Promise.all([
+    ;[account, profile] = await Promise.all([
       getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId),
       getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId),
     ])
-    if (!account || !profile || !isConnected(account?.status)) {
-      throw new BadRequestError("CONNECTION")
-    }
-    return { account, profile }
   } else {
-    const { account, profile } = await ctx.runQuery(api.linkedin.query.getState, {})
-    if (!account || !profile || !isConnected(account?.status)) {
-      throw new BadRequestError("CONNECTION")
-    }
-    return { account, profile }
+    ;({ account, profile } = await ctx.runQuery(api.linkedin.query.getState, {}))
   }
+
+  if (!(account && profile && isConnected(account.status))) {
+    throw new BadRequestError("CONNECTION")
+  }
+  return { account, profile }
 }
 
 export const connectedAction = customAction(authAction, {

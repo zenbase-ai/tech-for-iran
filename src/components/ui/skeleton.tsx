@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils"
 
 export const Skeleton: React.FC<BoxProps> = ({ className, ...props }) => (
   <Box
-    data-slot="skeleton"
     className={cn("bg-muted animate-pulse rounded-lg", className)}
+    data-slot="skeleton"
     {...props}
   />
 )

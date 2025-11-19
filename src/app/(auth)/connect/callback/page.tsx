@@ -15,26 +15,28 @@ export type ConnectCallbackPageProps = {
 }
 
 export default async function ConnectCallbackPage(props: ConnectCallbackPageProps) {
-  const { success, data, error } = ConnectCallbackSearchParams.safeParse(await props.searchParams)
-  if (!success) {
-    return redirect(`/connect?${queryString({ error: errorMessage(error) })}`, RedirectType.replace)
+  const params = ConnectCallbackSearchParams.safeParse(await props.searchParams)
+  if (!params.success) {
+    return redirect(
+      `/connect?${queryString({ error: errorMessage(params.error) })}`,
+      RedirectType.replace
+    )
   }
 
+  const { inviteCode, account_id } = params.data
   const { token } = await clerkAuth().catch(clerkAuth)
 
-  await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId: data.account_id }, { token })
+  await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId: account_id }, { token })
 
-  const { inviteCode } = data
   if (inviteCode) {
-    const { success, pod, error } = await fetchMutation(
-      api.pods.mutate.join,
-      { inviteCode },
-      { token },
-    )
-    if (pod == null) {
-      return redirect(`/pods?${queryString({ error })}`, RedirectType.replace)
+    const join = await fetchMutation(api.pods.mutate.join, { inviteCode }, { token })
+    if (join.pod == null) {
+      return redirect(`/pods?${queryString({ error: join.error })}`, RedirectType.replace)
     }
-    return redirect(`/pods/${pod._id}?${queryString({ success })}`, RedirectType.replace)
+    return redirect(
+      `/pods/${join.pod._id}?${queryString({ success: join.success })}`,
+      RedirectType.replace
+    )
   }
 
   return redirect("/pods", RedirectType.replace)

@@ -2,7 +2,6 @@ import { cn } from "@/lib/utils"
 
 export const Textarea: React.FC<React.ComponentProps<"textarea">> = ({ className, ...props }) => (
   <textarea
-    data-slot="textarea"
     className={cn(
       "flex field-sizing-content min-h-16 w-full px-3 py-2",
       "rounded-lg border border-input bg-transparent shadow-xs transition-[color,box-shadow] outline-none",
@@ -12,8 +11,9 @@ export const Textarea: React.FC<React.ComponentProps<"textarea">> = ({ className
       "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-      className,
+      className
     )}
+    data-slot="textarea"
     {...props}
   />
 )

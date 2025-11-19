@@ -27,28 +27,28 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
     <AnimatePresence>
       {profile && (
         <motion.nav
+          animate="visible"
           className={cn(
             "flex flex-row items-center justify-center gap-2",
             "p-2 rounded-full",
             "bg-background/50 backdrop-blur-md",
             "border border-border shadow-md outline-none",
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-            className,
+            className
           )}
-          variants={navVariants}
-          initial="hidden"
-          animate="visible"
           exit="hidden"
+          initial="hidden"
+          variants={navVariants}
         >
           <Link href="/pods">
-            <HStack items="center" justify="center" className="ml-1 gap-3">
+            <HStack className="ml-1 gap-3" items="center" justify="center">
               <LinkedInProfileAvatar profile={profile} />
 
               <span className="text-base font-medium">{fullName(profile)}</span>
             </HStack>
           </Link>
 
-          <Button size="icon" variant="ghost" className="rounded-full" asChild>
+          <Button asChild className="rounded-full" size="icon" variant="ghost">
             <Link href="/settings">
               <LuSettings />
             </Link>

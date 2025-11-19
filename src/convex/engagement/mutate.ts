@@ -34,7 +34,7 @@ export const patchPostStatus = internalMutation({
       v.literal("canceled"),
       v.literal("processing"),
       v.literal("failed"),
-      v.literal("success"),
+      v.literal("success")
     ),
   },
   handler: async (ctx, { postId, status }) => await ctx.db.patch(postId, update({ status })),

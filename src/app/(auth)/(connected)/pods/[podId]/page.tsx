@@ -28,14 +28,14 @@ export default async function PodPage(props: PodPageProps) {
   const { podId } = await props.params
 
   return (
-    <VStack items="center" className="w-full px-4 max-w-[640px] mx-auto gap-6">
+    <VStack className="w-full px-4 max-w-[640px] mx-auto gap-6" items="center">
       <PodPostsToasts podId={podId} />
 
       <PodHeader podId={podId} />
 
       <SubmitPostForm podId={podId} />
 
-      <PodMembers podId={podId} className="my-16" />
+      <PodMembers className="my-16" podId={podId} />
     </VStack>
   )
 }

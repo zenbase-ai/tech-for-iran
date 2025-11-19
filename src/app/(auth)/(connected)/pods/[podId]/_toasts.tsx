@@ -45,7 +45,7 @@ export const PostToast: React.FC<PostToastProps> = ({
       <Item className="p-0 w-full">
         <ItemMedia className="-mt-0.5">
           <Avatar className="size-6">
-            <AvatarImage src={picture} alt={fullName({ firstName, lastName })} />
+            <AvatarImage alt={fullName({ firstName, lastName })} src={picture} />
             <AvatarFallback className="text-sm font-semibold text-muted-foreground">
               {initials({ firstName, lastName })}
             </AvatarFallback>
@@ -58,14 +58,14 @@ export const PostToast: React.FC<PostToastProps> = ({
           </ItemDescription>
         </ItemContent>
         <ItemActions>
-          <Button size="icon" variant="ghost" className="size-6" asChild>
-            <a href={url} target="_blank" rel="noopener noreferrer">
+          <Button asChild className="size-6" size="icon" variant="ghost">
+            <a href={url} rel="noopener noreferrer" target="_blank">
               <LuExternalLink className="size-3" />
             </a>
           </Button>
         </ItemActions>
       </Item>,
-      { position: "bottom-center", duration: 5_000 },
+      { position: "bottom-center", duration: 5000 }
     )
   }, [firstName, lastName, picture, url, _creationTime])
 

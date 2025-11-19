@@ -32,7 +32,7 @@ export const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  },
+  }
 )
 
 export type CopyButtonProps = Omit<HTMLMotionProps<"button">, "children" | "onCopy"> &
@@ -65,13 +65,15 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
     setLocalIsCopied(isCopied ?? false)
   }, [isCopied])
 
-  const handleIsCopied = useEffectEvent((isCopied: boolean) => {
-    setLocalIsCopied(isCopied)
-    onCopyChange?.(isCopied)
+  const handleIsCopied = useEffectEvent((newValue: boolean) => {
+    setLocalIsCopied(newValue)
+    onCopyChange?.(newValue)
   })
 
   const handleCopy = useEffectEvent(async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isCopied) return
+    if (isCopied) {
+      return
+    }
     if (content) {
       try {
         await navigator.clipboard.writeText(content)
@@ -88,20 +90,20 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
 
   return (
     <motion.button
+      className={cn(buttonVariants({ variant, size }), className)}
       data-slot="copy-button"
+      onClick={handleCopy}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className={cn(buttonVariants({ variant, size }), className)}
-      onClick={handleCopy}
       {...props}
     >
       <AnimatePresence mode="wait">
         <motion.span
-          key={localIsCopied ? "check" : "copy"}
-          data-slot="copy-button-icon"
-          initial={{ scale: 0 }}
           animate={{ scale: 1 }}
+          data-slot="copy-button-icon"
           exit={{ scale: 0 }}
+          initial={{ scale: 0 }}
+          key={localIsCopied ? "check" : "copy"}
           transition={{ duration: 0.15 }}
         >
           <Icon />

@@ -869,6 +869,4 @@ The codebase uses `src/convex/convex.config.ts` to configure all Convex componen
 
 ## Future Extensibility
 
-- **AI Auto-commenting:** Call OpenAI API in workflow, use Unipile `POST /api/v1/posts/{post_id}/comments`
-- **Multi-pod support:** UI for pod creation/management, invite links per pod (backend ready)
 - **Analytics:** Leverage `engagements` table for metrics (engagement rate, top reactors, etc.)

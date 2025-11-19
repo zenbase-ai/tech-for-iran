@@ -17,7 +17,7 @@ export const SubmitPost = z.object({
     .url("Please enter a valid URL")
     .refine(
       (url) => !!parsePostURN(url),
-      `URL must include ${urlRegex.source} or ${urnRegex.source}`,
+      `URL must include ${urlRegex.source} or ${urnRegex.source}`
     ),
   comments: z.boolean().default(true),
   reactionTypes: z.array(LinkedInReaction).min(1, "Select at least one reaction type"),

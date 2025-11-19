@@ -26,38 +26,36 @@ export const availableMembers = internalQuery({
     podId: v.id("pods"),
     skipUserIds: v.array(v.string()),
   },
-  handler: async (ctx, { podId, skipUserIds }): Promise<AvailableMember[]> => {
-    const members = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
+  handler: async (ctx, { podId, skipUserIds }): Promise<AvailableMember[]> =>
+    await pflatMap(
+      await getManyFrom(ctx.db, "memberships", "by_podId", podId),
+      async ({ userId }) => {
+        if (skipUserIds.includes(userId)) {
+          return []
+        }
 
-    const availableMembers = await pflatMap(members, async ({ userId }) => {
-      if (skipUserIds.includes(userId)) {
-        return []
+        const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+        if (!(account && isConnected(account?.status))) {
+          return []
+        }
+
+        const { ok } = await ratelimits.check(ctx, ...accountActionsRateLimit(account))
+        if (!ok) {
+          return []
+        }
+
+        const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
+        if (!profile) {
+          return []
+        }
+
+        const { success, data, error } = AvailableMember.safeParse({ account, profile })
+        if (!success) {
+          console.error("workflows/engagement:selectAvailableAccount", error)
+          return []
+        }
+
+        return [data]
       }
-
-      const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-      if (!account || !isConnected(account?.status)) {
-        return []
-      }
-
-      const { ok } = await ratelimits.check(ctx, ...accountActionsRateLimit(account))
-      if (!ok) {
-        return []
-      }
-
-      const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
-      if (!profile) {
-        return []
-      }
-
-      const { success, data, error } = AvailableMember.safeParse({ account, profile })
-      if (!success) {
-        console.error("workflows/engagement:selectAvailableAccount", error)
-        return []
-      }
-
-      return [data]
-    })
-
-    return availableMembers
-  },
+    ),
 })

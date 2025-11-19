@@ -19,7 +19,7 @@ export default function SettingsPage() {
   return (
     <VStack as="main" className="px-2 w-full max-w-[640px] mx-auto gap-8">
       <VStack className="gap-4">
-        <HStack wrap items="center" justify="between">
+        <HStack items="center" justify="between" wrap>
           <PageTitle>Settings</PageTitle>
 
           <SignOutButton>
@@ -38,7 +38,7 @@ export default function SettingsPage() {
       <VStack className="gap-4">
         <SectionTitle>LinkedIn</SectionTitle>
 
-        <HStack wrap items="center" justify="between" className="gap-4">
+        <HStack className="gap-4" items="center" justify="between" wrap>
           <SyncButton variant="outline">Sync</SyncButton>
           <DisconnectButton variant="ghost">
             <LuUnplug className="size-4" />

@@ -59,7 +59,7 @@ export default function ConnectDialogPage() {
           <AlertDialogCancel asChild>
             <Link href="/">Cancel</Link>
           </AlertDialogCancel>
-          <AlertDialogAction onClick={connect} disabled={countdown <= 1} autoFocus>
+          <AlertDialogAction autoFocus disabled={countdown <= 1} onClick={connect}>
             Connect
           </AlertDialogAction>
         </AlertDialogFooter>

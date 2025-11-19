@@ -19,23 +19,23 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body>
         <VStack
           as="main"
-          justify="center"
-          items="center"
           className="text-center mt-[20vh] size-full gap-4 md:gap-6 lg:gap-8"
+          items="center"
+          justify="center"
         >
           <h1 className="text-xl font-serif italic bold">Something went terribly wrong.</h1>
           <Button onClick={reset}>Refresh</Button>
 
           <Box className="object-contain w-full max-w-[360px]">
             <Image
-              src={NotFoundIllustration}
               alt="Error"
-              width={624}
-              height={662}
               className="dark:invert"
+              height={662}
+              src={NotFoundIllustration}
+              width={624}
             />
           </Box>
-          <Badge variant="secondary" className="text-base">
+          <Badge className="text-base" variant="secondary">
             GLOBAL ERROR
           </Badge>
           {process.env.NODE_ENV === "development" && (

@@ -46,26 +46,26 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
 
   return (
     <form
-      onSubmit={form.handleSubmit(handleSubmit)}
       className={cn("w-full flex flex-col gap-6", className)}
+      onSubmit={form.handleSubmit(handleSubmit)}
     >
       {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
-      <Stack items="start" justify="center" className="gap-4 flex-col md:flex-row">
+      <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
         <Controller
-          name="url"
           control={form.control}
+          name="url"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <Input
                 {...field}
-                id={field.name}
-                type="url"
-                className="h-9 sm:h-11"
-                placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
                 aria-invalid={fieldState.invalid}
-                disabled={form.formState.isSubmitting}
                 autoFocus
+                className="h-9 sm:h-11"
+                disabled={form.formState.isSubmitting}
+                id={field.name}
+                placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                type="url"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -73,28 +73,28 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
         />
 
         <Box className="max-w-fit">
-          <HoverButton type="submit" disabled={form.formState.isSubmitting}>
+          <HoverButton disabled={form.formState.isSubmitting} type="submit">
             Submit
           </HoverButton>
         </Box>
       </Stack>
 
       <Controller
-        name="comments"
         control={form.control}
+        name="comments"
         render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid} orientation="horizontal" className="flex-1">
+          <Field className="flex-1" data-invalid={fieldState.invalid} orientation="horizontal">
             <Switch
+              aria-invalid={fieldState.invalid}
+              checked={field.value}
+              disabled={form.formState.isSubmitting}
               id={field.name}
               name={field.name}
-              checked={field.value}
               onCheckedChange={field.onChange}
-              aria-invalid={fieldState.invalid}
-              disabled={form.formState.isSubmitting}
             />
             <FieldLabel
-              htmlFor={field.name}
               className={cn(!field.value && "line-through text-muted-foreground")}
+              htmlFor={field.name}
             >
               Generate comments
             </FieldLabel>
@@ -104,8 +104,8 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
       />
 
       <Controller
-        name="reactionTypes"
         control={form.control}
+        name="reactionTypes"
         render={({ field, fieldState }) => (
           <FieldSet className="w-full" data-invalid={fieldState.invalid}>
             <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
@@ -114,25 +114,25 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
               data-slot="checkbox-group"
             >
               {submitPost.options.reactionTypes.map((reaction) => (
-                <Field key={reaction} orientation="horizontal" data-invalid={fieldState.invalid}>
+                <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
                   <Switch
+                    aria-invalid={fieldState.invalid}
+                    checked={field.value.includes(reaction)}
+                    disabled={form.formState.isSubmitting}
                     id={`reaction-${reaction}`}
                     name={field.name}
-                    checked={field.value.includes(reaction)}
                     onCheckedChange={(checked) => {
                       const newValue = checked
                         ? [...field.value, reaction]
                         : field.value.filter((value) => value !== reaction)
                       field.onChange(newValue)
                     }}
-                    aria-invalid={fieldState.invalid}
-                    disabled={form.formState.isSubmitting}
                   />
                   <FieldLabel
-                    htmlFor={`reaction-${reaction}`}
                     className={cn(
-                      !field.value.includes(reaction) && "line-through text-muted-foreground",
+                      !field.value.includes(reaction) && "line-through text-muted-foreground"
                     )}
+                    htmlFor={`reaction-${reaction}`}
                   >
                     {capitalize(reaction)}
                   </FieldLabel>

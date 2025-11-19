@@ -17,13 +17,13 @@ export const Loading: React.FC<LoadingProps> = ({ message, delay = 0, className 
 
   return (
     <motion.div
-      className={cn("flex flex-col items-center justify-center py-1 w-fit mx-auto", className)}
       animate={isMounted ? { opacity: 1 } : { opacity: 0 }}
+      className={cn("flex flex-col items-center justify-center py-1 w-fit mx-auto", className)}
     >
       <Logo animate className="text-muted" />
 
       {message && (
-        <TextShimmer className="text-lg font-serif italic" as="h2">
+        <TextShimmer as="h2" className="text-lg font-serif italic">
           {message}
         </TextShimmer>
       )}

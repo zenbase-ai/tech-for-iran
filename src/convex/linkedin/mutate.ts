@@ -38,7 +38,7 @@ export const connectOwn = authMutation({
         lastName: "",
         location: "",
         headline: "",
-      }),
+      })
     )
   },
 })
@@ -84,7 +84,7 @@ export const upsertAccount = internalMutation({
 
     return await ctx.db.insert(
       "linkedinAccounts",
-      update({ unipileId, status, ...config.defaultValues }),
+      update({ unipileId, status, ...config.defaultValues })
     )
   },
 })
@@ -117,7 +117,7 @@ export const upsertProfile = internalMutation({
 
     return await ctx.db.insert(
       "linkedinProfiles",
-      update({ userId, unipileId, ...patch, scheduledRefresh: undefined }),
+      update({ userId, unipileId, ...patch, scheduledRefresh: undefined })
     )
   },
 })

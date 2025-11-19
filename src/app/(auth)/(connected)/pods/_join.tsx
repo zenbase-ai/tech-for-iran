@@ -41,25 +41,25 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
 
   return (
     <form
-      onSubmit={form.handleSubmit(handleSubmit)}
       className={cn("flex flex-row items-center gap-3", className)}
+      onSubmit={form.handleSubmit(handleSubmit)}
     >
       <Controller
-        name="inviteCode"
         control={form.control}
+        name="inviteCode"
         render={({ field, fieldState }) => (
           <Input
             {...field}
-            id={field.name}
-            type="text"
-            placeholder="Enter an invite code"
             aria-invalid={fieldState.invalid}
-            disabled={form.formState.isSubmitting}
             autoFocus={autoFocus}
+            disabled={form.formState.isSubmitting}
+            id={field.name}
+            placeholder="Enter an invite code"
+            type="text"
           />
         )}
       />
-      <Button type="submit" disabled={form.formState.isSubmitting} variant="outline">
+      <Button disabled={form.formState.isSubmitting} type="submit" variant="outline">
         Join
         {form.formState.isSubmitting ? (
           <Spinner variant="ellipsis" />

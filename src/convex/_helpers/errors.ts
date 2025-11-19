@@ -7,25 +7,25 @@ type ErrorData = {
 }
 
 export class NotFoundError extends ConvexError<ErrorData> {
-  constructor(message: string = "Not found", { cause = null }: { cause?: Value } = {}) {
+  constructor(message = "Not found", { cause = null }: { cause?: Value } = {}) {
     super({ message, cause })
   }
 }
 
 export class UnauthorizedError extends ConvexError<ErrorData> {
-  constructor(message: string = "Unauthorized", { cause = null }: { cause?: Value } = {}) {
+  constructor(message = "Unauthorized", { cause = null }: { cause?: Value } = {}) {
     super({ message, cause })
   }
 }
 
 export class ConflictError extends ConvexError<ErrorData> {
-  constructor(message: string = "Conflict", { cause = null }: { cause?: Value } = {}) {
+  constructor(message = "Conflict", { cause = null }: { cause?: Value } = {}) {
     super({ message, cause })
   }
 }
 
 export class BadRequestError extends ConvexError<ErrorData> {
-  constructor(message: string = "Bad request", { cause = null }: { cause?: Value } = {}) {
+  constructor(message = "Bad request", { cause = null }: { cause?: Value } = {}) {
     super({ message, cause })
   }
 }

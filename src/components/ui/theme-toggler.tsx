@@ -31,7 +31,9 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
   }, [])
 
   const toggleTheme = useCallback(async () => {
-    if (!buttonRef.current) return
+    if (!buttonRef.current) {
+      return
+    }
 
     await document.startViewTransition(() => {
       flushSync(() => {
@@ -42,14 +44,16 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
       })
     }).ready
 
-    if (reducedMotion) return
+    if (reducedMotion) {
+      return
+    }
 
     const { top, left, width, height } = buttonRef.current.getBoundingClientRect()
     const x = left + width / 2
     const y = top + height / 2
     const maxRadius = Math.hypot(
       Math.max(left, window.innerWidth - left),
-      Math.max(top, window.innerHeight - top),
+      Math.max(top, window.innerHeight - top)
     )
 
     document.documentElement.animate(
@@ -58,15 +62,15 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
         duration: duration * 1000,
         easing: "ease-in-out",
         pseudoElement: "::view-transition-new(root)",
-      },
+      }
     )
   }, [isDark, duration, reducedMotion])
 
   return (
     <button
-      ref={buttonRef}
-      onClick={toggleTheme}
       className={cn("border rounded-full p-2 backdrop-blur-md", className)}
+      onClick={toggleTheme}
+      ref={buttonRef}
       {...props}
     >
       {isDark ? <LuSun /> : <LuMoon />}

@@ -21,11 +21,9 @@ export const delay = internalAction({
     minDelay: v.number(),
     maxDelay: v.number(),
   },
-  handler: async (_ctx, args): Promise<number> => {
-    const delay = randomInt(args.minDelay, args.maxDelay + 1) * 1000
-    const jitter = randomInt(0, 2500)
-    return delay + jitter
-  },
+  handler: async (_ctx, args): Promise<number> =>
+    // base [minDelay, maxDelay] + jitter [0, 2500]
+    randomInt(args.minDelay, args.maxDelay + 1) * 1000 + randomInt(0, 2501),
 })
 
 export const reaction = internalAction({

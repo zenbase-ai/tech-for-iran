@@ -7,7 +7,7 @@ export type UseQueryReturn<T extends FunctionReference<"query">> = ReturnType<ty
 
 export default function useAuthQuery<T extends FunctionReference<"query">>(
   query: T,
-  args?: UseQueryArgs<T>,
+  args?: UseQueryArgs<T>
 ): UseQueryReturn<T> {
   const { isSignedIn } = useAuth()
   return useQuery(query, ...(isSignedIn ? [args] : ["skip"]))

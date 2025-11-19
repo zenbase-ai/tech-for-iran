@@ -31,7 +31,7 @@ export const latest = memberQuery({
       .take(take)
 
     const profiles = await pmap(posts, async ({ userId }) =>
-      getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId),
+      getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
     )
 
     return zip(profiles, posts).flatMap(([profile, { url, _creationTime }]) => {

@@ -42,7 +42,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
   const members = useAuthPaginatedQuery(
     api.pods.query.members,
     { podId },
-    { initialNumItems: membersPageSize },
+    { initialNumItems: membersPageSize }
   )
   const { isLoading, noResults, canLoadMore } = paginatedState(members)
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(membersPageSize))
@@ -73,8 +73,8 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ItemGroup className="contents">
               {members.results.map((member) => (
-                <Item key={member.url} variant="outline" size="sm" asChild>
-                  <a href={member.url} target="_blank" rel="noopener noreferrer">
+                <Item asChild key={member.url} size="sm" variant="outline">
+                  <a href={member.url} rel="noopener noreferrer" target="_blank">
                     <ItemMedia variant="image">
                       <LinkedInProfileAvatar profile={member} />
                     </ItemMedia>
@@ -91,11 +91,11 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           </Box>
           {canLoadMore && (
             <Button
-              ref={observer.ref}
-              variant="outline"
               className="max-w-fit"
               disabled={isLoading}
               onClick={loadMore}
+              ref={observer.ref}
+              variant="outline"
             >
               More
               <LuArrowDown className="size-4" />

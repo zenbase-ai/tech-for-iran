@@ -15,24 +15,24 @@ export const alertVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  },
+  }
 )
 
 export type AlertProps = React.ComponentProps<"div"> & VariantProps<typeof alertVariants>
 
 export const Alert: React.FC<AlertProps> = ({ className, variant, ...props }) => (
   <div
+    className={cn(alertVariants({ variant }), className)}
     data-slot="alert"
     role="alert"
-    className={cn(alertVariants({ variant }), className)}
     {...props}
   />
 )
 
 export const AlertTitle: React.FC<React.ComponentProps<"div">> = ({ className, ...props }) => (
   <div
-    data-slot="alert-title"
     className={cn("col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight", className)}
+    data-slot="alert-title"
     {...props}
   />
 )
@@ -42,11 +42,11 @@ export const AlertDescription: React.FC<React.ComponentProps<"div">> = ({
   ...props
 }) => (
   <div
-    data-slot="alert-description"
     className={cn(
       "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
-      className,
+      className
     )}
+    data-slot="alert-description"
     {...props}
   />
 )

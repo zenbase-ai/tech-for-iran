@@ -42,7 +42,7 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
       <Box className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
         <ItemGroup className="contents">
           {pods.results.map((pod) => (
-            <Item key={pod._id} variant="outline" asChild>
+            <Item asChild key={pod._id} variant="outline">
               <Link href={`/pods/${pod._id}`}>
                 <ItemContent>
                   <ItemTitle className="font-semibold">{pod.name}</ItemTitle>
@@ -57,11 +57,11 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
       </Box>
       {canLoadMore && (
         <Button
+          className="max-w-fit"
+          disabled={isLoading}
+          onClick={loadMore}
           ref={observer.ref}
           variant="outline"
-          className="max-w-fit"
-          onClick={loadMore}
-          disabled={isLoading}
         >
           More
           <LuArrowDown className="size-4" />

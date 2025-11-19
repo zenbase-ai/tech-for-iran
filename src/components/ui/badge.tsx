@@ -19,7 +19,7 @@ export const badgeVariants = cva(
     defaultVariants: {
       variant: "default",
     },
-  },
+  }
 )
 
 export type BadgeProps = React.ComponentProps<"span"> &
@@ -28,5 +28,5 @@ export type BadgeProps = React.ComponentProps<"span"> &
 export const Badge: React.FC<BadgeProps> = ({ className, variant, asChild = false, ...props }) => {
   const Comp = asChild ? Slot : "span"
 
-  return <Comp data-slot="badge" className={cn(badgeVariants({ variant }), className)} {...props} />
+  return <Comp className={cn(badgeVariants({ variant }), className)} data-slot="badge" {...props} />
 }

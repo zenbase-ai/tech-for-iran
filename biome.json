@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.6/schema.json",
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -7,7 +7,14 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!node_modules", "!.next", "!dist", "!build", "!src/convex/_generated"]
+    "includes": [
+      "**",
+      "!node_modules",
+      "!.next",
+      "!dist",
+      "!build",
+      "!src/convex/_generated"
+    ]
   },
   "css": {
     "parser": {
@@ -33,6 +40,9 @@
         "noUnknownAtRules": "off",
         "noExplicitAny": "off"
       },
+      "style": {
+        "noNestedTernary": "off"
+      },
       "nursery": {
         "useSortedClasses": {
           "options": {
@@ -40,6 +50,9 @@
             "functions": ["cn"]
           }
         }
+      },
+      "performance": {
+        "noNamespaceImport": "off"
       }
     },
     "domains": {
@@ -54,5 +67,6 @@
       }
     },
     "enabled": true
-  }
+  },
+  "extends": ["ultracite/core", "ultracite/next", "ultracite/react"]
 }

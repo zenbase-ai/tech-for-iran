@@ -20,11 +20,11 @@ export const SyncButton: React.FC<SyncButtonProps> = ({
 
   return (
     <Button
-      type="button"
-      disabled={sync.pending}
       className={cn("w-fit", className)}
-      variant={variant}
+      disabled={sync.pending}
       onClick={() => sync.execute()}
+      type="button"
+      variant={variant}
       {...props}
     >
       {children}

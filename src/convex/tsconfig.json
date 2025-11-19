@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
-    /* These settings are not required by Convex and can be modified. */
     "allowJs": true,
     "strict": true,
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
-
-    /* These compiler options are required by Convex */
     "target": "ESNext",
     "lib": ["ES2023", "dom"],
     "forceConsistentCasingInFileNames": true,
@@ -16,7 +13,8 @@
     "noEmit": true,
     "paths": {
       "@/*": ["../*"]
-    }
+    },
+    "strictNullChecks": true
   },
   "include": [
     "./**/*.ts",

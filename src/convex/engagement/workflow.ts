@@ -7,7 +7,7 @@ import { errorMessage } from "@/convex/_helpers/errors"
 import { internalMutation, update } from "@/convex/_helpers/server"
 import { AvailableMember } from "./query"
 
-const args = {
+const workflowArgs = {
   userId: v.string(),
   podId: v.id("pods"),
   postId: v.id("posts"),
@@ -18,7 +18,7 @@ const args = {
 }
 
 export const start = internalMutation({
-  args,
+  args: workflowArgs,
   handler: async (ctx, args) => {
     try {
       const workflowId = await workflow.start(ctx, internal.engagement.workflow.perform, args, {
@@ -104,7 +104,7 @@ export const workflow = new WorkflowManager(components.workflow, {
  * - Example: minDelay=1, maxDelay=30 → 1-30 seconds + 0-2.5s jitter per reaction
  */
 export const perform = workflow.define({
-  args,
+  args: workflowArgs,
   handler: async (step, { userId, postId, podId, urn, reactionTypes, targetCount, comments }) => {
     const minDelay = 5
     const maxDelay = 30
@@ -127,13 +127,13 @@ export const perform = workflow.define({
       }
 
       const { account, profile } = AvailableMember.parse(
-        await step.runAction(internal.engagement.generate.sample, { items: availableMembers }),
+        await step.runAction(internal.engagement.generate.sample, { items: availableMembers })
       )
+      skipUserIds.push(account.userId)
 
-      const { userId, unipileId } = account
-      skipUserIds.push(userId)
+      const { unipileId } = account
 
-      const [runAfter, reactionType] = await Promise.all([
+      const [reactDelay, reactionType] = await Promise.all([
         step.runAction(internal.engagement.generate.delay, {
           minDelay,
           maxDelay,
@@ -143,20 +143,20 @@ export const perform = workflow.define({
         }),
       ])
 
-      const { error } = await step.runAction(
+      const react = await step.runAction(
         internal.unipile.post.react,
         { unipileId, urn, reactionType },
-        { runAfter },
+        { runAfter: reactDelay }
       )
       await step.runMutation(internal.engagement.mutate.upsertEngagement, {
         userId,
         postId,
-        error,
+        error: react.error,
         reactionType,
       })
 
       if (comments) {
-        const [runAfter, commentText] = await Promise.all([
+        const [commentDelay, commentText] = await Promise.all([
           step.runAction(internal.engagement.generate.delay, {
             minDelay,
             maxDelay,
@@ -170,15 +170,15 @@ export const perform = workflow.define({
         ])
 
         if (commentText) {
-          const { error } = await step.runAction(
+          const comment = await step.runAction(
             internal.unipile.post.comment,
             { unipileId, urn, commentText },
-            { runAfter },
+            { runAfter: commentDelay }
           )
           await step.runMutation(internal.engagement.mutate.upsertEngagement, {
             userId,
             postId,
-            error,
+            error: comment.error,
             reactionType: "comment",
           })
         }

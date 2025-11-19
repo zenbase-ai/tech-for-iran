@@ -27,8 +27,8 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
   ) : (
     <ActualConfigForm
       className={className}
-      maxActions={account.maxActions}
       commentPrompt={account.commentPrompt ?? ""}
+      maxActions={account.maxActions}
     />
   )
 }
@@ -51,25 +51,25 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
 
   return (
     <form
-      onSubmit={form.handleSubmit(configure)}
       className={cn("w-full flex flex-col gap-4", className)}
+      onSubmit={form.handleSubmit(configure)}
     >
       <Controller
-        name="maxActions"
         control={form.control}
+        name="maxActions"
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor={field.name}>Daily Like &amp; Comment Limit</FieldLabel>
             <FieldContent>
               <Input
                 {...field}
-                id={field.name}
-                type="number"
-                min={config.min.maxActions}
-                max={config.max.maxActions}
                 aria-invalid={fieldState.invalid}
                 disabled={form.formState.isSubmitting}
+                id={field.name}
+                max={config.max.maxActions}
+                min={config.min.maxActions}
                 onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                type="number"
               />
             </FieldContent>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -78,17 +78,17 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
       />
 
       <Controller
-        name="commentPrompt"
         control={form.control}
+        name="commentPrompt"
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor={field.name}>Comment Prompt</FieldLabel>
             <FieldContent>
               <Textarea
                 {...field}
-                id={field.name}
                 aria-invalid={fieldState.invalid}
                 disabled={form.formState.isSubmitting}
+                id={field.name}
                 maxLength={config.max.commentPrompt}
               />
             </FieldContent>
@@ -97,7 +97,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
         )}
       />
 
-      <Button type="submit" disabled={form.formState.isSubmitting} className="w-fit">
+      <Button className="w-fit" disabled={form.formState.isSubmitting} type="submit">
         Save
         {form.formState.isSubmitting ? (
           <Spinner variant="ellipsis" />

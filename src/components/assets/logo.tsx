@@ -10,7 +10,7 @@ export type LogoProps = StackProps & {
 }
 
 export const Logo: React.FC<LogoProps> = ({ className, animate, ...props }) => (
-  <HStack wrap items="center" justify="center" className={cn("gap-2", className)} {...props}>
+  <HStack className={cn("gap-2", className)} items="center" justify="center" wrap {...props}>
     <motion.span
       animate={animate ? { rotate: 360 } : { rotate: 0 }}
       transition={{ duration: 1 }}

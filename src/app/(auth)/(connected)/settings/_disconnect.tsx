@@ -30,9 +30,9 @@ export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
   const [isOpen, setOpen] = useState(false)
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={setOpen}>
+    <AlertDialog onOpenChange={setOpen} open={isOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant={variant} className={cn("w-fit", className)} {...props}>
+        <Button className={cn("w-fit", className)} variant={variant} {...props}>
           {children}
         </Button>
       </AlertDialogTrigger>
@@ -45,14 +45,14 @@ export const DisconnectButton: React.FC<DisconnectButtonProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel type="button" disabled={disconnect.pending}>
+          <AlertDialogCancel disabled={disconnect.pending} type="button">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
-            type="button"
             disabled={disconnect.pending}
-            variant="destructive"
             onClick={() => disconnect.execute()}
+            type="button"
+            variant="destructive"
           >
             Disconnect
           </AlertDialogAction>

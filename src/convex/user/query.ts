@@ -12,8 +12,10 @@ export const pods = authQuery({
       .withIndex("by_userId", (q) => q.eq("userId", ctx.userId))
       .paginate(paginationOpts)
 
-    const pods = await pmap(memberships.page, async ({ podId }) => await ctx.db.get(podId))
-    const page = zip(memberships.page, pods).map(([{ _creationTime }, pod]) => ({
+    const page = zip(
+      memberships.page,
+      await pmap(memberships.page, async ({ podId }) => await ctx.db.get(podId))
+    ).map(([{ _creationTime }, pod]) => ({
       ...pod,
       joinedAt: _creationTime,
     }))
@@ -40,13 +42,13 @@ export const posts = authQuery({
   handler: async (ctx, { paginationOpts }) => {
     const { userId } = ctx
 
-    const posts = await ctx.db
+    const result = await ctx.db
       .query("posts")
       .withIndex("by_userId", (q) => q.eq("userId", userId))
       .order("desc")
       .paginate(paginationOpts)
 
-    const page = await pflatMap(posts.page, async (post) => {
+    const page = await pflatMap(result.page, async (post) => {
       if (!post.text) {
         return []
       }
@@ -72,6 +74,6 @@ export const posts = authQuery({
       ]
     })
 
-    return { ...posts, page }
+    return { ...result, page }
   },
 })

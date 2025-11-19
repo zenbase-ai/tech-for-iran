@@ -51,7 +51,7 @@ export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
   return (
     <AlertDialog open>
       <AlertDialogContent className="max-w-md">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
           <AlertDialogHeader>
             <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
@@ -60,20 +60,20 @@ export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
           </AlertDialogHeader>
 
           <Controller
-            name="inviteCode"
             control={form.control}
+            name="inviteCode"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldContent>
                   <Input
                     {...field}
-                    id={field.name}
-                    type="text"
-                    placeholder="your super secret invite code"
-                    disabled={form.formState.isSubmitting}
-                    required
-                    autoFocus
                     aria-invalid={fieldState.invalid}
+                    autoFocus
+                    disabled={form.formState.isSubmitting}
+                    id={field.name}
+                    placeholder="your super secret invite code"
+                    required
+                    type="text"
                   />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </FieldContent>
@@ -84,14 +84,14 @@ export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
           <AlertDialogFooter>
             <SignOutButton redirectUrl="/">
               <AlertDialogCancel
-                type="button"
                 disabled={form.formState.isSubmitting}
+                type="button"
                 variant="ghost"
               >
                 Sign out
               </AlertDialogCancel>
             </SignOutButton>
-            <AlertDialogAction type="submit" disabled={form.formState.isSubmitting} size="default">
+            <AlertDialogAction disabled={form.formState.isSubmitting} size="default" type="submit">
               Continue
               {form.formState.isSubmitting ? (
                 <Spinner variant="ellipsis" />

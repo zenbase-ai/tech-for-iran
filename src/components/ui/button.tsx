@@ -28,7 +28,7 @@ export const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  },
+  }
 )
 
 export type ButtonProps = React.ComponentProps<"button"> &
@@ -45,8 +45,8 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <Comp
-      data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      data-slot="button"
       {...props}
     />
   )

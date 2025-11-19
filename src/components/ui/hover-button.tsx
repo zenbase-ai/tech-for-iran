@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { forwardRef } from "react"
+import type React from "react"
 import { LuArrowRight } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { cn } from "@/lib/utils"
@@ -15,7 +15,7 @@ const hoverButtonVariants = cva(
     defaultVariants: {
       variant: "primary",
     },
-  },
+  }
 )
 
 const dotVariants = cva(
@@ -29,7 +29,7 @@ const dotVariants = cva(
     defaultVariants: {
       variant: "primary",
     },
-  },
+  }
 )
 
 const overlayVariants = cva(
@@ -43,27 +43,33 @@ const overlayVariants = cva(
     defaultVariants: {
       variant: "primary",
     },
-  },
+  }
 )
 
 export type HoverButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof hoverButtonVariants> & {
+    ref?: React.RefObject<HTMLButtonElement>
     hoverChildren?: React.ReactNode
   }
 
-export const HoverButton = forwardRef<HTMLButtonElement, HoverButtonProps>(
-  ({ children, className, variant, hoverChildren, ...props }, ref) => (
-    <button ref={ref} className={cn(hoverButtonVariants({ variant }), className)} {...props}>
-      <Box className="flex items-center gap-2">
-        <Box className={cn(dotVariants({ variant }))} />
-        <span className="inline-block transition-all duration-300 group-hover:translate-x-12 group-hover:opacity-0">
-          {children}
-        </span>
-      </Box>
-      <Box className={cn(overlayVariants({ variant }))}>
-        <span>{hoverChildren ?? children}</span>
-        <LuArrowRight className="size-4" />
-      </Box>
-    </button>
-  ),
+export const HoverButton: React.FC<HoverButtonProps> = ({
+  ref,
+  children,
+  className,
+  variant,
+  hoverChildren,
+  ...props
+}) => (
+  <button className={cn(hoverButtonVariants({ variant }), className)} ref={ref} {...props}>
+    <Box className="flex items-center gap-2">
+      <Box className={cn(dotVariants({ variant }))} />
+      <span className="inline-block transition-all duration-300 group-hover:translate-x-12 group-hover:opacity-0">
+        {children}
+      </span>
+    </Box>
+    <Box className={cn(overlayVariants({ variant }))}>
+      <span>{hoverChildren ?? children}</span>
+      <LuArrowRight className="size-4" />
+    </Box>
+  </button>
 )

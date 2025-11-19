@@ -43,7 +43,7 @@ export const fetch = internalAction({
     }
 
     const { data, error } = Fetch.safeParse(
-      await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json(),
+      await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json()
     )
     if (error) {
       return { data: null, error: errorMessage(error) }
@@ -89,7 +89,7 @@ export const comment = internalAction({
     commentText: v.string(),
   },
   handler: async (_ctx, { urn, unipileId: account_id, commentText: text }) => {
-    if (text.length === 0 || 1250 < text.length) {
+    if (text.length === 0 || text.length > 1250) {
       return { data: null, error: "Text must be between 1 and 1250 characters long." }
     }
 

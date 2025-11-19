@@ -15,7 +15,7 @@ export type UseAsyncFn<TArgs extends unknown[], TData extends Record<string, unk
 }
 
 export default function useAsyncFn<TArgs extends unknown[], TData extends Record<string, unknown>>(
-  fn: AsyncFn<TArgs, TData>,
+  fn: AsyncFn<TArgs, TData>
 ): UseAsyncFn<TArgs, TData> {
   const isMounted = useMounted()
 
@@ -24,7 +24,9 @@ export default function useAsyncFn<TArgs extends unknown[], TData extends Record
   const [pending, setPending] = useState(false)
 
   const execute = useEffectEvent(async (...args: TArgs): Promise<TData | undefined> => {
-    if (!isMounted) return undefined
+    if (!isMounted) {
+      return
+    }
 
     startTransition(() => {
       setData(null)
@@ -42,11 +44,11 @@ export default function useAsyncFn<TArgs extends unknown[], TData extends Record
         }
       })
       return result
-    } catch (error: unknown) {
+    } catch (e: unknown) {
       startTransition(() => {
         if (isMounted) {
           setData(null)
-          setError(toError(error))
+          setError(toError(e))
           setPending(false)
         }
       })

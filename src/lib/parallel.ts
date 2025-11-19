@@ -11,19 +11,19 @@ export const defaultOptions: ParallelOptions = {
 export const pmap = <T = unknown, R = unknown>(
   array: T[],
   mapFn: (item: T) => Promise<R>,
-  options: ParallelOptions = {},
+  options: ParallelOptions = {}
 ) => pMap(array, mapFn, { ...defaultOptions, ...options })
 
 export const pflatMap = <T = unknown, R = unknown>(
   array: T[],
   mapFn: (item: T) => Promise<R[]>,
-  options: ParallelOptions = {},
+  options: ParallelOptions = {}
 ) => pmap(array, mapFn, options).then((results) => results.flat(1))
 
 export const pfilter = async <T = unknown>(
   array: T[],
   predicateFn: (item: T) => Promise<boolean>,
-  options: ParallelOptions = {},
+  options: ParallelOptions = {}
 ) => {
   const predicateValues = await pmap(array, predicateFn, options)
   const filteredValues = zip(array, predicateValues)

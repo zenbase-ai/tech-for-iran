@@ -27,12 +27,12 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
   const inviteURL = url("/sign-up", { searchParams: { inviteCode } })
 
   return (
-    <HStack justify="between" items="center" className={cn("w-full gap-2", className)}>
+    <HStack className={cn("w-full gap-2", className)} items="center" justify="between">
       <PageTitle>{pod.name}</PageTitle>
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <CopyButton icon={LuSend} content={inviteURL} variant="muted" className="-mt-1" />
+          <CopyButton className="-mt-1" content={inviteURL} icon={LuSend} variant="muted" />
         </TooltipTrigger>
         <TooltipContent>Share invite link</TooltipContent>
       </Tooltip>

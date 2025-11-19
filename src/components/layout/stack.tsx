@@ -81,5 +81,5 @@ const flexcn = ({
         baseline: "items-baseline",
         stretch: "items-stretch",
       }[items],
-    className,
+    className
   )

@@ -12,17 +12,23 @@ export const Flash: React.FC<FlashProps> = (props) => {
 
   const error = params.get("error")
   useEffect(() => {
-    if (error) toast.error(error)
+    if (error) {
+      toast.error(error)
+    }
   }, [error])
 
   const success = params.get("success")
   useEffect(() => {
-    if (success) toast.success(success)
+    if (success) {
+      toast.success(success)
+    }
   }, [success])
 
   const info = params.get("info")
   useEffect(() => {
-    if (info) toast.info(info)
+    if (info) {
+      toast.info(info)
+    }
   }, [info])
 
   return <Toaster {...props} />

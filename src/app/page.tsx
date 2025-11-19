@@ -16,16 +16,16 @@ export default function HomePage() {
   return (
     <VStack
       as="section"
+      className={cn("w-fit min-w-[320px] max-w-[1280px] mx-auto", "gap-4")}
       id="hero"
       items="start"
       justify="center"
-      className={cn("w-fit min-w-[320px] max-w-[1280px] mx-auto", "gap-4")}
     >
       <Logo />
 
       <PageTitle>Crackedbook.</PageTitle>
 
-      <VStack items="start" className="gap-2">
+      <VStack className="gap-2" items="start">
         <SectionTitle>The rules:</SectionTitle>
         <ol className="list-decimal list-inside space-y-1 text-sm md:text-base">
           <li>You do not talk about Crackedbook.</li>
@@ -35,7 +35,7 @@ export default function HomePage() {
         </ol>
       </VStack>
 
-      <Link href="/pods" className="my-4">
+      <Link className="my-4" href="/pods">
         <HoverButton>Enter</HoverButton>
       </Link>
     </VStack>

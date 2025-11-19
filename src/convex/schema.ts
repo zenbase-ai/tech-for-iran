@@ -25,8 +25,8 @@ const schema = defineSchema({
     lastName: v.string(),
     picture: v.string(),
     url: v.string(),
-    location: v.optional(v.string()),
-    headline: v.optional(v.string()),
+    location: v.string(),
+    headline: v.string(),
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId", "unipileId"])
@@ -91,7 +91,7 @@ const schema = defineSchema({
     postId: v.id("posts"),
     userId: v.string(),
     reactionType: v.string(), // Type: like, celebrate, support, love, insightful, funny, comment
-    success: v.optional(v.boolean()),
+    success: v.boolean(),
     error: v.optional(v.string()),
   }).index("by_postId", ["postId", "userId"]),
 })

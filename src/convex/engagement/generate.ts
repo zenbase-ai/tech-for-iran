@@ -43,8 +43,8 @@ export const comment = internalAction({
     profile: v.object({
       firstName: v.string(),
       lastName: v.string(),
-      location: v.optional(v.string()),
-      headline: v.optional(v.string()),
+      location: v.string(),
+      headline: v.string(),
     }),
     prompt: v.optional(v.string()),
     post: v.object({

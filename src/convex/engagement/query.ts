@@ -15,8 +15,8 @@ export const AvailableMember = z.object({
   profile: z.object({
     firstName: z.string(),
     lastName: z.string(),
-    location: z.optional(z.string()),
-    headline: z.optional(z.string()),
+    location: z.string(),
+    headline: z.string(),
   }),
 })
 export type AvailableMember = z.infer<typeof AvailableMember>

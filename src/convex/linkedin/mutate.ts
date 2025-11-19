@@ -36,6 +36,8 @@ export const connectOwn = authMutation({
         picture: "",
         firstName: "Connecting",
         lastName: "",
+        location: "",
+        headline: "",
       }),
     )
   },
@@ -95,8 +97,8 @@ export const upsertProfile = internalMutation({
     picture: v.string(),
     firstName: v.string(),
     lastName: v.string(),
-    location: v.optional(v.string()),
-    headline: v.optional(v.string()),
+    location: v.string(),
+    headline: v.string(),
   },
   handler: async (ctx, { unipileId, ...patch }) => {
     const [{ userId }, profile] = await Promise.all([

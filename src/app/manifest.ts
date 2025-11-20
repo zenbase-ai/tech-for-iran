@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next"
 
 const manifest: MetadataRoute.Manifest = {
-  name: "Engagement Pod",
-  short_name: "Engagement Pod",
+  name: "Crackedbook",
+  short_name: "Crackedbook",
   icons: [
     {
       src: "/web-app-manifest-192x192.png",

@@ -16,6 +16,7 @@ gemini *args:
 dev:
   bun --bun convex dev & \
   bun --bun next dev & \
+  bun --bun email dev --dir src/emails --port 3001 & \
   wait
 
 build:

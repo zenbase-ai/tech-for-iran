@@ -25,8 +25,8 @@ preview: build
   bun --bun next start
 
 fmt:
-  bun --bun biome check --write && \
+  bun --bun ultracite fix && \
   bun --bun biome format --write
 
 lint:
-  bun --bun biome check
+  bun --bun ultracite check

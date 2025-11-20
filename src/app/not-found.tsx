@@ -4,6 +4,7 @@ import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Badge } from "@/components/ui/badge"
 import { HoverButton } from "@/components/ui/hover-button"
+import NotFound from "@/public/not-found.png"
 
 export default function NotFoundPage() {
   "use memo"
@@ -26,7 +27,7 @@ export default function NotFoundPage() {
           className="object-contain grayscale dark:invert"
           height={662}
           loading="eager"
-          src="/not-found.png"
+          src={NotFound}
           width={624}
         />
       </Box>

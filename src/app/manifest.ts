@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-const manifest: MetadataRoute.Manifest = {
+export default (): MetadataRoute.Manifest => ({
   name: "Crackedbook",
   short_name: "Crackedbook",
   icons: [
@@ -20,6 +20,4 @@ const manifest: MetadataRoute.Manifest = {
   theme_color: "#fafaf7",
   background_color: "#fafaf7",
   display: "standalone",
-}
-
-export default () => manifest
+})

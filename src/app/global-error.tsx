@@ -5,7 +5,7 @@ import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import NotFoundIllustration from "@/public/not-found.png"
+import NotFound from "@/public/not-found.png"
 
 type GlobalErrorProps = {
   error: Error & { digest?: string }
@@ -27,13 +27,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           <Button onClick={reset}>Refresh</Button>
 
           <Box className="object-contain w-full max-w-[360px]">
-            <Image
-              alt="Error"
-              className="dark:invert"
-              height={662}
-              src={NotFoundIllustration}
-              width={624}
-            />
+            <Image alt="Error" className="dark:invert" height={662} src={NotFound} width={624} />
           </Box>
           <Badge className="text-base" variant="secondary">
             GLOBAL ERROR

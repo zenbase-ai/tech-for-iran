@@ -1,10 +1,8 @@
 import type { MetadataRoute } from "next"
 
-const robots: MetadataRoute.Robots = {
+export default (): MetadataRoute.Robots => ({
   rules: {
     userAgent: "*",
     disallow: "/",
   },
-}
-
-export default () => robots
+})

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffectEvent, useLayoutEffect, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import { LuMoon, LuSun } from "react-icons/lu"
 
@@ -13,11 +13,11 @@ export type ThemeTogglerProps = React.ComponentPropsWithoutRef<"button"> & {
 
 export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration, ...props }) => {
   const reducedMotion = useReducedMotion()
-  const [isDark, setIsDark] = useState(false)
+  const [isDark, setDark] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  useEffect(() => {
-    const updateTheme = () => setIsDark(document.documentElement.classList.contains("dark"))
+  useLayoutEffect(() => {
+    const updateTheme = () => setDark(document.documentElement.classList.contains("dark"))
 
     updateTheme()
 
@@ -30,7 +30,7 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
     return observer.disconnect
   }, [])
 
-  const toggleTheme = useCallback(async () => {
+  const toggleTheme = useEffectEvent(async () => {
     if (!buttonRef.current) {
       return
     }
@@ -38,7 +38,7 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
     await document.startViewTransition(() => {
       flushSync(() => {
         const newTheme = !isDark
-        setIsDark(newTheme)
+        setDark(newTheme)
         document.documentElement.classList.toggle("dark")
         localStorage.setItem("theme", newTheme ? "dark" : "light")
       })
@@ -64,7 +64,7 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
         pseudoElement: "::view-transition-new(root)",
       }
     )
-  }, [isDark, duration, reducedMotion])
+  })
 
   return (
     <button

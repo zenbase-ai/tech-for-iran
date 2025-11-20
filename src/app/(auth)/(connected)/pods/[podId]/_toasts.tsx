@@ -18,7 +18,7 @@ export type PodPostsToastsProps = {
   take?: number
 }
 
-export const PodPostsToasts: React.FC<PodPostsToastsProps> = ({ podId, take = 5 }) => {
+export const PodPostsToasts: React.FC<PodPostsToastsProps> = ({ podId, take = 1 }) => {
   const posts = useAuthQuery(api.posts.query.latest, { podId, take })?.toReversed() ?? []
 
   return (
@@ -65,7 +65,7 @@ export const PostToast: React.FC<PostToastProps> = ({
           </Button>
         </ItemActions>
       </Item>,
-      { position: "bottom-center", duration: 5000 }
+      { duration: 5000 }
     )
   }, [firstName, lastName, picture, url, _creationTime])
 

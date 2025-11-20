@@ -31,7 +31,7 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
           className={cn(
             "flex flex-row items-center justify-center gap-2",
             "p-2 rounded-full",
-            "bg-background/50 backdrop-blur-md",
+            "bg-muted/50 backdrop-blur-md",
             "border border-border shadow-md outline-none",
             "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
             className

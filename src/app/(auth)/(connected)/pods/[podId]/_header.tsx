@@ -34,7 +34,7 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
         <TooltipTrigger asChild>
           <CopyButton className="-mt-1" content={inviteURL} icon={LuSend} variant="muted" />
         </TooltipTrigger>
-        <TooltipContent>Share invite link</TooltipContent>
+        <TooltipContent>Copy invite link</TooltipContent>
       </Tooltip>
     </HStack>
   )

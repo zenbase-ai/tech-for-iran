@@ -4,7 +4,6 @@ import { Logo } from "@/components/assets/logo"
 import { VStack } from "@/components/layout/stack"
 import { PageTitle, SectionTitle } from "@/components/layout/text"
 import { HoverButton } from "@/components/ui/hover-button"
-import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Crackedbook",
@@ -16,7 +15,7 @@ export default function HomePage() {
   return (
     <VStack
       as="section"
-      className={cn("w-fit min-w-[320px] max-w-[1280px] mx-auto", "gap-4")}
+      className="w-fit min-w-[320px] max-w-[1280px] mx-auto gap-4"
       id="hero"
       items="start"
       justify="center"

@@ -35,8 +35,8 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           <Suspense fallback={null}>
             <Flash position="top-center" />
           </Suspense>
-          <Container className="min-w-[320px] py-26 md:py-32">{children}</Container>
-          <ThemeToggler className="fixed bottom-4 right-4" duration={0.3} />
+          <ThemeToggler className="fixed top-4 right-4" duration={0.5} />
+          <Container className="min-w-[320px] py-18 md:py-24">{children}</Container>
         </Providers>
       </body>
     </html>

@@ -45,6 +45,14 @@ export const parsePostURN = (url: string): string | null => {
   return `urn:li:activity:${activityId}`
 }
 
+type ProfileURL = {
+  public_profile_url?: string
+  public_identifier: string
+}
+
+export const linkedinProfileURL = ({ public_profile_url, public_identifier }: ProfileURL): string =>
+  public_profile_url || `https://www.linkedin.com/in/${public_identifier}`
+
 type ProfileName = {
   firstName: string
   lastName: string

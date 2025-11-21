@@ -1,5 +1,11 @@
 import { v } from "convex/values"
+import type { Id } from "@/convex/_generated/dataModel"
 import { internalMutation, update } from "@/convex/_helpers/server"
+
+type Insert = {
+  postId: Id<"posts">
+  error?: string
+}
 
 export const insert = internalMutation({
   args: {
@@ -15,7 +21,7 @@ export const insert = internalMutation({
     }),
     postedAt: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Insert> => {
     const exists = await ctx.db
       .query("posts")
       .withIndex("by_urn", (q) => q.eq("urn", args.urn))

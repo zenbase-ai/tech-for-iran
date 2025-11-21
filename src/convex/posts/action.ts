@@ -5,6 +5,7 @@ import type { Id } from "@/convex/_generated/dataModel"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { connectedMemberAction } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
+import { linkedinProfileURL } from "@/lib/linkedin"
 import pluralize from "@/lib/pluralize"
 
 type Submit = { postId: Id<"posts">; success: string } | { postId: null; error: string }
@@ -39,16 +40,17 @@ export const submit = connectedMemberAction({
       }
     }
 
-    const post = await ctx.runAction(internal.unipile.post.fetch, {
+    const fetch = await ctx.runAction(internal.unipile.post.fetch, {
       unipileId: ctx.account.unipileId,
       url: params.data.url,
     })
-    if (post.error !== null) {
-      return { postId: null, error: post.error }
+    if (fetch.error !== null) {
+      console.error("posts:action/submit", "fetch", fetch.error)
+      return { postId: null, error: fetch.error }
     }
 
-    const { share_url: url, social_id: urn, text, author, parsed_datetime: postedAt } = post.data
-    const insert = await ctx.runMutation(internal.posts.mutate.insert, {
+    const { share_url: url, social_id: urn, text, author, parsed_datetime: postedAt } = fetch.data
+    const { postId, error: insertError } = await ctx.runMutation(internal.posts.mutate.insert, {
       userId,
       podId,
       url,
@@ -58,21 +60,20 @@ export const submit = connectedMemberAction({
       author: {
         name: author.name,
         headline: author.headline,
-        url: `https://linkedin.com/in/${author.public_identifier}`,
+        url: linkedinProfileURL(author),
       },
     })
-    if (insert.error != null) {
-      return { postId: null, error: insert.error }
+    if (insertError != null) {
+      console.error("posts:action/submit", "insert", insertError)
+      return { postId: null, error: insertError }
     }
-
-    const { postId } = insert
 
     const {
       comment_counter: commentCount,
       impressions_counter: impressionCount,
       reaction_counter: reactionCount,
       repost_counter: repostCount,
-    } = post.data
+    } = fetch.data
     await ctx.runMutation(internal.stats.mutate.insert, {
       userId,
       postId,
@@ -83,7 +84,7 @@ export const submit = connectedMemberAction({
     })
 
     const { reactionTypes, comments } = params.data
-    const start = await ctx.runMutation(internal.engagement.workflow.start, {
+    const { error: startError } = await ctx.runMutation(internal.engagement.workflow.start, {
       userId,
       podId,
       postId,
@@ -92,9 +93,10 @@ export const submit = connectedMemberAction({
       reactionTypes,
       comments,
     })
-    if (start.error) {
+    if (startError) {
+      console.error("posts:action/submit", "start", startError)
       await ctx.runMutation(internal.posts.mutate.remove, { postId })
-      return { postId: null, error: start.error }
+      return { postId: null, error: startError }
     }
 
     return { postId, success: `Stay tuned for up to ${pluralize(targetCount, "engagement")}!` }

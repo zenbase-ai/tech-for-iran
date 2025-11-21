@@ -17,9 +17,13 @@ const workflowArgs = {
   comments: v.boolean(),
 }
 
+export type Start = {
+  error?: string
+}
+
 export const start = internalMutation({
   args: workflowArgs,
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Start> => {
     try {
       const workflowId = await workflow.start(ctx, internal.engagement.workflow.perform, args, {
         context: { postId: args.postId },

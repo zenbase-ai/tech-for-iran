@@ -32,7 +32,7 @@ export const start = internalMutation({
   handler: async (ctx, args): Promise<Start> => {
     try {
       const workflowId = await workflow.start(ctx, internal.engagement.workflow.perform, args, {
-        context: { postId: args.postId },
+        context: pick(args, ["userId", "postId"]),
         onComplete: internal.engagement.workflow.onComplete,
         startAsync: true,
       })
@@ -50,13 +50,21 @@ export const onComplete = internalMutation({
     workflowId: vWorkflowId,
     result: vResultValidator,
     context: v.object({
+      userId: v.string(),
       postId: v.id("posts"),
     }),
   },
-  handler: async (ctx, { workflowId, result, context }) => {
+  handler: async (ctx, { workflowId, context, result }) => {
+    const { userId, postId } = context
+    const { kind: status } = result
+
     await Promise.all([
       workflow.cleanup(ctx, workflowId),
-      ctx.db.patch(context.postId, update({ status: result.kind })),
+      ctx.db.patch(postId, update({ status })),
+      ctx.scheduler.runAfter(24 * 60 * 60 * 1000, internal.emails.postEngagement, {
+        userId,
+        postId,
+      }),
     ])
     return true
   },

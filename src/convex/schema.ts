@@ -84,7 +84,9 @@ const schema = defineSchema({
     impressionCount: v.number(),
     reactionCount: v.number(),
     repostCount: v.number(),
-  }).index("by_userId", ["userId", "postId"]),
+  })
+    .index("by_userId", ["userId", "postId"])
+    .index("by_postId", ["postId"]),
 
   // Engagement log (tracks reactions on posts)
   engagements: defineTable({

@@ -41,3 +41,19 @@ export const remove = internalMutation({
   },
   handler: async (ctx, { postId }) => await ctx.db.delete(postId),
 })
+
+export const upsert = internalMutation({
+  args: {
+    postId: v.id("posts"),
+    data: v.any(),
+  },
+  handler: async (ctx, { postId, data }) => {
+    const post = await ctx.db.get(postId)
+    if (post) {
+      await ctx.db.patch(postId, update(data))
+      return postId
+    }
+
+    return await ctx.db.insert("posts", update(data))
+  },
+})

@@ -24,50 +24,53 @@ export const PodPostsToasts: React.FC<PodPostsToastsProps> = ({ podId, take = 1 
   return (
     <>
       {posts.map((p) => (
-        <PostToast key={p.url} {...p} />
+        <PostToast key={p.post.url} {...p} />
       ))}
     </>
   )
 }
 
-type PostToastProps = Pick<Doc<"posts">, "url" | "_creationTime"> &
-  Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture">
+type PostToastProps = {
+  post: Pick<Doc<"posts">, "url" | "_creationTime">
+  profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
+}
 
-export const PostToast: React.FC<PostToastProps> = ({
-  firstName,
-  lastName,
-  picture,
-  url,
-  _creationTime,
-}) => {
+export const PostToast: React.FC<PostToastProps> = ({ post, profile }) => {
   useEffect(() => {
     toast(
       <Item className="p-0 w-full">
         <ItemMedia className="-mt-0.5">
           <Avatar className="size-6">
-            <AvatarImage alt={fullName({ firstName, lastName })} src={picture} />
+            <AvatarImage
+              alt={fullName({ firstName: profile.firstName, lastName: profile.lastName })}
+              src={profile.picture}
+            />
             <AvatarFallback className="text-sm font-semibold text-muted-foreground">
-              {initials({ firstName, lastName })}
+              {initials({ firstName: profile.firstName, lastName: profile.lastName })}
             </AvatarFallback>
           </Avatar>
         </ItemMedia>
         <ItemContent className="gap-0">
           <ItemDescription className="font-medium">
-            <span className="text-foreground">{firstName}</span>&nbsp;posted&nbsp;
-            <RelativeTime date={_creationTime} />
+            <a href={profile.url} rel="noopener noreferrer" target="_blank">
+              <span className="text-foreground">{profile.firstName}</span>&nbsp;posted&nbsp;
+              <RelativeTime date={post._creationTime} />
+            </a>
           </ItemDescription>
         </ItemContent>
         <ItemActions>
           <Button asChild className="size-6" size="icon" variant="ghost">
-            <a href={url} rel="noopener noreferrer" target="_blank">
+            <a href={post.url} rel="noopener noreferrer" target="_blank">
               <LuExternalLink className="size-3" />
             </a>
           </Button>
         </ItemActions>
       </Item>,
-      { duration: 5000 }
+      {
+        duration: 5000,
+      }
     )
-  }, [firstName, lastName, picture, url, _creationTime])
+  }, [post, profile])
 
   return null
 }

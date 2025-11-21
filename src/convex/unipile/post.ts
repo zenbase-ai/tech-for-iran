@@ -49,17 +49,10 @@ export const fetch = internalAction({
     if (error) {
       return { data: null, error: errorMessage(error) }
     }
-    if (data.is_repost) {
-      return { data: null, error: "Reposts are not supported." }
-    }
 
     return { data, error: null }
   },
 })
-
-type React = {
-  object: "ReactionAdded"
-}
 
 export const react = internalAction({
   args: {
@@ -71,7 +64,9 @@ export const react = internalAction({
     const { urn: post_id, unipileId: account_id, reactionType: reaction_type } = args
     try {
       const data = await unipile
-        .post<React>("api/v1/posts/reaction", { json: { account_id, post_id, reaction_type } })
+        .post<{
+          object: "ReactionAdded"
+        }>("api/v1/posts/reaction", { json: { account_id, post_id, reaction_type } })
         .json()
       return { data, error: null }
     } catch (error: unknown) {
@@ -79,10 +74,6 @@ export const react = internalAction({
     }
   },
 })
-
-type Comment = {
-  object: "CommentSent"
-}
 
 export const comment = internalAction({
   args: {
@@ -98,7 +89,9 @@ export const comment = internalAction({
 
     try {
       const data = await unipile
-        .post<Comment>(`api/v1/posts/${urn}/comments`, { json: { account_id, text } })
+        .post<{ object: "CommentSent" }>(`api/v1/posts/${urn}/comments`, {
+          json: { account_id, text },
+        })
         .json()
       return { data, error: null }
     } catch (error: unknown) {

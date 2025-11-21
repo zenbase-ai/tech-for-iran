@@ -1,17 +1,15 @@
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import { pick, zip } from "es-toolkit"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { internalQuery } from "@/convex/_generated/server"
 import { BadRequestError, NotFoundError } from "@/convex/_helpers/errors"
 import { memberQuery } from "@/convex/_helpers/server"
 import { pmap } from "@/lib/parallel"
 
 type Latest = Array<{
-  firstName: string
-  lastName: string
-  picture: string
-  url: string
-  _creationTime: number
+  post: Pick<Doc<"posts">, "url" | "_creationTime">
+  profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
 }>
 
 export const latest = memberQuery({
@@ -34,12 +32,17 @@ export const latest = memberQuery({
       getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
     )
 
-    return zip(profiles, posts).flatMap(([profile, { url, _creationTime }]) => {
+    return zip(profiles, posts).flatMap(([profile, post]) => {
       if (!profile) {
         return []
       }
 
-      return [{ url, _creationTime, ...pick(profile, ["firstName", "lastName", "picture"]) }]
+      return [
+        {
+          post: pick(post, ["url", "_creationTime"]),
+          profile: pick(profile, ["firstName", "lastName", "picture", "url"]),
+        },
+      ]
     })
   },
 })

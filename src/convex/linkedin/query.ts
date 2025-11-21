@@ -15,6 +15,14 @@ export const getState = authQuery({
   },
 })
 
+export const getAccount = internalQuery({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, { userId }) =>
+    await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId),
+})
+
 export const getProfile = internalQuery({
   args: {
     unipileId: v.string(),

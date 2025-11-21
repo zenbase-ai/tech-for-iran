@@ -55,12 +55,12 @@ export const configure = connectedMutation({
 
 export const deleteAccountAndProfile = internalMutation({
   args: {
-    userId: v.string(),
+    unipileId: v.string(),
   },
-  handler: async (ctx, { userId }) => {
+  handler: async (ctx, { unipileId }) => {
     const [account, profile] = await Promise.all([
-      getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_userId", userId),
-      getOneFromOrThrow(ctx.db, "linkedinProfiles", "by_userId", userId),
+      getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId),
+      getOneFromOrThrow(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
     ])
 
     await Promise.all([ctx.db.delete(account._id), ctx.db.delete(profile._id)])

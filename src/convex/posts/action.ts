@@ -59,7 +59,7 @@ export const submit = connectedMemberAction({
       text,
       author: {
         name: author.name,
-        headline: author.headline,
+        headline: author.headline ?? "Company",
         url: linkedinProfileURL(author),
       },
     })

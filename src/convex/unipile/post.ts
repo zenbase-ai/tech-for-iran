@@ -23,7 +23,7 @@ const Fetch = z.object({
     id: z.string(),
     name: z.string(),
     is_company: z.boolean(),
-    headline: z.string(),
+    headline: z.string().optional(),
   }),
   comment_counter: z.number().int(),
   impressions_counter: z.number().int(),

@@ -29,14 +29,12 @@ export default async function ConnectCallbackPage(props: ConnectCallbackPageProp
   await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId: account_id }, { token })
 
   if (inviteCode) {
-    const join = await fetchMutation(api.pods.mutate.join, { inviteCode }, { token })
-    if (join.pod == null) {
-      return redirect(`/pods?${queryString({ error: join.error })}`, RedirectType.replace)
+    const { pod, ...toast } = await fetchMutation(api.pods.mutate.join, { inviteCode }, { token })
+    if (pod == null) {
+      return redirect(`/pods?${queryString(toast)}`, RedirectType.replace)
     }
-    return redirect(
-      `/pods/${join.pod._id}?${queryString({ success: join.success })}`,
-      RedirectType.replace
-    )
+
+    return redirect(`/pods/${pod._id}?${queryString(toast)}`, RedirectType.replace)
   }
 
   return redirect("/pods", RedirectType.replace)

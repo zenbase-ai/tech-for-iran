@@ -2,8 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
-import { redirect } from "next/navigation"
-import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
 import * as z from "zod"
@@ -26,23 +24,17 @@ export type PodJoinFormProps = {
 }
 
 export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }) => {
+  const join = useAsyncFn(useMutation(api.pods.mutate.join))
   const form = useForm({
     resolver: zodResolver(PodJoinSchema),
     defaultValues: { inviteCode: "" },
   })
-
-  const join = useAsyncFn(useMutation(api.pods.mutate.join))
-  const handleSubmit = useEffectEvent(async (data: PodJoinSchema) => {
-    const podId = (await join.execute(data))?.pod?._id
-    if (podId) {
-      redirect(`/pods/${podId}`)
-    }
-  })
+  const { isSubmitting } = form.formState
 
   return (
     <form
       className={cn("flex flex-row items-center gap-3", className)}
-      onSubmit={form.handleSubmit(handleSubmit)}
+      onSubmit={form.handleSubmit(join.execute)}
     >
       <Controller
         control={form.control}
@@ -52,20 +44,16 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
             {...field}
             aria-invalid={fieldState.invalid}
             autoFocus={autoFocus}
-            disabled={form.formState.isSubmitting}
+            disabled={isSubmitting}
             id={field.name}
             placeholder="Enter an invite code"
             type="text"
           />
         )}
       />
-      <Button disabled={form.formState.isSubmitting} type="submit" variant="outline">
+      <Button disabled={isSubmitting} type="submit" variant="outline">
         Join
-        {form.formState.isSubmitting ? (
-          <Spinner variant="ellipsis" />
-        ) : (
-          <LuArrowRight className="size-4" />
-        )}
+        {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight className="size-4" />}
       </Button>
     </form>
   )

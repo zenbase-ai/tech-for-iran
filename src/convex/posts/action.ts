@@ -31,12 +31,12 @@ export const submit = connectedMemberAction({
     }
 
     if (ctx.account.role !== "sudo") {
-      const { error } = await ctx.runMutation(internal.user.mutate.consumeRateLimit, {
+      const consume = await ctx.runMutation(internal.user.mutate.consumeRateLimit, {
         userId,
         name: "submitPost",
       })
-      if (error !== null) {
-        return { postId: null, error }
+      if (consume.error != null) {
+        return { postId: null, error: consume.error }
       }
     }
 
@@ -44,7 +44,7 @@ export const submit = connectedMemberAction({
       unipileId: ctx.account.unipileId,
       url: params.data.url,
     })
-    if (fetch.error !== null) {
+    if (fetch.error != null) {
       console.error("posts:action/submit", "fetch", fetch.error)
       return { postId: null, error: fetch.error }
     }

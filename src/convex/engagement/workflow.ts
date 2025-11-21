@@ -17,9 +17,15 @@ const workflowArgs = {
   comments: v.boolean(),
 }
 
-export type Start = {
-  error?: string
-}
+export type Start =
+  | {
+      workflowId: string
+      error: null
+    }
+  | {
+      workflowId: null
+      error: string
+    }
 
 export const start = internalMutation({
   args: workflowArgs,
@@ -32,9 +38,9 @@ export const start = internalMutation({
       })
 
       await ctx.db.patch(args.postId, update({ workflowId, status: "pending" } as const))
-      return {}
+      return { workflowId, error: null }
     } catch (error) {
-      return { error: errorMessage(error) }
+      return { workflowId: null, error: errorMessage(error) }
     }
   },
 })
@@ -52,13 +58,13 @@ export const onComplete = internalMutation({
       workflow.cleanup(ctx, workflowId),
       ctx.db.patch(context.postId, update({ status: result.kind })),
     ])
-    return null
+    return true
   },
 })
 
 export const workflow = new WorkflowManager(components.workflow, {
   workpoolOptions: {
-    maxParallelism: 32,
+    maxParallelism: 16,
     defaultRetryBehavior: {
       maxAttempts: 3,
       initialBackoffMs: 500,
@@ -110,7 +116,7 @@ export const workflow = new WorkflowManager(components.workflow, {
 export const perform = workflow.define({
   args: workflowArgs,
   handler: async (step, { userId, postId, podId, urn, reactionTypes, targetCount, comments }) => {
-    const minDelay = 5
+    const minDelay = 10
     const maxDelay = 30
     const skipUserIds = [userId]
 
@@ -138,16 +144,11 @@ export const perform = workflow.define({
       const { unipileId } = account
 
       const [reactDelay, reactionType] = await Promise.all([
-        step.runAction(internal.engagement.generate.delay, {
-          minDelay,
-          maxDelay,
-        }),
-        step.runAction(internal.engagement.generate.reaction, {
-          reactionTypes,
-        }),
+        step.runAction(internal.engagement.generate.delay, { minDelay, maxDelay }),
+        step.runAction(internal.engagement.generate.reaction, { reactionTypes }),
       ])
 
-      const react = await step.runAction(
+      const { error: reactError } = await step.runAction(
         internal.unipile.post.react,
         { unipileId, urn, reactionType },
         { runAfter: reactDelay }
@@ -155,16 +156,13 @@ export const perform = workflow.define({
       await step.runMutation(internal.engagement.mutate.upsertEngagement, {
         userId,
         postId,
-        error: react.error,
         reactionType,
+        error: reactError,
       })
 
       if (comments) {
         const [commentDelay, commentText] = await Promise.all([
-          step.runAction(internal.engagement.generate.delay, {
-            minDelay,
-            maxDelay,
-          }),
+          step.runAction(internal.engagement.generate.delay, { minDelay, maxDelay }),
           step.runAction(internal.engagement.generate.comment, {
             profile,
             reactionType,
@@ -174,7 +172,7 @@ export const perform = workflow.define({
         ])
 
         if (commentText) {
-          const comment = await step.runAction(
+          const { error: commentError } = await step.runAction(
             internal.unipile.post.comment,
             { unipileId, urn, commentText },
             { runAfter: commentDelay }
@@ -182,8 +180,8 @@ export const perform = workflow.define({
           await step.runMutation(internal.engagement.mutate.upsertEngagement, {
             userId,
             postId,
-            error: comment.error,
             reactionType: "comment",
+            error: commentError,
           })
         }
       }

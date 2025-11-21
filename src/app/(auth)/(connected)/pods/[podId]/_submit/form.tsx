@@ -34,6 +34,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     resolver: zodResolver(SubmitPost),
     defaultValues: submitPost.defaultValues,
   })
+  const { isSubmitting } = form.formState
 
   const submit = useAsyncFn(useAction(api.posts.action.submit))
   const handleSubmit = useEffectEvent(async (data: SubmitPost) => {
@@ -62,7 +63,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
                 aria-invalid={fieldState.invalid}
                 autoFocus
                 className="h-9 sm:h-11"
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
                 id={field.name}
                 placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
                 type="url"
@@ -73,7 +74,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
         />
 
         <Box className="max-w-fit">
-          <HoverButton disabled={form.formState.isSubmitting} type="submit">
+          <HoverButton disabled={isSubmitting} type="submit">
             Submit
           </HoverButton>
         </Box>
@@ -87,7 +88,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
             <Switch
               aria-invalid={fieldState.invalid}
               checked={field.value}
-              disabled={form.formState.isSubmitting}
+              disabled={isSubmitting}
               id={field.name}
               name={field.name}
               onCheckedChange={field.onChange}
@@ -118,7 +119,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
                   <Switch
                     aria-invalid={fieldState.invalid}
                     checked={field.value.includes(reaction)}
-                    disabled={form.formState.isSubmitting}
+                    disabled={isSubmitting}
                     id={`reaction-${reaction}`}
                     name={field.name}
                     onCheckedChange={(checked) => {

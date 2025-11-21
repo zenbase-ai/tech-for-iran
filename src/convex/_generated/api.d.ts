@@ -10,6 +10,7 @@
 
 import type * as _helpers_errors from "../_helpers/errors.js";
 import type * as _helpers_server from "../_helpers/server.js";
+import type * as admin from "../admin.js";
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
 import type * as engagement_generate from "../engagement/generate.js";
@@ -21,7 +22,6 @@ import type * as linkedin_action from "../linkedin/action.js";
 import type * as linkedin_mutate from "../linkedin/mutate.js";
 import type * as linkedin_query from "../linkedin/query.js";
 import type * as migrations from "../migrations.js";
-import type * as moderation from "../moderation.js";
 import type * as pods_action from "../pods/action.js";
 import type * as pods_mutate from "../pods/mutate.js";
 import type * as pods_query from "../pods/query.js";
@@ -46,6 +46,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "_helpers/errors": typeof _helpers_errors;
   "_helpers/server": typeof _helpers_server;
+  admin: typeof admin;
   aggregates: typeof aggregates;
   auth: typeof auth;
   "engagement/generate": typeof engagement_generate;
@@ -57,7 +58,6 @@ declare const fullApi: ApiFromModules<{
   "linkedin/mutate": typeof linkedin_mutate;
   "linkedin/query": typeof linkedin_query;
   migrations: typeof migrations;
-  moderation: typeof moderation;
   "pods/action": typeof pods_action;
   "pods/mutate": typeof pods_mutate;
   "pods/query": typeof pods_query;

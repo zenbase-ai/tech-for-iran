@@ -36,7 +36,8 @@ export const fetch = internalAction({
     unipileId: v.string(),
     url: v.string(),
   },
-  handler: async (_ctx, { url, unipileId: account_id }) => {
+  handler: async (_ctx, args) => {
+    const { unipileId: account_id, url } = args
     const urn = parsePostURN(url)
     if (!urn) {
       return { data: null, error: "Unsupported URL." }
@@ -66,7 +67,8 @@ export const react = internalAction({
     urn: v.string(),
     reactionType: v.string(),
   },
-  handler: async (_ctx, { urn: post_id, unipileId: account_id, reactionType: reaction_type }) => {
+  handler: async (_ctx, args) => {
+    const { urn: post_id, unipileId: account_id, reactionType: reaction_type } = args
     try {
       const data = await unipile
         .post<React>("api/v1/posts/reaction", { json: { account_id, post_id, reaction_type } })
@@ -88,9 +90,10 @@ export const comment = internalAction({
     urn: v.string(),
     commentText: v.string(),
   },
-  handler: async (_ctx, { urn, unipileId: account_id, commentText: text }) => {
+  handler: async (_ctx, args) => {
+    const { urn, unipileId: account_id, commentText: text } = args
     if (text.length === 0 || text.length > 1250) {
-      return { data: null, error: "Text must be between 1 and 1250 characters long." }
+      return { error: "Text must be between 1 and 1250 characters long." }
     }
 
     try {

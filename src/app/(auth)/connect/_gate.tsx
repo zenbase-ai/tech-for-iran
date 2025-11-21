@@ -32,11 +32,11 @@ type ConnectGateSchema = z.infer<typeof ConnectGateSchema>
 
 export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
   const validate = useAction(api.pods.action.validate)
-
   const form = useForm({
     resolver: zodResolver(ConnectGateSchema),
     defaultValues: { inviteCode },
   })
+  const { isSubmitting } = form.formState
 
   const onSubmit = useEffectEvent(async (data: ConnectGateSchema) => {
     form.clearErrors("inviteCode")
@@ -69,7 +69,7 @@ export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
                     {...field}
                     aria-invalid={fieldState.invalid}
                     autoFocus
-                    disabled={form.formState.isSubmitting}
+                    disabled={isSubmitting}
                     id={field.name}
                     placeholder="your super secret invite code"
                     required
@@ -83,21 +83,13 @@ export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
 
           <AlertDialogFooter>
             <SignOutButton redirectUrl="/">
-              <AlertDialogCancel
-                disabled={form.formState.isSubmitting}
-                type="button"
-                variant="ghost"
-              >
+              <AlertDialogCancel disabled={isSubmitting} type="button" variant="ghost">
                 Sign out
               </AlertDialogCancel>
             </SignOutButton>
-            <AlertDialogAction disabled={form.formState.isSubmitting} size="default" type="submit">
+            <AlertDialogAction disabled={isSubmitting} size="default" type="submit">
               Continue
-              {form.formState.isSubmitting ? (
-                <Spinner variant="ellipsis" />
-              ) : (
-                <LuArrowRight className="size-4" />
-              )}
+              {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight className="size-4" />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </form>

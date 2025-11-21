@@ -48,6 +48,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
     resolver: zodResolver(Config),
     defaultValues: { maxActions, commentPrompt },
   })
+  const { isSubmitting } = form.formState
 
   return (
     <form
@@ -64,7 +65,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
               <Input
                 {...field}
                 aria-invalid={fieldState.invalid}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
                 id={field.name}
                 max={config.max.maxActions}
                 min={config.min.maxActions}
@@ -87,7 +88,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
               <Textarea
                 {...field}
                 aria-invalid={fieldState.invalid}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
                 id={field.name}
                 maxLength={config.max.commentPrompt}
               />
@@ -97,13 +98,9 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
         )}
       />
 
-      <Button className="w-fit" disabled={form.formState.isSubmitting} type="submit">
+      <Button className="w-fit" disabled={isSubmitting} type="submit">
         Save
-        {form.formState.isSubmitting ? (
-          <Spinner variant="ellipsis" />
-        ) : (
-          <LuArrowRight className="size-4" />
-        )}
+        {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight className="size-4" />}
       </Button>
     </form>
   )

@@ -20,13 +20,9 @@
   "include": [
     "./**/*.ts",
     "./**/*.tsx",
-    "../lib/linkedin.ts",
-    "../lib/parallel.ts",
-    "../lib/pluralize.ts",
-    "../lib/random.ts",
-    "../lib/server/convex.ts",
-    "../lib/server/openai.ts",
-    "../lib/server/unipile.ts"
+    "../emails/**/*.{ts,tsx}",
+    "../hooks/use-truncated.ts",
+    "../lib/**/*.{ts,tsx}"
   ],
   "exclude": ["./_generated"]
 }

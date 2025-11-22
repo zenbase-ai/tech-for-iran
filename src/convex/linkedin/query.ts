@@ -1,6 +1,7 @@
 import { v } from "convex/values"
-import { getOneFrom } from "convex-helpers/server/relationships"
+import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { internalQuery } from "@/convex/_generated/server"
+import { BadRequestError } from "@/convex/_helpers/errors"
 import { authQuery } from "@/convex/_helpers/server"
 
 export const getState = authQuery({
@@ -20,13 +21,21 @@ export const getAccount = internalQuery({
     userId: v.string(),
   },
   handler: async (ctx, { userId }) =>
-    await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId),
+    await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_userId", userId),
 })
 
 export const getProfile = internalQuery({
   args: {
-    unipileId: v.string(),
+    userId: v.optional(v.string()),
+    unipileId: v.optional(v.string()),
   },
-  handler: async (ctx, { unipileId }) =>
-    await getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
+  handler: async (ctx, { userId, unipileId }) => {
+    if (userId) {
+      return await getOneFromOrThrow(ctx.db, "linkedinProfiles", "by_userId", userId)
+    }
+    if (unipileId) {
+      return await getOneFromOrThrow(ctx.db, "linkedinProfiles", "by_unipileId", unipileId)
+    }
+    throw new BadRequestError()
+  },
 })

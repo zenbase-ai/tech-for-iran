@@ -1,6 +1,7 @@
-import { Column, Heading, Img, Link, Row, Section, Text } from "@react-email/components"
+import { Column, Link, Row, Section, Text } from "@react-email/components"
+import { RelativeTime } from "@/components/ui/relative-time"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { env } from "@/lib/env.mjs"
+import useTruncated from "@/hooks/use-truncated"
 import pluralize from "@/lib/pluralize"
 import EmailLayout from "./layout"
 
@@ -8,6 +9,7 @@ export type PostEngagementEmailProps = {
   post: Doc<"posts">
   t1: Doc<"stats">
   t2: Doc<"stats">
+  previewCharacters?: number
 }
 
 export default function PostEngagementEmail({
@@ -18,18 +20,18 @@ export default function PostEngagementEmail({
     podId: "pod1" as any,
     url: "https://linkedin.com/feed/update/...",
     urn: "urn:li:activity:123",
-    text: "Just launched our new AI features! 🚀 #AI #Tech",
+    text: "Just launched our new AI features! 🚀 Really excited to share what we've been working on for the past few months. Our team has been pushing the boundaries of what's possible with machine learning and natural language processing. Can't wait to see how this transforms the way our users interact with the platform. Big shoutout to the entire engineering team for making this happen! #AI #Tech #Innovation #MachineLearning #ProductLaunch",
     author: {
       name: "John Doe",
       headline: "Founder @ Crackedbook",
     },
-    postedAt: Date.now(),
+    postedAt: Date.now() - 3_600_000,
     updatedAt: Date.now(),
     status: "success",
   },
   t1 = {
     _id: "stats1" as any,
-    _creationTime: Date.now(),
+    _creationTime: Date.now() - 3_600_000,
     userId: "user1",
     postId: "post1" as any,
     commentCount: 5,
@@ -39,7 +41,7 @@ export default function PostEngagementEmail({
   },
   t2 = {
     _id: "stats2" as any,
-    _creationTime: Date.now() + 3_600_000,
+    _creationTime: Date.now(),
     userId: "user1",
     postId: "post1" as any,
     commentCount: 15,
@@ -47,6 +49,7 @@ export default function PostEngagementEmail({
     reactionCount: 45,
     repostCount: 3,
   },
+  previewCharacters = 180,
 }: PostEngagementEmailProps) {
   const growth = {
     impressionCount: t2.impressionCount - t1.impressionCount,
@@ -59,50 +62,34 @@ export default function PostEngagementEmail({
     .map(([key, value]) => `+${pluralize(value, key)}`)
     .join(", ")
 
+  const [isTruncated, truncatedText] = useTruncated(post.text, {
+    length: previewCharacters,
+    overflow: "",
+  })
+
   return (
     <EmailLayout preview={preview}>
-      {/* Header */}
-      <Section className="mt-[20px]">
-        <Row>
-          <Column align="center">
-            <Img
-              alt="Crackedbook"
-              className="rounded-lg"
-              height="48"
-              src={`${env.NEXT_PUBLIC_APP_URL}/web-app-manifest-192x192.png`}
-              width="48"
-            />
-          </Column>
-        </Row>
-      </Section>
-
-      <Heading className="mx-0 my-[30px] p-0 text-center text-[24px] font-bold font-serif italic text-foreground">
-        Crackedbook
-      </Heading>
-
-      <Text className="text-[16px] leading-[24px] text-foreground text-center mb-8">
-        Your post stats are in. Here's how it performed.
-      </Text>
-
       {/* Post Preview */}
-      <Section className="mx-2 p-4 rounded-md border border-border">
-        <Row>
-          <Column className="text-sm text-muted-foreground">
-            {post.author.name} on {new Date(post.postedAt).toLocaleDateString()}
-          </Column>
-          <Column className="text-sm text-right">
-            <Link className="m-0 font-serif text-primary italic" href={post.url}>
-              View on LinkedIn
-            </Link>
-          </Column>
-        </Row>
-        <Text className="m-0 mt-2 line-clamp-3">
-          {post.text.length > 200 ? `${post.text.slice(0, 200)}...` : post.text}
-        </Text>
+      <Section className="p-4 rounded-md border border-border">
+        <Link href={post.url}>
+          <Text className="m-0 text-lg font-bold text-foreground">{post.author.name}</Text>
+          <Text className="m-0 text-sm text-muted-foreground">
+            {post.author.headline}
+            <br />
+            <RelativeTime date={post.postedAt} />
+          </Text>
+        </Link>
+
+        <Text className="m-0 text-[16px] mt-2 leading-[26px]">{truncatedText}</Text>
+        {isTruncated && (
+          <Link className="m-0 text-base text-muted-foreground" href={post.url}>
+            ... more
+          </Link>
+        )}
       </Section>
 
       {/* Stats Grid */}
-      <Section className="my-[20px]">
+      <Section className="my-8">
         <Row>
           <StatCard
             growth={growth.impressionCount}
@@ -111,18 +98,11 @@ export default function PostEngagementEmail({
           />
           <StatCard growth={growth.reactionCount} label="Reactions" value={t2.reactionCount} />
         </Row>
-        <Row className="mt-2">
+        <Row>
           <StatCard growth={growth.commentCount} label="Comments" value={t2.commentCount} />
           <StatCard growth={growth.repostCount} label="Reposts" value={t2.repostCount} />
         </Row>
       </Section>
-
-      <Text className="text-sm text-muted-foreground text-center">
-        Powered by{" "}
-        <Link className="text-foreground font-medium" href={env.NEXT_PUBLIC_APP_URL}>
-          Crackedbook
-        </Link>
-      </Text>
     </EmailLayout>
   )
 }
@@ -134,11 +114,9 @@ type StatCardProps = {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ label, value, growth }) => (
-  <Column className="w-1/2 p-2">
-    <div className="rounded-lg border border-border bg-card p-4 text-center">
-      <Text className="m-0 text-lg text-muted-foreground font-serif italic font-medium">
-        {label}
-      </Text>
+  <Column className="w-1/2">
+    <div className="rounded-lg bg-card p-4 text-center">
+      <Text className="m-0 text-muted-foreground font-medium">{label}</Text>
       <Text className="m-0 text-3xl font-bold text-foreground">{value.toLocaleString()}</Text>
       {growth > 0 && (
         <Text className="m-0 mt-1 text-lg font-medium text-primary">

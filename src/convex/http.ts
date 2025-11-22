@@ -2,7 +2,7 @@ import { httpRouter } from "convex/server"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
-import { LinkedInStatus } from "@/lib/linkedin"
+import { isConnected, LinkedInStatus, needsReconnection } from "@/lib/linkedin"
 import { resend } from "./emails"
 
 const http = httpRouter()
@@ -36,16 +36,11 @@ http.route({
     const unipileId = data.AccountStatus.account_id
     const status = data.AccountStatus.message
 
-    switch (status) {
-      case "OK":
-      case "RECONNECTED":
-      case "CREATION_SUCCESS":
-      case "SYNC_SUCCESS":
-        await ctx.runMutation(internal.linkedin.mutate.upsertAccount, { unipileId, status })
-        await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
-        break
-      default:
-        break
+    if (isConnected(status)) {
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccount, { unipileId, status })
+      await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
+    } else if (needsReconnection(status)) {
+      await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })
     }
 
     return new Response(null, { status: 201 })

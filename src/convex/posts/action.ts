@@ -6,7 +6,7 @@ import { internalAction } from "@/convex/_generated/server"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { connectedMemberAction } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
-import { isConnected, linkedinProfileURL } from "@/lib/linkedin"
+import { linkedinProfileURL } from "@/lib/linkedin"
 import pluralize from "@/lib/pluralize"
 
 type Submit = { postId: Id<"posts">; success: string } | { postId: null; error: string }
@@ -119,12 +119,8 @@ export const sync = internalAction({
   },
   handler: async (ctx, { postId }): Promise<Sync> => {
     const { userId, url } = await ctx.runQuery(internal.posts.query.get, { postId })
-    const account = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
-    if (account == null || !isConnected(account.status)) {
-      return { postId, userId, error: "Account not connected" }
-    }
+    const { unipileId } = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
 
-    const { unipileId } = account
     const { data, error } = await ctx.runAction(internal.unipile.post.fetch, { unipileId, url })
     if (error != null) {
       return { postId, userId, error }

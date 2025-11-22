@@ -7,16 +7,12 @@ export const deleteAccount = authAction({
   handler: async (ctx) => {
     try {
       const { userId } = ctx
-      const account = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
+      const { unipileId } = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
 
-      if (account) {
-        const { unipileId } = account
-
-        await Promise.all([
-          ctx.runAction(internal.unipile.account.disconnect, { unipileId }),
-          ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId }),
-        ])
-      }
+      await Promise.all([
+        ctx.runAction(internal.unipile.account.disconnect, { unipileId }),
+        ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId }),
+      ])
 
       return {}
     } catch (error) {

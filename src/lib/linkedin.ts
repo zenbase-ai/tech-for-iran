@@ -19,8 +19,17 @@ export const LinkedInStatus = z.enum([
 
 export type LinkedInStatus = z.infer<typeof LinkedInStatus>
 
+export const linkedinStatus = {
+  connected: new Set(["OK", "RECONNECTED", "CREATION_SUCCESS", "SYNC_SUCCESS"]),
+  reconnect: new Set(["CREDENTIALS", "ERROR", "STOPPED"]),
+  disconnected: new Set(["CREDENTIALS", "ERROR", "STOPPED", "DELETED"]),
+} as const
+
 export const isConnected = (status?: string | null): boolean =>
-  status != null && !["CREDENTIALS", "ERROR", "STOPPED", "DELETED"].includes(status)
+  status != null && !linkedinStatus.disconnected.has(status)
+
+export const needsReconnection = (status?: string | null): boolean =>
+  status == null || linkedinStatus.reconnect.has(status)
 
 export const LinkedInReaction = z.enum([
   "like",

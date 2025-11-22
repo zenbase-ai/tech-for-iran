@@ -2,14 +2,16 @@
 
 import { motion } from "motion/react"
 import Link from "next/link"
-import { LuHouse, LuSettings } from "react-icons/lu"
+import { LuHouse, LuMessageCircle, LuSettings, LuThumbsUp } from "react-icons/lu"
+import { HStack } from "@/components/layout/stack"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { NumberTicker } from "@/components/ui/number-ticker"
+import { Separator } from "@/components/ui/separator"
 import { ThemeToggler } from "@/components/ui/theme-toggler"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn, plural } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 export type NavProps = {
   className?: string
@@ -17,7 +19,6 @@ export type NavProps = {
 
 export const Nav: React.FC<NavProps> = ({ className }) => {
   const stats = useAuthQuery(api.user.query.stats)
-  console.log(stats)
 
   return (
     <motion.nav
@@ -38,18 +39,6 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
         </Link>
       </Button>
 
-      <Badge className="hidden sm:inline-flex" variant="outline">
-        <NumberTicker value={stats?.postCount ?? 0} />
-        <span className="text-muted-foreground">{plural(stats?.postCount ?? 0, "post")}</span>
-      </Badge>
-
-      <Badge className="hidden sm:inline-flex" variant="outline">
-        <NumberTicker value={stats?.engagementCount ?? 0} />
-        <span className="text-muted-foreground">
-          {plural(stats?.engagementCount ?? 0, "action")}
-        </span>
-      </Badge>
-
       <Button asChild size="icon" variant="ghost">
         <Link href="/settings">
           <LuSettings />
@@ -57,6 +46,20 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
       </Button>
 
       <ThemeToggler variant="ghost" />
+
+      <Separator className="h-5!" orientation="vertical" />
+
+      <HStack className="gap-1 mr-1" items="center">
+        <Badge size="sm" variant="ghost">
+          <NumberTicker value={stats?.postCount ?? 0} />
+          <LuMessageCircle className="text-muted-foreground" />
+        </Badge>
+
+        <Badge size="sm" variant="ghost">
+          <NumberTicker value={stats?.engagementCount ?? 0} />
+          <LuThumbsUp className="text-muted-foreground" />
+        </Badge>
+      </HStack>
     </motion.nav>
   )
 }

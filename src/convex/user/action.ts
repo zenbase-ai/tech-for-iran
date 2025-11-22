@@ -13,7 +13,7 @@ export const deleteAccount = authAction({
       await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId })
       await ctx.runAction(internal.clerk.deleteUser, { userId })
 
-      return {}
+      return { success: "Bon voyage!" }
     } catch (error) {
       return { error: errorMessage(error) }
     }

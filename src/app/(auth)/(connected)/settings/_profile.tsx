@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ItemActions } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
@@ -28,15 +29,20 @@ export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) =
       profile={profile}
     >
       <ItemActions>
-        <Button
-          disabled={sync.pending}
-          onClick={() => sync.execute()}
-          size="icon"
-          type="button"
-          variant="outline"
-        >
-          {sync.pending ? <Spinner variant="ellipsis" /> : <LuRefreshCcw className="size-3" />}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              disabled={sync.pending}
+              onClick={() => sync.execute()}
+              size="icon"
+              type="button"
+              variant="outline"
+            >
+              {sync.pending ? <Spinner variant="ellipsis" /> : <LuRefreshCcw className="size-3" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Sync profile</TooltipContent>
+        </Tooltip>
       </ItemActions>
     </LinkedinProfileItem>
   )

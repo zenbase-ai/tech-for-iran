@@ -16,23 +16,7 @@ export const syncOwn = connectedAction({
     const { unipileId } = ctx.account
     try {
       await ctx.runAction(internal.linkedin.action.sync, { unipileId })
-      return {}
-    } catch (error) {
-      return { error: errorMessage(error) }
-    }
-  },
-})
-
-export const disconnectOwn = connectedAction({
-  args: {},
-  handler: async (ctx) => {
-    const { unipileId } = ctx.account
-    try {
-      await Promise.all([
-        ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId }),
-        ctx.runAction(internal.unipile.account.disconnect, { unipileId }),
-      ])
-      return {}
+      return { success: "Profile synced!" }
     } catch (error) {
       return { error: errorMessage(error) }
     }

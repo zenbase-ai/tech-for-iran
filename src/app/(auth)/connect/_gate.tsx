@@ -25,12 +25,12 @@ import { api } from "@/convex/_generated/api"
 import { queryString } from "@/lib/utils"
 
 const ConnectGateSchema = z.object({
-  inviteCode: z.string().min(1, "Access code is required"),
+  inviteCode: z.string().trim().min(1, "Access code is required"),
 })
 
 type ConnectGateSchema = z.infer<typeof ConnectGateSchema>
 
-export const ConnectGate: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
+export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) => {
   const validate = useAction(api.pods.action.validate)
   const form = useForm({
     resolver: zodResolver(ConnectGateSchema),

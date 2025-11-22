@@ -29,27 +29,26 @@ import useAsyncFn from "@/hooks/use-async-fn"
 const DeleteAccountSchema = z.object({
   confirmation: z
     .string()
-    .refine((conf) => conf === "sudo delete", { message: "Invalid confirmation" }),
+    .trim()
+    .refine((conf) => conf === "sudo delete", { message: "Invalid confirmation." }),
 })
 
 type DeleteAccountSchema = z.infer<typeof DeleteAccountSchema>
 
 export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const [isOpen, setOpen] = useState(false)
   const { signOut } = useClerk()
 
   const deleteAccount = useAsyncFn(useAction(api.user.action.deleteAccount), {
     onSuccess: useEffectEvent(async () => await signOut(() => redirect("/", RedirectType.replace))),
   })
-
-  const form = useForm<DeleteAccountSchema>({
+  const form = useForm({
     resolver: zodResolver(DeleteAccountSchema),
     defaultValues: { confirmation: "" },
     disabled: deleteAccount.pending,
   })
+  const onSubmit = useEffectEvent(async (_: DeleteAccountSchema) => await deleteAccount.execute())
 
-  const handleSubmit = useEffectEvent(async () => await deleteAccount.execute())
-
-  const [isOpen, setOpen] = useState(false)
   useEffect(() => {
     if (!isOpen) {
       form.reset()
@@ -60,7 +59,7 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
     <AlertDialog onOpenChange={setOpen} open={isOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent>
-        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(handleSubmit)}>
+        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>Your fellow alumni are counting on you!</AlertDialogDescription>

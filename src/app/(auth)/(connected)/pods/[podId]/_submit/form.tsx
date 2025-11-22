@@ -30,25 +30,23 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
+  const submit = useAsyncFn(useAction(api.posts.action.submit), {
+    onSuccess: useEffectEvent(async () => form.reset()),
+  })
   const form = useForm({
     resolver: zodResolver(SubmitPost),
     defaultValues: submitPost.defaultValues,
   })
   const { isSubmitting } = form.formState
 
-  const submit = useAsyncFn(useAction(api.posts.action.submit))
-  const handleSubmit = useEffectEvent(async (data: SubmitPost) => {
-    if (await submit.execute({ podId, ...data })) {
-      form.reset()
-    } else {
-      form.setError("root", { message: "Something went really wrong." })
-    }
-  })
+  const onSubmit = useEffectEvent(
+    async (data: SubmitPost) => await submit.execute({ podId, ...data })
+  )
 
   return (
     <form
       className={cn("w-full flex flex-col gap-6", className)}
-      onSubmit={form.handleSubmit(handleSubmit)}
+      onSubmit={form.handleSubmit(onSubmit)}
     >
       {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 

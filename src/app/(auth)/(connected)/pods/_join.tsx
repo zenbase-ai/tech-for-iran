@@ -13,7 +13,7 @@ import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
 
 export const PodJoinSchema = z.object({
-  inviteCode: z.string().min(1),
+  inviteCode: z.string().trim().min(1),
 })
 
 export type PodJoinSchema = z.infer<typeof PodJoinSchema>

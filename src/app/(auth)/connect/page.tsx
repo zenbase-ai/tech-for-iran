@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { isConnected } from "@/lib/linkedin"
 import { queryString } from "@/lib/utils"
-import { ConnectGate } from "./_gate"
+import { ConnectGateDialog } from "./_gate"
 
 export default function ConnectClientPage() {
   const inviteCode = useSearchParams().get("inviteCode") ?? ""
@@ -17,7 +17,7 @@ export default function ConnectClientPage() {
   }
 
   if (linkedin?.account == null) {
-    return <ConnectGate inviteCode={inviteCode} />
+    return <ConnectGateDialog inviteCode={inviteCode} />
   }
 
   if (!isConnected(linkedin.account?.status)) {

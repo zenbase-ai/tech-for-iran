@@ -52,10 +52,16 @@ export const PostToast: React.FC<PostToastProps> = ({ post, profile }) => {
         </ItemMedia>
         <ItemContent className="gap-0">
           <ItemDescription className="font-medium">
-            <a href={profile.url} rel="noopener noreferrer" target="_blank">
-              <span className="text-foreground">{profile.firstName}</span>&nbsp;posted&nbsp;
-              <RelativeTime date={post._creationTime} />
+            <a
+              className="no-underline text-foreground"
+              href={profile.url}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {profile.firstName}
             </a>
+            &nbsp;posted&nbsp;
+            <RelativeTime date={post._creationTime} />
           </ItemDescription>
         </ItemContent>
         <ItemActions>

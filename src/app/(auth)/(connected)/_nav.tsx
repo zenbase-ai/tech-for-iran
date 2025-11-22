@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, type Variants } from "motion/react"
+import { motion } from "motion/react"
 import Link from "next/link"
 import { LuHouse, LuSettings } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
@@ -11,14 +11,9 @@ export type NavProps = {
   className?: string
 }
 
-const navVariants: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
-}
-
 export const Nav: React.FC<NavProps> = ({ className }) => (
   <motion.nav
-    animate="visible"
+    animate={{ opacity: 1, y: 0 }}
     className={cn(
       "flex flex-row items-center justify-center gap-4",
       "p-2 rounded-full",
@@ -27,22 +22,20 @@ export const Nav: React.FC<NavProps> = ({ className }) => (
       "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
       className
     )}
-    exit="hidden"
-    initial="hidden"
-    variants={navVariants}
+    initial={{ opacity: 0, y: 24 }}
   >
-    <Button asChild className="rounded-full" size="icon" variant="ghost">
+    <Button asChild size="icon" variant="ghost">
       <Link href="/pods">
         <LuHouse />
       </Link>
     </Button>
 
-    <Button asChild className="rounded-full" size="icon" variant="ghost">
+    <Button asChild size="icon" variant="ghost">
       <Link href="/settings">
         <LuSettings />
       </Link>
     </Button>
 
-    <ThemeToggler className="rounded-full" variant="ghost" />
+    <ThemeToggler variant="ghost" />
   </motion.nav>
 )

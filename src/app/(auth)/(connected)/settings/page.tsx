@@ -1,13 +1,13 @@
 import { SignOutButton } from "@clerk/nextjs"
 import type { Metadata } from "next"
-import { LuLogOut, LuUnplug } from "react-icons/lu"
+import { LuEraser, LuLogOut } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
-import { PageTitle, SectionTitle } from "@/components/layout/text"
+import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ConfigForm } from "./_config/form"
-import { DisconnectButton } from "./_disconnect"
-import { SyncButton } from "./_sync"
+import { DeleteAccountDialog } from "./_delete"
+import { LinkedinProfile } from "./_profile"
 
 export const metadata: Metadata = {
   title: "Settings | Crackedbook",
@@ -17,35 +17,29 @@ export default function SettingsPage() {
   "use memo"
 
   return (
-    <VStack as="main" className="px-2 w-full max-w-[640px] mx-auto gap-8">
-      <VStack className="gap-4">
-        <HStack items="center" justify="between" wrap>
-          <PageTitle>Settings</PageTitle>
+    <VStack as="main" className="px-2 w-full max-w-[640px] mx-auto gap-8 md:gap-12">
+      <LinkedinProfile />
 
-          <SignOutButton>
-            <Button variant="ghost">
-              <LuLogOut className="size-4" />
-              Sign out
-            </Button>
-          </SignOutButton>
-        </HStack>
-
-        <ConfigForm />
-      </VStack>
+      <ConfigForm />
 
       <Separator />
 
-      <VStack className="gap-4">
-        <SectionTitle>LinkedIn</SectionTitle>
+      <HStack className="gap-4" items="center">
+        <SectionTitle className="mr-auto">Account</SectionTitle>
 
-        <HStack className="gap-4" items="center" justify="between" wrap>
-          <SyncButton variant="outline">Sync</SyncButton>
-          <DisconnectButton variant="ghost">
-            <LuUnplug className="size-4" />
-            Disconnect
-          </DisconnectButton>
-        </HStack>
-      </VStack>
+        <DeleteAccountDialog>
+          <Button size="sm" variant="ghost">
+            Delete
+            <LuEraser />
+          </Button>
+        </DeleteAccountDialog>
+        <SignOutButton>
+          <Button size="sm" variant="ghost">
+            Sign Out
+            <LuLogOut />
+          </Button>
+        </SignOutButton>
+      </HStack>
     </VStack>
   )
 }

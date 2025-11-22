@@ -1,7 +1,7 @@
 import type { Viewport } from "next"
 import { Suspense } from "react"
 import "./globals.css"
-import { crimsonPro, inter } from "@/components/assets/fonts"
+import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
 import { Container } from "@/components/layout/container"
 import { Flash } from "@/components/layout/flash"
 import { Providers } from "@/components/providers"
@@ -28,13 +28,18 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
         )}
       </head>
       <body
-        className={cn("antialiased w-screen min-h-screen", inter.variable, crimsonPro.variable)}
+        className={cn(
+          "antialiased w-screen min-h-screen",
+          inter.variable,
+          crimsonPro.variable,
+          geistMono.variable
+        )}
       >
         <Providers>
           <Suspense fallback={null}>
             <Flash position="top-center" />
           </Suspense>
-          <Container className="min-w-[320px] py-18 md:py-24">{children}</Container>
+          <Container className="min-w-[320px] py-21 md:py-28">{children}</Container>
         </Providers>
       </body>
     </html>

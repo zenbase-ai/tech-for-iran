@@ -15,8 +15,15 @@ export const config = {
 }
 
 export const Config = z.object({
-  maxActions: z.number().int().min(config.min.maxActions).max(config.max.maxActions),
-  commentPrompt: z.string().max(config.max.commentPrompt).default(""),
+  maxActions: z
+    .number()
+    .int()
+    .min(config.min.maxActions, { message: "Minimum 1 action per day" })
+    .max(config.max.maxActions, { message: "Maximum 25 actions per day" }),
+  commentPrompt: z
+    .string()
+    .max(config.max.commentPrompt, { message: "Maximum 640 characters" })
+    .default(""),
 })
 
 export type Config = z.infer<typeof Config>

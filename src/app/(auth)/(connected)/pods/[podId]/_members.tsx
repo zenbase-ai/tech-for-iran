@@ -5,23 +5,15 @@ import { LuArrowDown, LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
-import { LinkedInProfileAvatar } from "@/components/presenters/linkedinProfiles/avatar"
+import { LinkedinProfileItem } from "@/components/presenters/linkedinProfiles/item"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item"
+import { ItemGroup } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
-import { fullName } from "@/lib/linkedin"
 import pluralize from "@/lib/pluralize"
 import { cn } from "@/lib/utils"
 import type { PodId } from "./_types"
@@ -73,19 +65,13 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ItemGroup className="contents">
               {members.results.map((member) => (
-                <Item asChild key={member.url} size="sm" variant="outline">
-                  <a href={member.url} rel="noopener noreferrer" target="_blank">
-                    <ItemMedia variant="image">
-                      <LinkedInProfileAvatar profile={member} />
-                    </ItemMedia>
-                    <ItemContent className="overflow-hidden">
-                      <ItemTitle className="truncate">{fullName(member)}</ItemTitle>
-                      <ItemDescription>
-                        Joined {new Date(member.joinedAt).toLocaleDateString()}
-                      </ItemDescription>
-                    </ItemContent>
-                  </a>
-                </Item>
+                <LinkedinProfileItem
+                  description={`Joined ${new Date(member.joinedAt).toLocaleDateString()}`}
+                  key={member.url}
+                  profile={member}
+                  size="sm"
+                  variant="outline"
+                />
               ))}
             </ItemGroup>
           </Box>

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
+import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -55,6 +56,8 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
       className={cn("w-full flex flex-col gap-4", className)}
       onSubmit={form.handleSubmit(configure)}
     >
+      <SectionTitle>Configuration</SectionTitle>
+
       <Controller
         control={form.control}
         name="maxActions"

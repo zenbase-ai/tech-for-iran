@@ -7,6 +7,11 @@ export type AsyncFn<TArgs extends unknown[], TData extends Record<string, unknow
   ...args: TArgs
 ) => Promise<TData>
 
+export type UseAsyncFnOptions<TData extends Record<string, unknown>> = {
+  onSuccess?: (data: TData) => void
+  onError?: (error: Error) => void
+}
+
 export type UseAsyncFn<TArgs extends unknown[], TData extends Record<string, unknown>> = {
   execute: (...args: TArgs) => Promise<TData | undefined>
   data: TData | null
@@ -15,7 +20,8 @@ export type UseAsyncFn<TArgs extends unknown[], TData extends Record<string, unk
 }
 
 export default function useAsyncFn<TArgs extends unknown[], TData extends Record<string, unknown>>(
-  fn: AsyncFn<TArgs, TData>
+  fn: AsyncFn<TArgs, TData>,
+  options: UseAsyncFnOptions<TData> = {}
 ): UseAsyncFn<TArgs, TData> {
   const isMounted = useMounted()
 
@@ -43,6 +49,7 @@ export default function useAsyncFn<TArgs extends unknown[], TData extends Record
           setPending(false)
         }
       })
+      options.onSuccess?.(result)
       return result
     } catch (e: unknown) {
       startTransition(() => {
@@ -52,6 +59,7 @@ export default function useAsyncFn<TArgs extends unknown[], TData extends Record
           setPending(false)
         }
       })
+      options.onError?.(toError(e))
     }
   })
 

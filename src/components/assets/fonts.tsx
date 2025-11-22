@@ -1,4 +1,12 @@
-import { Crimson_Pro, Inter } from "next/font/google"
+import { Crimson_Pro, Geist_Mono, Inter } from "next/font/google"
+
+export const geistMono = Geist_Mono({
+  weight: ["400", "600"],
+  style: ["normal"],
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: "swap",
+})
 
 export const inter = Inter({
   weight: ["400", "500", "600", "700"],

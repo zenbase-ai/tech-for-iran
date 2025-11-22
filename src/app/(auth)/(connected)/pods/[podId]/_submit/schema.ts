@@ -5,7 +5,7 @@ export const submitPost = {
   defaultValues: {
     url: "",
     comments: false,
-    reactionTypes: ["like", "celebrate", "love", "insightful"] satisfies LinkedInReaction[],
+    reactionTypes: ["like", "love"] satisfies LinkedInReaction[],
   },
   options: {
     reactionTypes: LinkedInReaction.options,

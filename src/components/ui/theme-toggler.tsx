@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffectEvent, useLayoutEffect, useRef, useState } from "react"
+import { useTheme } from "next-themes"
+import { useEffectEvent, useRef } from "react"
 import { flushSync } from "react-dom"
 import { LuMoon, LuSun } from "react-icons/lu"
 import { Button, type ButtonProps } from "@/components/ui/button"
-import useReducedMotion from "@/hooks/use-reduced-motion"
+import usePrefersReducedMotion from "@/hooks/use-prefers-reduced-motion"
 
 export type ThemeTogglerProps = Omit<ButtonProps, "size"> & {
   duration?: number
@@ -16,63 +17,48 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({
   variant = "ghost",
   ...props
 }) => {
-  const reducedMotion = useReducedMotion()
-  const [isDark, setDark] = useState(false)
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const { resolvedTheme, setTheme } = useTheme()
+  const toggleTheme = useEffectEvent(() => setTheme(resolvedTheme === "dark" ? "light" : "dark"))
 
-  const syncDark = useEffectEvent(() =>
-    setDark(document.documentElement.classList.contains("dark"))
-  )
+  const ref = useRef<HTMLButtonElement>(null)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
-  useLayoutEffect(syncDark, [])
-  useLayoutEffect(() => {
-    const observer = new MutationObserver(syncDark)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
-    return observer.disconnect.bind(observer)
-  }, [])
+  const transitionTheme = useEffectEvent(() => {
+    const boundingRect = ref.current?.getBoundingClientRect()
+    if (boundingRect) {
+      const { top, left, width, height } = boundingRect
+      const x = left + width / 2
+      const y = top + height / 2
+      const maxRadius = Math.hypot(
+        Math.max(left, window.innerWidth - left),
+        Math.max(top, window.innerHeight - top)
+      )
 
-  const toggleTheme = useEffectEvent(async () => {
-    if (!buttonRef.current) {
-      return
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`] },
+        { duration, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)" }
+      )
     }
+  })
 
-    await document.startViewTransition(() => {
-      flushSync(() => {
-        const newTheme = !isDark
-        setDark(newTheme)
-        document.documentElement.classList.toggle("dark")
-        localStorage.setItem("theme", newTheme ? "dark" : "light")
-      })
-    }).ready
-
-    if (reducedMotion) {
-      return
+  const onClick = useEffectEvent(() => {
+    if (prefersReducedMotion) {
+      toggleTheme()
+    } else {
+      document.startViewTransition(() => flushSync(toggleTheme)).ready.then(transitionTheme)
     }
-
-    const { top, left, width, height } = buttonRef.current.getBoundingClientRect()
-    const x = left + width / 2
-    const y = top + height / 2
-    const maxRadius = Math.hypot(
-      Math.max(left, window.innerWidth - left),
-      Math.max(top, window.innerHeight - top)
-    )
-
-    document.documentElement.animate(
-      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`] },
-      { duration, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)" }
-    )
   })
 
   return (
     <Button
       className={className}
-      onClick={toggleTheme}
-      ref={buttonRef}
+      onClick={onClick}
+      ref={ref}
       size="icon"
       variant={variant}
       {...props}
     >
-      {isDark ? <LuSun /> : <LuMoon />}
+      {resolvedTheme === "dark" ? <LuSun /> : <LuMoon />}
       <span className="sr-only">Toggle theme</span>
     </Button>
   )

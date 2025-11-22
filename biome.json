@@ -41,9 +41,11 @@
         "noExplicitAny": "off"
       },
       "style": {
-        "noNestedTernary": "off"
+        "noNestedTernary": "off",
+        "useDefaultSwitchClause": "off"
       },
       "nursery": {
+        "useExhaustiveSwitchCases": "error",
         "useSortedClasses": {
           "options": {
             "attributes": ["className"],

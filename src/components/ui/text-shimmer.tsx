@@ -4,7 +4,7 @@ import { type MotionProps, motion, type Transition } from "motion/react"
 import { useMemo } from "react"
 import { onlyText } from "react-children-utilities"
 
-import useReducedMotion from "@/hooks/use-reduced-motion"
+import usePrefersReducedMotion from "@/hooks/use-prefers-reduced-motion"
 import { cn, css } from "@/lib/utils"
 
 export type TextShimmerProps = {
@@ -27,7 +27,7 @@ export const TextShimmer: React.FC<TextShimmerProps> = ({
   animate = { backgroundPosition: "0% center" },
 }) => {
   const MotionComponent = motion.create(Component as keyof React.JSX.IntrinsicElements)
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = usePrefersReducedMotion()
 
   const transition: Transition = useMemo(
     () =>

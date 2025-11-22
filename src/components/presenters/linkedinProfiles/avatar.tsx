@@ -15,7 +15,7 @@ export const LinkedInProfileAvatar: React.FC<LinkedInProfileAvatarProps> = ({
   className,
   ...props
 }) => (
-  <Avatar className={cn("size-7", className)} {...props}>
+  <Avatar className={cn("size-9", className)} {...props}>
     <AvatarImage alt={fullName(profile)} src={profile.picture} />
     <AvatarFallback className="text-sm font-semibold text-muted-foreground">
       {initials(profile)}

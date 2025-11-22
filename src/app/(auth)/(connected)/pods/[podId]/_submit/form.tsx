@@ -80,7 +80,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
         </Box>
       </Stack>
 
-      <Controller
+      {/* <Controller
         control={form.control}
         name="comments"
         render={({ field, fieldState }) => (
@@ -102,7 +102,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}
-      />
+      /> */}
 
       <Controller
         control={form.control}

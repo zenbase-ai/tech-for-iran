@@ -5,7 +5,6 @@ import { crimsonPro, inter } from "@/components/assets/fonts"
 import { Container } from "@/components/layout/container"
 import { Flash } from "@/components/layout/flash"
 import { Providers } from "@/components/providers"
-import { ThemeToggler } from "@/components/ui/theme-toggler"
 import { cn } from "@/lib/utils"
 
 export const viewport: Viewport = {
@@ -35,7 +34,6 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           <Suspense fallback={null}>
             <Flash position="top-center" />
           </Suspense>
-          <ThemeToggler className="fixed top-4 right-4" duration={0.5} />
           <Container className="min-w-[320px] py-18 md:py-24">{children}</Container>
         </Providers>
       </body>

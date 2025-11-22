@@ -3,31 +3,32 @@
 import { useEffectEvent, useLayoutEffect, useRef, useState } from "react"
 import { flushSync } from "react-dom"
 import { LuMoon, LuSun } from "react-icons/lu"
-
+import { Button, type ButtonProps } from "@/components/ui/button"
 import useReducedMotion from "@/hooks/use-reduced-motion"
-import { cn } from "@/lib/utils"
 
-export type ThemeTogglerProps = React.ComponentPropsWithoutRef<"button"> & {
-  duration: number
+export type ThemeTogglerProps = Omit<ButtonProps, "size"> & {
+  duration?: number
 }
 
-export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration, ...props }) => {
+export const ThemeToggler: React.FC<ThemeTogglerProps> = ({
+  className,
+  duration = 500,
+  variant = "ghost",
+  ...props
+}) => {
   const reducedMotion = useReducedMotion()
   const [isDark, setDark] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
+  const syncDark = useEffectEvent(() =>
+    setDark(document.documentElement.classList.contains("dark"))
+  )
+
+  useLayoutEffect(syncDark, [])
   useLayoutEffect(() => {
-    const updateTheme = () => setDark(document.documentElement.classList.contains("dark"))
-
-    updateTheme()
-
-    const observer = new MutationObserver(updateTheme)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    })
-
-    return observer.disconnect
+    const observer = new MutationObserver(syncDark)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+    return observer.disconnect.bind(observer)
   }, [])
 
   const toggleTheme = useEffectEvent(async () => {
@@ -58,23 +59,21 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({ className, duration,
 
     document.documentElement.animate(
       { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`] },
-      {
-        duration: duration * 1000,
-        easing: "ease-in-out",
-        pseudoElement: "::view-transition-new(root)",
-      }
+      { duration, easing: "ease-in-out", pseudoElement: "::view-transition-new(root)" }
     )
   })
 
   return (
-    <button
-      className={cn("border rounded-full p-2 backdrop-blur-md", className)}
+    <Button
+      className={className}
       onClick={toggleTheme}
       ref={buttonRef}
+      size="icon"
+      variant={variant}
       {...props}
     >
       {isDark ? <LuSun /> : <LuMoon />}
       <span className="sr-only">Toggle theme</span>
-    </button>
+    </Button>
   )
 }

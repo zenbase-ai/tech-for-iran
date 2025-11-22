@@ -7,7 +7,7 @@ export const Input: React.FC<InputProps> = ({ className, type, ...props }) => (
     className={cn(
       "h-9 w-full min-w-0 px-3 py-1",
       "rounded-lg border border-input bg-transparent shadow-xs transition-[color,box-shadow] outline-none",
-      "text-base md:text-sm",
+      "text-sm",
       "placeholder:text-muted-foreground",
       "dark:bg-input/30",
       "selection:bg-primary selection:text-primary-foreground",

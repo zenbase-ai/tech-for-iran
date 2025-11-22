@@ -108,12 +108,9 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
         control={form.control}
         name="reactionTypes"
         render={({ field, fieldState }) => (
-          <FieldSet className="w-full" data-invalid={fieldState.invalid}>
+          <FieldSet className="w-fit" data-invalid={fieldState.invalid}>
             <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
-            <FieldGroup
-              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
-              data-slot="checkbox-group"
-            >
+            <FieldGroup className="grid grid-cols-2 gap-2" data-slot="checkbox-group">
               {submitPost.options.reactionTypes.map((reaction) => (
                 <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
                   <Switch

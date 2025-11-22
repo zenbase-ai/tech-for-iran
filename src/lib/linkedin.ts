@@ -25,10 +25,10 @@ export const isConnected = (status?: string | null): boolean =>
 export const LinkedInReaction = z.enum([
   "like",
   "celebrate",
-  "support",
   "love",
   "insightful",
   "funny",
+  "support",
 ])
 
 export type LinkedInReaction = z.infer<typeof LinkedInReaction>

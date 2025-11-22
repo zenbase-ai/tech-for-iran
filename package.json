@@ -13,6 +13,7 @@
     "@clerk/clerk-react": "^5.56.0",
     "@clerk/nextjs": "^6.35.2",
     "@clerk/themes": "^2.4.37",
+    "@convex-dev/action-cache": "^0.3.0",
     "@convex-dev/aggregate": "^0.1.25",
     "@convex-dev/auth": "^0.0.90",
     "@convex-dev/migrations": "^0.2.9",

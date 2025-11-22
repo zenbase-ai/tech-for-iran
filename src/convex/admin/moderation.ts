@@ -12,11 +12,11 @@ export const deleteUser = internalAction({
   handler: async (ctx, { userId }) => {
     const { unipileId } = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
 
-    await Promise.all([
-      ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId }),
-      ctx.runAction(internal.unipile.account.disconnect, { unipileId }),
-      ctx.runMutation(internal.admin.moderation.deleteMemberships, { userId }),
-    ])
+    await ctx.runAction(internal.unipile.account.disconnect, { unipileId })
+    await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId })
+    await ctx.runAction(internal.clerk.deleteUser, { userId })
+
+    return true
   },
 })
 

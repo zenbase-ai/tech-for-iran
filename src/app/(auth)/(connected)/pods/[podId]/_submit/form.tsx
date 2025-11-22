@@ -38,11 +38,11 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
     defaultValues: submitPost.defaultValues,
     disabled: submit.pending,
   })
-  const { isSubmitting } = form.formState
-
   const onSubmit = useEffectEvent(
     async (data: SubmitPost) => await submit.execute({ podId, ...data })
   )
+
+  const { isSubmitting } = form.formState
 
   return (
     <form

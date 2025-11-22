@@ -5,7 +5,7 @@ import { generateText } from "ai"
 import { v } from "convex/values"
 import { randomInt, sample as randomSample } from "es-toolkit"
 import { internalAction } from "@/convex/_generated/server"
-import { LinkedInReaction } from "@/lib/linkedin"
+import { ReactionType } from "@/lib/linkedin"
 import { openai } from "@/lib/server/openai"
 import { chance } from "@/lib/utils"
 
@@ -30,8 +30,8 @@ export const reaction = internalAction({
   args: {
     reactionTypes: v.array(v.string()),
   },
-  handler: async (_ctx, args): Promise<LinkedInReaction> =>
-    LinkedInReaction.parse(randomSample(args.reactionTypes) ?? "like"),
+  handler: async (_ctx, args): Promise<ReactionType> =>
+    ReactionType.parse(randomSample(args.reactionTypes) ?? "like"),
 })
 
 type Comment = string | null

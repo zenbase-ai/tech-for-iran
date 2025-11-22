@@ -2,7 +2,6 @@ import { v } from "convex/values"
 import { DateTime } from "luxon"
 import * as z from "zod"
 import { internalAction } from "@/convex/_generated/server"
-import { parsePostURN } from "@/lib/linkedin"
 import { unipile } from "@/lib/server/unipile"
 import { errorMessage } from "@/lib/utils"
 
@@ -34,15 +33,9 @@ const Fetch = z.object({
 export const fetch = internalAction({
   args: {
     unipileId: v.string(),
-    url: v.string(),
+    urn: v.string(),
   },
-  handler: async (_ctx, args) => {
-    const { unipileId: account_id, url } = args
-    const urn = parsePostURN(url)
-    if (!urn) {
-      return { data: null, error: "Unsupported URL." }
-    }
-
+  handler: async (_ctx, { unipileId: account_id, urn }) => {
     const { data, error } = Fetch.safeParse(
       await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json()
     )

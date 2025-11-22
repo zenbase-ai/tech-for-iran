@@ -529,12 +529,12 @@ This section documents the common coding patterns used throughout the codebase. 
 - Use `arkregex` for type-safe regex patterns
 - Define both URL and URN patterns for external identifiers
 - Extract and normalize to canonical format
-- Example from `src/app/(auth)/pods/[podId]/posts/-submit/schema.ts`:
+- Example from `src/app/(auth)/pods/[podId]/posts/_submit/schema.ts`:
   ```typescript
-  export const urlRegex = regex("activity-(\\d+)")
-  export const urnRegex = regex("urn:li:activity:(\\d+)")
+  const urlRegex = regex("activity-(\\d+)")
+  const urnRegex = regex("urn:li:activity:(\\d+)")
 
-  export const parsePostURN = (url: string): string | undefined => {
+  const parsePostURN = (url: string): string | undefined => {
     const activityId = (urlRegex.exec(url) ?? urnRegex.exec(url))?.[1]
     return activityId && `urn:li:activity:${activityId}`
   }

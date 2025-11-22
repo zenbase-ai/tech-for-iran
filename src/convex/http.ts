@@ -2,7 +2,7 @@ import { httpRouter } from "convex/server"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
-import { isConnected, LinkedInStatus, needsReconnection } from "@/lib/linkedin"
+import { ConnectionStatus, isConnected, needsReconnection } from "@/lib/linkedin"
 import { resend } from "./emails"
 
 const http = httpRouter()
@@ -23,7 +23,7 @@ http.route({
       AccountStatus: z.object({
         account_id: z.string(),
         account_type: z.literal("LINKEDIN"),
-        message: LinkedInStatus,
+        message: ConnectionStatus,
       }),
     })
 

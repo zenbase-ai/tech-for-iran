@@ -6,7 +6,7 @@ import { internalAction } from "@/convex/_generated/server"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { connectedMemberAction } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
-import { linkedinProfileURL } from "@/lib/linkedin"
+import { profileURL } from "@/lib/linkedin"
 import { pluralize } from "@/lib/utils"
 
 type Submit = { postId: Id<"posts">; success: string } | { postId: null; error: string }
@@ -43,7 +43,7 @@ export const submit = connectedMemberAction({
 
     const fetch = await ctx.runAction(internal.unipile.post.fetch, {
       unipileId: ctx.account.unipileId,
-      url: params.data.url,
+      urn: params.data.urn,
     })
     if (fetch.error != null) {
       console.error("posts:action/submit", "fetch", fetch.error)
@@ -64,7 +64,7 @@ export const submit = connectedMemberAction({
       author: {
         name: author.name,
         headline: author.headline ?? "Company",
-        url: linkedinProfileURL(author),
+        url: profileURL(author),
       },
     })
     if (insertError != null) {
@@ -118,10 +118,10 @@ export const sync = internalAction({
     postId: v.id("posts"),
   },
   handler: async (ctx, { postId }): Promise<Sync> => {
-    const { userId, url } = await ctx.runQuery(internal.posts.query.get, { postId })
+    const { userId, urn } = await ctx.runQuery(internal.posts.query.get, { postId })
     const { unipileId } = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
 
-    const { data, error } = await ctx.runAction(internal.unipile.post.fetch, { unipileId, url })
+    const { data, error } = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
     if (error != null) {
       return { postId, userId, error }
     }
@@ -134,7 +134,7 @@ export const sync = internalAction({
         author: {
           name: data.author.name,
           headline: data.author.headline ?? "Company",
-          url: linkedinProfileURL(data.author),
+          url: profileURL(data.author),
         },
       },
     })

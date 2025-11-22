@@ -1,11 +1,10 @@
-import { regex } from "arkregex"
 import * as z from "zod"
 
 /**
  * LinkedIn account statuses from Unipile webhook
  * @see https://docs.unipile.com/api-reference/webhooks/account-status
  */
-export const LinkedInStatus = z.enum([
+export const ConnectionStatus = z.enum([
   "OK", // Account is healthy and syncing
   "SYNC_SUCCESS", // Synchronization completed successfully
   "CREATION_SUCCESS", // Account was successfully created
@@ -17,49 +16,33 @@ export const LinkedInStatus = z.enum([
   "DELETED", // Account was deleted
 ])
 
-export type LinkedInStatus = z.infer<typeof LinkedInStatus>
+export type ConnectionStatus = z.infer<typeof ConnectionStatus>
 
-export const linkedinStatus = {
-  connected: new Set(["OK", "RECONNECTED", "CREATION_SUCCESS", "SYNC_SUCCESS"]),
-  reconnect: new Set(["CREDENTIALS", "ERROR", "STOPPED"]),
-  disconnected: new Set(["CREDENTIALS", "ERROR", "STOPPED", "DELETED"]),
-} as const
+export const CONNECTED_STATUSES = new Set<ConnectionStatus>([
+  "OK",
+  "RECONNECTED",
+  "CREATION_SUCCESS",
+  "SYNC_SUCCESS",
+])
+export const RECONNECT_STATUSES = new Set<ConnectionStatus>(["CREDENTIALS", "ERROR", "STOPPED"])
+export const DISCONNECTED_STATUSES = new Set<ConnectionStatus>([...RECONNECT_STATUSES, "DELETED"])
 
 export const isConnected = (status?: string | null): boolean =>
-  status != null && !linkedinStatus.disconnected.has(status)
+  status != null && !DISCONNECTED_STATUSES.has(status as ConnectionStatus)
 
 export const needsReconnection = (status?: string | null): boolean =>
-  status == null || linkedinStatus.reconnect.has(status)
+  status == null || RECONNECT_STATUSES.has(status as ConnectionStatus)
 
-export const LinkedInReaction = z.enum([
-  "like",
-  "celebrate",
-  "love",
-  "insightful",
-  "funny",
-  "support",
-])
+export const ReactionType = z.enum(["like", "celebrate", "love", "insightful", "funny", "support"])
 
-export type LinkedInReaction = z.infer<typeof LinkedInReaction>
-
-export const urlRegex = regex("activity-(\\d+)")
-export const urnRegex = regex("urn:li:activity:(\\d+)")
-
-export const parsePostURN = (url: string): string | null => {
-  const activityId = (urlRegex.exec(url) ?? urnRegex.exec(url))?.[1]
-  if (!activityId) {
-    return null
-  }
-
-  return `urn:li:activity:${activityId}`
-}
+export type ReactionType = z.infer<typeof ReactionType>
 
 type ProfileURL = {
   public_profile_url?: string
   public_identifier: string
 }
 
-export const linkedinProfileURL = ({ public_profile_url, public_identifier }: ProfileURL): string =>
+export const profileURL = ({ public_profile_url, public_identifier }: ProfileURL): string =>
   public_profile_url || `https://www.linkedin.com/in/${public_identifier}`
 
 type ProfileName = {

@@ -5,7 +5,7 @@ import { internalAction } from "@/convex/_generated/server"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { authAction, connectedAction } from "@/convex/_helpers/server"
 import { env } from "@/lib/env.mjs"
-import { linkedinProfileURL } from "@/lib/linkedin"
+import { profileURL } from "@/lib/linkedin"
 import { CONVEX_SITE_URL } from "@/lib/server/convex"
 import { unipile } from "@/lib/server/unipile"
 import { url } from "@/lib/utils"
@@ -35,7 +35,7 @@ export const sync = internalAction({
       firstName: data.first_name,
       lastName: data.last_name,
       picture: data.profile_picture_url,
-      url: linkedinProfileURL(data),
+      url: profileURL(data),
       location: data.location,
       headline: data.headline || "",
     })

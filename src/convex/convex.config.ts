@@ -9,6 +9,8 @@ const app = defineApp()
 
 app.use(aggregate, { name: "podMembers" })
 app.use(aggregate, { name: "podPosts" })
+app.use(aggregate, { name: "userPosts" })
+app.use(aggregate, { name: "userEngagements" })
 app.use(migrations)
 app.use(rateLimiter)
 app.use(resend)

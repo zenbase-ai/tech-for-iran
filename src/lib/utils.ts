@@ -71,6 +71,7 @@ export const chance = (numerator: number, denominator: number) =>
 // =================================================================
 
 export const pluralize = (count: number, word: string) => `${count} ${plur(word, count)}`
+export const plural = (count: number, word: string) => plur(word, count)
 
 export type TruncateOptions = {
   length: number

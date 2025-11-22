@@ -17,3 +17,19 @@ export const podPosts = new TableAggregate<{
 }>(components.podPosts, {
   sortKey: (doc) => [doc.podId, doc._creationTime],
 })
+
+export const userPosts = new TableAggregate<{
+  Key: [string, number]
+  DataModel: DataModel
+  TableName: "posts"
+}>(components.userPosts, {
+  sortKey: (doc) => [doc.userId, doc._creationTime],
+})
+
+export const userEngagements = new TableAggregate<{
+  Key: [string, number]
+  DataModel: DataModel
+  TableName: "engagements"
+}>(components.userEngagements, {
+  sortKey: (doc) => [doc.userId, doc._creationTime],
+})

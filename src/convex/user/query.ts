@@ -2,6 +2,7 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { omit, zip } from "es-toolkit"
 import { authQuery } from "@/convex/_helpers/server"
+import { userEngagements, userPosts } from "@/convex/aggregates"
 import { pflatMap, pmap } from "@/lib/utils"
 
 export const pods = authQuery({
@@ -21,6 +22,20 @@ export const pods = authQuery({
     }))
 
     return { ...memberships, page }
+  },
+})
+
+export const stats = authQuery({
+  args: {},
+  handler: async (ctx) => {
+    const { userId } = ctx
+
+    const [postCount, engagementCount] = await Promise.all([
+      userPosts.count(ctx, { bounds: { prefix: [userId] } }),
+      userEngagements.count(ctx, { bounds: { prefix: [userId] } }),
+    ])
+
+    return { postCount, engagementCount }
   },
 })
 
@@ -53,11 +68,12 @@ export const posts = authQuery({
         return []
       }
 
-      const [pod, stats] = await Promise.all([
+      const [pod, postStats] = await Promise.all([
         ctx.db.get(post.podId),
         ctx.db
           .query("stats")
           .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", post._id))
+          .order("desc")
           .first(),
       ])
 
@@ -68,7 +84,7 @@ export const posts = authQuery({
       return [
         {
           post: omit(post, ["author"]),
-          stats,
+          stats: postStats,
           pod,
         },
       ]

@@ -37,7 +37,6 @@ export const PodMembers: React.FC<PodMembersProps> = ({
   )
   const { isLoading, noResults, canLoadMore } = paginatedState(members)
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(membersPageSize))
-
   const observer = useInfiniteScroll({ loadMore })
 
   return (
@@ -69,7 +68,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
                   key={member.url}
                   profile={member}
                   size="sm"
-                  variant="outline"
+                  variant="muted"
                 />
               ))}
             </ItemGroup>
@@ -83,7 +82,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({
               variant="outline"
             >
               More
-              <LuArrowDown className="size-4" />
+              <LuArrowDown />
             </Button>
           )}
         </VStack>

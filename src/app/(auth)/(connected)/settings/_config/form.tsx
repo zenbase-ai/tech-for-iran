@@ -23,9 +23,11 @@ export type ConfigFormProps = {
 export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
   const { account } = useAuthQuery(api.linkedin.query.getState) ?? {}
 
-  return account == null ? (
-    <Skeleton className={cn("w-full h-29", className)} />
-  ) : (
+  if (account == null) {
+    return <Skeleton className={cn("w-full h-29", className)} />
+  }
+
+  return (
     <ActualConfigForm
       className={className}
       commentPrompt={account.commentPrompt ?? ""}
@@ -101,9 +103,9 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
         )}
       />
 
-      <Button className="w-fit" disabled={isSubmitting} type="submit">
+      <Button className="w-fit" disabled={isSubmitting} type="submit" variant="outline">
         Save
-        {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight className="size-4" />}
+        {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
       </Button>
     </form>
   )

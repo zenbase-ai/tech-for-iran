@@ -64,7 +64,7 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
           variant="outline"
         >
           More
-          <LuArrowDown className="size-4" />
+          <LuArrowDown />
         </Button>
       )}
     </VStack>

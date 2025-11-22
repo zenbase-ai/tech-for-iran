@@ -50,8 +50,8 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
 
   return (
     <AlertDialog open>
-      <AlertDialogContent className="max-w-md">
-        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
@@ -89,11 +89,11 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
             </SignOutButton>
             <AlertDialogAction disabled={isSubmitting} size="default" type="submit">
               Continue
-              {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight className="size-4" />}
+              {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
             </AlertDialogAction>
           </AlertDialogFooter>
-        </form>
-      </AlertDialogContent>
+        </AlertDialogContent>
+      </form>
     </AlertDialog>
   )
 }

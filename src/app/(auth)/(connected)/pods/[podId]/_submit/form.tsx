@@ -36,6 +36,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   const form = useForm({
     resolver: zodResolver(SubmitPost),
     defaultValues: submitPost.defaultValues,
+    disabled: submit.pending,
   })
   const { isSubmitting } = form.formState
 

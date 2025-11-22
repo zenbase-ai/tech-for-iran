@@ -33,7 +33,7 @@ export default function SettingsPage() {
             <LuEraser />
           </Button>
         </DeleteAccountDialog>
-        <SignOutButton>
+        <SignOutButton redirectUrl="/">
           <Button size="sm" variant="ghost">
             Sign Out
             <LuLogOut />

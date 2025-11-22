@@ -8,7 +8,7 @@ export const PageTitle: React.FC<React.ComponentProps<"h1">> = ({ className, ...
 )
 
 export const PageDescription: React.FC<React.ComponentProps<"p">> = ({ className, ...props }) => (
-  <p className={cn("text-muted-foreground", className)} {...props} />
+  <p className={cn("text-muted-foreground text-balance", className)} {...props} />
 )
 
 export const SectionTitle: React.FC<React.ComponentProps<"h2">> = ({ className, ...props }) => (

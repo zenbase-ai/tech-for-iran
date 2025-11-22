@@ -20,28 +20,29 @@ import useAsyncEffect from "@/hooks/use-async-effect"
 import { pluralize } from "@/lib/utils"
 
 export default function ConnectDialogPage() {
-  const inviteCode = useSearchParams().get("inviteCode") ?? ""
   const [countdown, { startCountdown, stopCountdown, resetCountdown }] = useCountdown({
     countStart: 5,
   })
-
-  const generateHostedAuthURL = useAction(api.linkedin.action.generateHostedAuthURL)
-  const connect = useEffectEvent(async () => {
-    const { url } = await generateHostedAuthURL({ inviteCode })
-    window.location.href = url
-  })
-
-  useAsyncEffect(async () => {
-    if (countdown === 0) {
-      await connect()
-    }
-  }, [countdown])
 
   useEffect(() => {
     resetCountdown()
     startCountdown()
     return stopCountdown
   }, [resetCountdown, startCountdown, stopCountdown])
+
+  const inviteCode = useSearchParams().get("inviteCode") ?? ""
+  const generateHostedAuthURL = useAction(api.linkedin.action.generateHostedAuthURL)
+
+  const redirectToHostedAuthURL = useEffectEvent(async () => {
+    const { url } = await generateHostedAuthURL({ inviteCode })
+    window.location.href = url
+  })
+
+  useAsyncEffect(async () => {
+    if (countdown === 0) {
+      await redirectToHostedAuthURL()
+    }
+  }, [countdown])
 
   return (
     <AlertDialog open>
@@ -56,10 +57,15 @@ export default function ConnectDialogPage() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel asChild>
+          <AlertDialogCancel asChild size="sm">
             <Link href="/">Cancel</Link>
           </AlertDialogCancel>
-          <AlertDialogAction autoFocus disabled={countdown <= 1} onClick={connect}>
+          <AlertDialogAction
+            autoFocus
+            disabled={countdown <= 1}
+            onClick={redirectToHostedAuthURL}
+            size="sm"
+          >
             Connect
           </AlertDialogAction>
         </AlertDialogFooter>

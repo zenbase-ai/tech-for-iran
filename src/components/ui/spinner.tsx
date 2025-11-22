@@ -5,19 +5,19 @@ import { cn } from "@/lib/utils"
 
 type SpinnerVariantProps = Omit<SpinnerProps, "variant">
 
-const Default = ({ className, ...props }: SpinnerVariantProps) => (
+const Default: React.FC<SpinnerVariantProps> = ({ className, ...props }) => (
   <LuLoader className={cn("animate-spin", className)} {...props} />
 )
 
-const Circle = ({ className, ...props }: SpinnerVariantProps) => (
+const Circle: React.FC<SpinnerVariantProps> = ({ className, ...props }) => (
   <LuLoaderCircle className={cn("animate-spin", className)} {...props} />
 )
 
-const Pinwheel = ({ className, ...props }: SpinnerVariantProps) => (
+const Pinwheel: React.FC<SpinnerVariantProps> = ({ className, ...props }) => (
   <LuLoaderPinwheel className={cn("animate-spin", className)} {...props} />
 )
 
-const CircleFilled = ({ className, size = 24, ...props }: SpinnerVariantProps) => (
+const CircleFilled: React.FC<SpinnerVariantProps> = ({ className, size = 24, ...props }) => (
   <Box className="relative" style={{ width: size, height: size }}>
     <Box className="absolute inset-0 rotate-180">
       <LuLoaderCircle
@@ -30,7 +30,7 @@ const CircleFilled = ({ className, size = 24, ...props }: SpinnerVariantProps) =
   </Box>
 )
 
-const Ellipsis = ({ size = 24, ...props }: SpinnerVariantProps) => (
+const Ellipsis: React.FC<SpinnerVariantProps> = ({ size = 24, ...props }) => (
   <svg height={size} viewBox="0 0 24 24" width={size} xmlns="http://www.w3.org/2000/svg" {...props}>
     <title>Loading...</title>
     <circle cx="4" cy="12" fill="currentColor" r="2">
@@ -68,7 +68,7 @@ const Ellipsis = ({ size = 24, ...props }: SpinnerVariantProps) => (
   </svg>
 )
 
-const Ring = ({ size = 24, ...props }: SpinnerVariantProps) => (
+const Ring: React.FC<SpinnerVariantProps> = ({ size = 24, ...props }) => (
   <svg
     height={size}
     stroke="currentColor"
@@ -127,7 +127,7 @@ const Ring = ({ size = 24, ...props }: SpinnerVariantProps) => (
   </svg>
 )
 
-const Bars = ({ size = 24, ...props }: SpinnerVariantProps) => (
+const Bars: React.FC<SpinnerVariantProps> = ({ size = 24, ...props }) => (
   <svg height={size} viewBox="0 0 24 24" width={size} xmlns="http://www.w3.org/2000/svg" {...props}>
     <title>Loading...</title>
     <style>{`
@@ -173,7 +173,7 @@ const Bars = ({ size = 24, ...props }: SpinnerVariantProps) => (
   </svg>
 )
 
-const Infinite = ({ size = 24, ...props }: SpinnerVariantProps) => (
+const Infinite: React.FC<SpinnerVariantProps> = ({ size = 24, ...props }) => (
   <svg
     height={size}
     preserveAspectRatio="xMidYMid"

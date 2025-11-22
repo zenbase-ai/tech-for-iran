@@ -58,8 +58,8 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
   return (
     <AlertDialog onOpenChange={setOpen} open={isOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>Your fellow alumni are counting on you!</AlertDialogDescription>
@@ -111,8 +111,8 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
               {deleteAccount.pending ? <Spinner variant="ellipsis" /> : <LuEraser />}
             </AlertDialogAction>
           </AlertDialogFooter>
-        </form>
-      </AlertDialogContent>
+        </AlertDialogContent>
+      </form>
     </AlertDialog>
   )
 }

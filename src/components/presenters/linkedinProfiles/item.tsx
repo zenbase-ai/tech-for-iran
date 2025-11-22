@@ -39,9 +39,7 @@ export const LinkedinProfileItem: React.FC<React.PropsWithChildren<LinkedinProfi
         >
           {fullName(profile)}
         </ItemTitle>
-        {description && (
-          <ItemDescription className="-text-balance line-clamp-1">{description}</ItemDescription>
-        )}
+        {description && <ItemDescription>{description}</ItemDescription>}
       </a>
     </ItemContent>
     {children}

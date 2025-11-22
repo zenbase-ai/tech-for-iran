@@ -30,7 +30,8 @@ export const Toaster: React.FC<ToasterProps> = ({ className, ...props }) => {
         unstyled: true,
         className: cn(
           "w-full p-3 rounded-full flex flex-row items-center justify-between gap-2",
-          "bg-background/50 backdrop-blur-md border-1 border-muted"
+          "bg-background/50 backdrop-blur-md",
+          "border border-border shadow-md outline-none"
         ),
         classNames: {
           icon: "size-4",

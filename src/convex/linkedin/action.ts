@@ -6,7 +6,7 @@ import { errorMessage } from "@/convex/_helpers/errors"
 import { authAction, connectedAction } from "@/convex/_helpers/server"
 import { env } from "@/lib/env.mjs"
 import { linkedinProfileURL } from "@/lib/linkedin"
-import { convexSiteURL } from "@/lib/server/convex"
+import { CONVEX_SITE_URL } from "@/lib/server/convex"
 import { unipile } from "@/lib/server/unipile"
 import { url } from "@/lib/utils"
 
@@ -81,7 +81,7 @@ export const generateHostedAuthURL = authAction({
           failure_redirect_url: url("/connect", {
             searchParams: { inviteCode, error: "Something went wrong. Please try again." },
           }),
-          notify_url: `${convexSiteURL}/webhooks/unipile`,
+          notify_url: `${CONVEX_SITE_URL}/webhooks/unipile`,
           sync_limit: {
             MESSAGING: {
               chats: 0,

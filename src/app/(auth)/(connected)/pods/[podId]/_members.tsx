@@ -14,8 +14,7 @@ import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
-import pluralize from "@/lib/pluralize"
-import { cn } from "@/lib/utils"
+import { cn, pluralize } from "@/lib/utils"
 import type { PodId } from "./_types"
 
 export type PodMembersProps = {

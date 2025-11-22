@@ -2,7 +2,7 @@ import { Column, Link, Row, Section, Text } from "@react-email/components"
 import { RelativeTime } from "@/components/ui/relative-time"
 import type { Doc } from "@/convex/_generated/dataModel"
 import useTruncated from "@/hooks/use-truncated"
-import pluralize from "@/lib/pluralize"
+import { pluralize } from "@/lib/utils"
 import EmailLayout from "./layout"
 
 export type PostEngagementEmailProps = {

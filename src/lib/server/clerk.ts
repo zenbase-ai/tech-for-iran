@@ -10,11 +10,11 @@ export class ClerkError extends Error {
 export const clerkAuth = async () => {
   const a = await auth()
   if (!a.isAuthenticated) {
-    throw new ClerkError("!Authenticated", { cause: a })
+    throw new ClerkError("!isAuthenticated", { cause: a })
   }
   const token = await a.getToken({ template: "convex" })
   if (!token) {
-    throw new ClerkError("!AuthToken", { cause: a })
+    throw new ClerkError("!authToken", { cause: a })
   }
   return { ...a, token }
 }

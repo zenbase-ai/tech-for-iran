@@ -5,7 +5,7 @@ import { pick } from "es-toolkit"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
-import { pflatMap } from "@/lib/parallel"
+import { pflatMap } from "@/lib/utils"
 
 export const lookup = authQuery({
   args: {

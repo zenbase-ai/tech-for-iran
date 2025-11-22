@@ -38,7 +38,7 @@ export const errorMessage = (error: unknown): string => {
     return error.data ?? errorMessage(error)
   }
   if (error instanceof Error) {
-    return error.message
+    return `${error.name}: ${error.message}`
   }
   return String(error)
 }

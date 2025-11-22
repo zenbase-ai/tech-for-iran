@@ -7,7 +7,7 @@ import { errorMessage } from "@/convex/_helpers/errors"
 import { connectedMemberAction } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
 import { linkedinProfileURL } from "@/lib/linkedin"
-import pluralize from "@/lib/pluralize"
+import { pluralize } from "@/lib/utils"
 
 type Submit = { postId: Id<"posts">; success: string } | { postId: null; error: string }
 

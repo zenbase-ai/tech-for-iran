@@ -12,3 +12,29 @@ export const getAll = internalQuery({
       .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", postId))
       .collect(),
 })
+
+export const first = internalQuery({
+  args: {
+    userId: v.string(),
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, { userId, postId }) =>
+    await ctx.db
+      .query("stats")
+      .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", postId))
+      .order("asc")
+      .first(),
+})
+
+export const last = internalQuery({
+  args: {
+    userId: v.string(),
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, { userId, postId }) =>
+    await ctx.db
+      .query("stats")
+      .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", postId))
+      .order("desc")
+      .first(),
+})

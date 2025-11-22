@@ -34,7 +34,9 @@ export const LinkedinProfileItem: React.FC<React.PropsWithChildren<LinkedinProfi
     </ItemMedia>
     <ItemContent className="gap-0">
       <a href={profile.url} rel="noopener noreferrer" target="_blank">
-        <ItemTitle className={cn(fancy && "text-lg font-bold font-serif italic -mt-1")}>
+        <ItemTitle
+          className={cn("line-clamp-1", fancy && "text-lg font-bold font-serif italic -mt-1")}
+        >
           {fullName(profile)}
         </ItemTitle>
         {description && (

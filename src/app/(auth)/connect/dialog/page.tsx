@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { api } from "@/convex/_generated/api"
 import useAsyncEffect from "@/hooks/use-async-effect"
-import pluralize from "@/lib/pluralize"
+import { pluralize } from "@/lib/utils"
 
 export default function ConnectDialogPage() {
   const inviteCode = useSearchParams().get("inviteCode") ?? ""

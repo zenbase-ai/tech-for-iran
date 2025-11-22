@@ -3,7 +3,7 @@ import { getManyFrom } from "convex-helpers/server/relationships"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
 import { internalMutation } from "@/convex/_helpers/server"
-import { pmap } from "@/lib/parallel"
+import { pmap } from "@/lib/utils"
 
 export const deleteUser = internalAction({
   args: {

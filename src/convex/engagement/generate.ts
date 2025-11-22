@@ -6,8 +6,8 @@ import { v } from "convex/values"
 import { randomInt, sample as randomSample } from "es-toolkit"
 import { internalAction } from "@/convex/_generated/server"
 import { LinkedInReaction } from "@/lib/linkedin"
-import { chance } from "@/lib/random"
 import { openai } from "@/lib/server/openai"
+import { chance } from "@/lib/utils"
 
 export const sample = internalAction({
   args: {

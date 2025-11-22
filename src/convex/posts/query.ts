@@ -5,7 +5,7 @@ import type { Doc } from "@/convex/_generated/dataModel"
 import { internalQuery } from "@/convex/_generated/server"
 import { BadRequestError, NotFoundError } from "@/convex/_helpers/errors"
 import { memberQuery } from "@/convex/_helpers/server"
-import { pmap } from "@/lib/parallel"
+import { pmap } from "@/lib/utils"
 
 type Latest = Array<{
   post: Pick<Doc<"posts">, "url" | "_creationTime">

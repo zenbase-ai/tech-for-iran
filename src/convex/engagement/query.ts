@@ -4,7 +4,7 @@ import * as z from "zod"
 import { internalQuery } from "@/convex/_generated/server"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { isConnected } from "@/lib/linkedin"
-import { pflatMap } from "@/lib/parallel"
+import { pflatMap } from "@/lib/utils"
 
 export const AvailableMember = z.object({
   account: z.object({

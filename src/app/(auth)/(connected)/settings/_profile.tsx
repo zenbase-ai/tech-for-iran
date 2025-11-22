@@ -1,15 +1,20 @@
 "use client"
 
+import { useAction } from "convex/react"
+import { LuRefreshCcw } from "react-icons/lu"
 import { LinkedinProfileItem } from "@/components/presenters/linkedinProfiles/item"
+import { Button } from "@/components/ui/button"
 import { ItemActions } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
+import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import { SyncButton } from "./_sync"
 
-export const LinkedinProfile: React.FC<{ className?: string }> = ({ className }) => {
+export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) => {
   const { profile } = useAuthQuery(api.linkedin.query.getState) ?? {}
+  const sync = useAsyncFn(useAction(api.linkedin.action.syncOwn))
 
   if (profile == null) {
     return <Skeleton className={cn("w-full h-24", className)} />
@@ -23,7 +28,15 @@ export const LinkedinProfile: React.FC<{ className?: string }> = ({ className })
       profile={profile}
     >
       <ItemActions>
-        <SyncButton size="icon" variant="outline" />
+        <Button
+          disabled={sync.pending}
+          onClick={() => sync.execute()}
+          size="icon"
+          type="button"
+          variant="outline"
+        >
+          {sync.pending ? <Spinner variant="ellipsis" /> : <LuRefreshCcw className="size-3" />}
+        </Button>
       </ItemActions>
     </LinkedinProfileItem>
   )

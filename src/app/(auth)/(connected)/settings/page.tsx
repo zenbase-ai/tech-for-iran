@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ConfigForm } from "./_config/form"
 import { DeleteAccountDialog } from "./_delete"
-import { LinkedinProfile } from "./_profile"
+import { ProfileHeader } from "./_profile"
 
 export const metadata: Metadata = {
   title: "Settings | Crackedbook",
@@ -18,7 +18,7 @@ export default function SettingsPage() {
 
   return (
     <VStack as="main" className="px-2 w-full max-w-[640px] mx-auto gap-8 md:gap-12">
-      <LinkedinProfile />
+      <ProfileHeader />
 
       <ConfigForm />
 

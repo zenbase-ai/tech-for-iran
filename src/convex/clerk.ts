@@ -6,18 +6,18 @@ import { internalAction } from "@/convex/_generated/server"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { env } from "@/lib/env.mjs"
 
-const clerk = createClerkClient({
+export const clerk = createClerkClient({
   secretKey: env.CLERK_SECRET_KEY,
 })
 
-export const getUser = internalAction({
+export const fetchUser = internalAction({
   args: {
     userId: v.string(),
   },
   handler: async (_ctx, { userId }) => await clerk.users.getUser(userId),
 })
 
-export const getUserEmail = internalAction({
+export const fetchUserEmail = internalAction({
   args: {
     userId: v.string(),
   },
@@ -29,4 +29,11 @@ export const getUserEmail = internalAction({
     }
     return email
   },
+})
+
+export const deleteUser = internalAction({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (_ctx, { userId }) => await clerk.users.deleteUser(userId),
 })

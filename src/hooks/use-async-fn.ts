@@ -8,6 +8,7 @@ export type AsyncFn<TArgs extends unknown[], TData extends Record<string, unknow
 ) => Promise<TData>
 
 export type UseAsyncFnOptions<TData extends Record<string, unknown>> = {
+  onStart?: () => void
   onSuccess?: (data: TData) => void
   onError?: (error: Error) => void
 }
@@ -41,6 +42,7 @@ export default function useAsyncFn<TArgs extends unknown[], TData extends Record
     })
 
     try {
+      options.onStart?.()
       const result = await fn(...args)
       startTransition(() => {
         if (isMounted) {

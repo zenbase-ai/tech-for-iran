@@ -29,7 +29,7 @@ export const reconnectAccount = internalAction({
         return { error: "!userId" }
       }
 
-      const userEmail = await ctx.runAction(internal.clerk.query.getUserEmail, { userId })
+      const userEmail = await ctx.runAction(internal.clerk.fetchUserEmail, { userId })
 
       await resend.sendEmail(
         ctx,
@@ -56,7 +56,7 @@ export const postEngagement = internalAction({
   handler: async (ctx, { userId, postId }) => {
     try {
       const [userEmail, post, t1, t2] = await Promise.all([
-        ctx.runAction(internal.clerk.query.getUserEmail, { userId }),
+        ctx.runAction(internal.clerk.fetchUserEmail, { userId }),
         ctx.runQuery(internal.posts.query.get, { postId }),
         ctx.runQuery(internal.stats.query.first, { userId, postId }),
         ctx.runQuery(internal.stats.query.last, { userId, postId }),

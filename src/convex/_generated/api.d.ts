@@ -14,7 +14,7 @@ import type * as admin_aggregates from "../admin/aggregates.js";
 import type * as admin_moderation from "../admin/moderation.js";
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as clerk_query from "../clerk/query.js";
+import type * as clerk from "../clerk.js";
 import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
 import type * as engagement_generate from "../engagement/generate.js";
@@ -56,7 +56,7 @@ declare const fullApi: ApiFromModules<{
   "admin/moderation": typeof admin_moderation;
   aggregates: typeof aggregates;
   auth: typeof auth;
-  "clerk/query": typeof clerk_query;
+  clerk: typeof clerk;
   crons: typeof crons;
   emails: typeof emails;
   "engagement/generate": typeof engagement_generate;

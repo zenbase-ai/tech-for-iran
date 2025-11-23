@@ -1,5 +1,7 @@
+"use client"
+
 import type React from "react"
-import type { IconType } from "react-icons/lib"
+import type { IconBaseProps } from "react-icons/lib"
 import { LuEye, LuMessageCircle, LuRepeat, LuThumbsUp } from "react-icons/lu"
 import { HStack, type StackProps } from "@/components/layout/stack"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
@@ -18,7 +20,7 @@ export type PostStatsProps = StackProps & {
 export const PostStats: React.FC<PostStatsProps> = ({ podId, postId, className, ...props }) => {
   const stats = useAuthQuery(api.posts.query.stats, { podId, postId })
   if (stats == null) {
-    return <Skeleton className={cn("w-full h-8", className)} />
+    return <Skeleton className={cn("w-full h-14", className)} />
   }
 
   const [first, last] = stats
@@ -27,11 +29,11 @@ export const PostStats: React.FC<PostStatsProps> = ({ podId, postId, className, 
   }
 
   return (
-    <HStack className={cn("gap-3", className)} {...props}>
-      <StatBadge field="reactionCount" first={first} icon={LuThumbsUp} last={last} />
-      <StatBadge field="commentCount" first={first} icon={LuMessageCircle} last={last} />
-      <StatBadge field="repostCount" first={first} icon={LuRepeat} last={last} />
-      <StatBadge field="impressionCount" first={first} icon={LuEye} last={last} />
+    <HStack className={cn("gap-3", className)} items="center" wrap {...props}>
+      <StatBadge field="reactionCount" first={first} last={last} />
+      <StatBadge field="commentCount" first={first} last={last} />
+      <StatBadge field="repostCount" first={first} last={last} />
+      <StatBadge field="impressionCount" first={first} last={last} />
     </HStack>
   )
 }
@@ -40,11 +42,10 @@ type StatBadgeProps = BadgeProps & {
   field: "reactionCount" | "commentCount" | "repostCount" | "impressionCount"
   first: Doc<"stats">
   last: Doc<"stats">
-  icon: IconType
 }
 
-const StatBadge: React.FC<StatBadgeProps> = ({ field, first, last, icon: Icon, ...props }) =>
-  last[field] !== 0 && (
+const StatBadge: React.FC<StatBadgeProps> = ({ field, first, last, ...props }) =>
+  last[field] === 0 ? null : (
     <Badge size="sm" variant="ghost" {...props}>
       <span className="inline-flex gap-0.5">
         <NumberTicker className="text-muted-foreground" value={first[field]} />
@@ -54,6 +55,21 @@ const StatBadge: React.FC<StatBadgeProps> = ({ field, first, last, icon: Icon, .
           </>
         )}
       </span>
-      <Icon className="text-muted-foreground" />
+      <StatBadgeIcon className="text-muted-foreground" field={field} />
     </Badge>
   )
+
+type StatBadgeIcon = IconBaseProps & Pick<StatBadgeProps, "field">
+
+const StatBadgeIcon: React.FC<StatBadgeIcon> = ({ field, ...props }) => {
+  switch (field) {
+    case "reactionCount":
+      return <LuThumbsUp {...props} />
+    case "commentCount":
+      return <LuMessageCircle {...props} />
+    case "repostCount":
+      return <LuRepeat {...props} />
+    case "impressionCount":
+      return <LuEye {...props} />
+  }
+}

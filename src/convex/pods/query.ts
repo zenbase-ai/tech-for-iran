@@ -51,7 +51,7 @@ export const members = memberQuery({
         {
           userId,
           joinedAt: _creationTime,
-          ...pick(profile, ["firstName", "lastName", "picture", "url"]),
+          profile: pick(profile, ["firstName", "lastName", "picture", "headline", "url"]),
         },
       ]
     })

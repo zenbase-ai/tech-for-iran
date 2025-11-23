@@ -64,9 +64,9 @@ export const PodMembers: React.FC<PodMembersProps> = ({
             <ItemGroup className="contents">
               {members.results.map((member) => (
                 <LinkedinProfileItem
-                  description={`Joined ${new Date(member.joinedAt).toLocaleDateString()}`}
-                  key={member.url}
-                  profile={member}
+                  description={member.profile.headline}
+                  key={member.profile.url}
+                  profile={member.profile}
                   size="sm"
                   variant="muted"
                 />

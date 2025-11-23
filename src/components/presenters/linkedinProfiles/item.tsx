@@ -32,14 +32,14 @@ export const LinkedinProfileItem: React.FC<React.PropsWithChildren<LinkedinProfi
     <ItemMedia>
       <LinkedInProfileAvatar className={cn(fancy && "size-12")} profile={profile} />
     </ItemMedia>
-    <ItemContent className="gap-0">
+    <ItemContent>
       <a href={profile.url} rel="noopener noreferrer" target="_blank">
         <ItemTitle
           className={cn("line-clamp-1", fancy && "text-lg font-bold font-serif italic -mt-1")}
         >
           {fullName(profile)}
         </ItemTitle>
-        {description && <ItemDescription>{description}</ItemDescription>}
+        {description && <ItemDescription className="leading-[1.15]">{description}</ItemDescription>}
       </a>
     </ItemContent>
     {children}

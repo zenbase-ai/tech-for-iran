@@ -62,12 +62,9 @@ export const stats = memberQuery({
     podId: v.id("pods"),
     postId: v.id("posts"),
   },
-  handler: async (ctx, { postId }): Promise<[Doc<"stats"> | null, Doc<"stats"> | null]> => {
-    const { userId } = ctx
-    const [first, last] = await Promise.all([
-      ctx.runQuery(internal.stats.query.first, { userId, postId }),
-      ctx.runQuery(internal.stats.query.last, { userId, postId }),
-    ])
-    return [first, last]
-  },
+  handler: async (ctx, { postId }): Promise<[Doc<"stats"> | null, Doc<"stats"> | null]> =>
+    await Promise.all([
+      ctx.runQuery(internal.stats.query.first, { postId }),
+      ctx.runQuery(internal.stats.query.last, { postId }),
+    ]),
 })

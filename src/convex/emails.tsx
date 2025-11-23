@@ -55,16 +55,16 @@ export const postEngagement = internalAction({
   },
   handler: async (ctx, { userId, postId }) => {
     try {
-      const [userEmail, post, t1, t2] = await Promise.all([
+      const [userEmail, post, first, last] = await Promise.all([
         ctx.runAction(internal.clerk.fetchUserEmail, { userId }),
         ctx.runQuery(internal.posts.query.get, { postId }),
-        ctx.runQuery(internal.stats.query.first, { userId, postId }),
-        ctx.runQuery(internal.stats.query.last, { userId, postId }),
+        ctx.runQuery(internal.stats.query.first, { postId }),
+        ctx.runQuery(internal.stats.query.last, { postId }),
       ])
 
-      if (!(t1 && t2) || t1._id === t2._id) {
-        console.warn("emails:postEngagement", { userId, postId, t1, t2 })
-        return { error: "!t1 || !t2 || t1._id === t2._id" }
+      if (!(first && last) || first._id === last._id) {
+        console.warn("emails:postEngagement", { userId, postId, first, last })
+        return { error: "!first || !last || first._id === last._id" }
       }
 
       await resend.sendEmail(
@@ -72,7 +72,7 @@ export const postEngagement = internalAction({
         await createEmail({
           subject: "Your boosted post's stats are in!",
           to: userEmail,
-          body: <PostEngagementEmail post={post} t1={t1} t2={t2} />,
+          body: <PostEngagementEmail post={post} t1={first} t2={last} />,
         })
       )
 

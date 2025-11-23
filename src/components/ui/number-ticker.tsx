@@ -53,7 +53,7 @@ export const NumberTicker: React.FC<NumberTickerProps> = ({
   )
 
   return (
-    <span className={cn("inline-block tabular-nums", className)} ref={ref} {...props}>
+    <span className={cn("inline-block", className)} ref={ref} {...props}>
       {startValue}
     </span>
   )

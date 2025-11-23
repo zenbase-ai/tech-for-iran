@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react"
 import Link from "next/link"
-import { LuHouse, LuMessageCircle, LuSettings, LuThumbsUp } from "react-icons/lu"
+import { LuHouse, LuSettings, LuThumbsUp } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -50,11 +50,10 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
       <Separator className="h-5!" orientation="vertical" />
 
       <HStack className="gap-1 mr-1" items="center">
-        <Badge size="sm" variant="ghost">
+        {/* <Badge size="sm" variant="ghost">
           <NumberTicker value={stats?.postCount ?? 0} />
           <LuMessageCircle className="text-muted-foreground" />
-        </Badge>
-
+        </Badge> */}
         <Badge size="sm" variant="ghost">
           <NumberTicker value={stats?.engagementCount ?? 0} />
           <LuThumbsUp className="text-muted-foreground" />

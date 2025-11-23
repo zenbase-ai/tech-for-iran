@@ -12,7 +12,7 @@ import { ProfileAvatar } from "./avatar"
 
 export type ProfileItemProps = ItemProps & {
   fancy?: boolean
-  description?: string
+  description?: React.ReactNode
   profile: {
     firstName: string
     lastName: string
@@ -26,16 +26,20 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
   children,
   profile,
   description,
+  className,
   ...props
 }) => (
-  <Item {...props}>
+  <Item className={cn("items-start", className)} {...props}>
     <ItemMedia>
       <ProfileAvatar className={cn(fancy && "size-12")} profile={profile} />
     </ItemMedia>
     <ItemContent>
       <a href={profile.url} rel="noopener noreferrer" target="_blank">
         <ItemTitle
-          className={cn("line-clamp-1", fancy && "text-lg font-bold font-serif italic -mt-1")}
+          className={cn(
+            "-mt-0.5 line-clamp-1",
+            fancy && "text-lg font-bold font-serif italic -mt-1"
+          )}
         >
           {fullName(profile)}
         </ItemTitle>

@@ -1,23 +1,19 @@
 import { v } from "convex/values"
 import { getOneFrom } from "convex-helpers/server/relationships"
 import { pick, zip } from "es-toolkit"
+import { internal } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { internalQuery } from "@/convex/_generated/server"
 import { BadRequestError, NotFoundError } from "@/convex/_helpers/errors"
 import { memberQuery } from "@/convex/_helpers/server"
 import { pmap } from "@/lib/utils"
 
-type Latest = Array<{
-  post: Pick<Doc<"posts">, "url" | "_creationTime">
-  profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
-}>
-
 export const latest = memberQuery({
   args: {
     podId: v.id("pods"),
     take: v.number(),
   },
-  handler: async (ctx, { podId, take }): Promise<Latest> => {
+  handler: async (ctx, { podId, take }) => {
     if (take <= 0 || 10 < take) {
       throw new BadRequestError("Invalid take value, must be between 1 and 10.")
     }
@@ -39,8 +35,8 @@ export const latest = memberQuery({
 
       return [
         {
-          post: pick(post, ["url", "_creationTime"]),
-          profile: pick(profile, ["firstName", "lastName", "picture", "url"]),
+          post: pick(post, ["_id", "podId", "url", "text", "_creationTime"]),
+          profile: pick(profile, ["firstName", "lastName", "picture", "url", "headline"]),
         },
       ]
     })
@@ -58,5 +54,20 @@ export const get = internalQuery({
     }
 
     return post
+  },
+})
+
+export const stats = memberQuery({
+  args: {
+    podId: v.id("pods"),
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, { postId }): Promise<[Doc<"stats"> | null, Doc<"stats"> | null]> => {
+    const { userId } = ctx
+    const [first, last] = await Promise.all([
+      ctx.runQuery(internal.stats.query.first, { userId, postId }),
+      ctx.runQuery(internal.stats.query.last, { userId, postId }),
+    ])
+    return [first, last]
   },
 })

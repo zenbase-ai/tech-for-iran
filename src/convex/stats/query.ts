@@ -1,4 +1,5 @@
 import { v } from "convex/values"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { internalQuery } from "@/convex/_generated/server"
 
 export const getAll = internalQuery({
@@ -6,7 +7,7 @@ export const getAll = internalQuery({
     userId: v.string(),
     postId: v.id("posts"),
   },
-  handler: async (ctx, { userId, postId }) =>
+  handler: async (ctx, { userId, postId }): Promise<Doc<"stats">[]> =>
     await ctx.db
       .query("stats")
       .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", postId))
@@ -18,7 +19,7 @@ export const first = internalQuery({
     userId: v.string(),
     postId: v.id("posts"),
   },
-  handler: async (ctx, { userId, postId }) =>
+  handler: async (ctx, { userId, postId }): Promise<Doc<"stats"> | null> =>
     await ctx.db
       .query("stats")
       .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", postId))
@@ -31,7 +32,7 @@ export const last = internalQuery({
     userId: v.string(),
     postId: v.id("posts"),
   },
-  handler: async (ctx, { userId, postId }) =>
+  handler: async (ctx, { userId, postId }): Promise<Doc<"stats"> | null> =>
     await ctx.db
       .query("stats")
       .withIndex("by_userId", (q) => q.eq("userId", userId).eq("postId", postId))

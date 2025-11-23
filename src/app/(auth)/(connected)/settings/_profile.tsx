@@ -2,7 +2,7 @@
 
 import { useAction } from "convex/react"
 import { LuRefreshCcw } from "react-icons/lu"
-import { LinkedinProfileItem } from "@/components/presenters/linkedinProfiles/item"
+import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
 import { ItemActions } from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,7 +22,7 @@ export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) =
   }
 
   return (
-    <LinkedinProfileItem
+    <ProfileItem
       className={cn("p-0", className)}
       description={profile.headline}
       fancy
@@ -44,6 +44,6 @@ export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) =
           <TooltipContent>Sync profile</TooltipContent>
         </Tooltip>
       </ItemActions>
-    </LinkedinProfileItem>
+    </ProfileItem>
   )
 }

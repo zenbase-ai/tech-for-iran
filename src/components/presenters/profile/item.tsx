@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/item"
 import { fullName } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
-import { LinkedInProfileAvatar } from "./avatar"
+import { ProfileAvatar } from "./avatar"
 
-export type LinkedinProfileItemProps = ItemProps & {
+export type ProfileItemProps = ItemProps & {
   fancy?: boolean
   description?: string
   profile: {
@@ -21,7 +21,7 @@ export type LinkedinProfileItemProps = ItemProps & {
   }
 }
 
-export const LinkedinProfileItem: React.FC<React.PropsWithChildren<LinkedinProfileItemProps>> = ({
+export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = ({
   fancy,
   children,
   profile,
@@ -30,7 +30,7 @@ export const LinkedinProfileItem: React.FC<React.PropsWithChildren<LinkedinProfi
 }) => (
   <Item {...props}>
     <ItemMedia>
-      <LinkedInProfileAvatar className={cn(fancy && "size-12")} profile={profile} />
+      <ProfileAvatar className={cn(fancy && "size-12")} profile={profile} />
     </ItemMedia>
     <ItemContent>
       <a href={profile.url} rel="noopener noreferrer" target="_blank">
@@ -39,7 +39,9 @@ export const LinkedinProfileItem: React.FC<React.PropsWithChildren<LinkedinProfi
         >
           {fullName(profile)}
         </ItemTitle>
-        {description && <ItemDescription className="leading-[1.15]">{description}</ItemDescription>}
+        {description && (
+          <ItemDescription className="leading-[1.15] text-xs">{description}</ItemDescription>
+        )}
       </a>
     </ItemContent>
     {children}

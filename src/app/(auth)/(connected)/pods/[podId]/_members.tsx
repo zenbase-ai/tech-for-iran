@@ -5,7 +5,7 @@ import { LuArrowDown, LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
-import { LinkedinProfileItem } from "@/components/presenters/linkedinProfiles/item"
+import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
@@ -63,12 +63,12 @@ export const PodMembers: React.FC<PodMembersProps> = ({
           <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ItemGroup className="contents">
               {members.results.map((member) => (
-                <LinkedinProfileItem
+                <ProfileItem
                   description={member.profile.headline}
                   key={member.profile.url}
                   profile={member.profile}
                   size="sm"
-                  variant="muted"
+                  variant="outline"
                 />
               ))}
             </ItemGroup>

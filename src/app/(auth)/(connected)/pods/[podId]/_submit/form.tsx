@@ -6,7 +6,7 @@ import { capitalize } from "es-toolkit/string"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
-import { Stack } from "@/components/layout/stack"
+import { Stack, VStack } from "@/components/layout/stack"
 import {
   Field,
   FieldError,
@@ -45,41 +45,39 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   const { isSubmitting } = form.formState
 
   return (
-    <form
-      className={cn("w-full flex flex-col gap-6", className)}
-      onSubmit={form.handleSubmit(onSubmit)}
-    >
-      {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+    <form className={cn("w-full", className)} onSubmit={form.handleSubmit(onSubmit)}>
+      <VStack className="w-full gap-4">
+        {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
-      <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
-        <Controller
-          control={form.control}
-          name="url"
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <Input
-                {...field}
-                aria-invalid={fieldState.invalid}
-                autoFocus
-                className="h-9 sm:h-11"
-                disabled={isSubmitting}
-                id={field.name}
-                placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
-                type="url"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
+          <Controller
+            control={form.control}
+            name="url"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <Input
+                  {...field}
+                  aria-invalid={fieldState.invalid}
+                  autoFocus
+                  className="h-9 sm:h-11"
+                  disabled={isSubmitting}
+                  id={field.name}
+                  placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                  type="url"
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
 
-        <Box className="max-w-fit">
-          <HoverButton disabled={isSubmitting} type="submit">
-            Submit
-          </HoverButton>
-        </Box>
-      </Stack>
+          <Box className="max-w-fit">
+            <HoverButton disabled={isSubmitting} type="submit">
+              Submit
+            </HoverButton>
+          </Box>
+        </Stack>
 
-      {/* <Controller
+        {/* <Controller
         control={form.control}
         name="comments"
         render={({ field, fieldState }) => (
@@ -103,43 +101,44 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
         )}
       /> */}
 
-      <Controller
-        control={form.control}
-        name="reactionTypes"
-        render={({ field, fieldState }) => (
-          <FieldSet className="w-fit" data-invalid={fieldState.invalid}>
-            <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
-            <FieldGroup className="grid grid-cols-2 gap-2" data-slot="checkbox-group">
-              {submitPost.options.reactionTypes.map((reaction) => (
-                <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
-                  <Switch
-                    aria-invalid={fieldState.invalid}
-                    checked={field.value.includes(reaction)}
-                    disabled={isSubmitting}
-                    id={`reaction-${reaction}`}
-                    name={field.name}
-                    onCheckedChange={(checked) => {
-                      const newValue = checked
-                        ? [...field.value, reaction]
-                        : field.value.filter((value) => value !== reaction)
-                      field.onChange(newValue)
-                    }}
-                  />
-                  <FieldLabel
-                    className={cn(
-                      !field.value.includes(reaction) && "line-through text-muted-foreground"
-                    )}
-                    htmlFor={`reaction-${reaction}`}
-                  >
-                    {capitalize(reaction)}
-                  </FieldLabel>
-                </Field>
-              ))}
-            </FieldGroup>
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </FieldSet>
-        )}
-      />
+        <Controller
+          control={form.control}
+          name="reactionTypes"
+          render={({ field, fieldState }) => (
+            <FieldSet className="w-fit" data-invalid={fieldState.invalid}>
+              <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
+              <FieldGroup className="grid grid-cols-2 gap-2" data-slot="checkbox-group">
+                {submitPost.options.reactionTypes.map((reaction) => (
+                  <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
+                    <Switch
+                      aria-invalid={fieldState.invalid}
+                      checked={field.value.includes(reaction)}
+                      disabled={isSubmitting}
+                      id={`reaction-${reaction}`}
+                      name={field.name}
+                      onCheckedChange={(checked) => {
+                        const newValue = checked
+                          ? [...field.value, reaction]
+                          : field.value.filter((value) => value !== reaction)
+                        field.onChange(newValue)
+                      }}
+                    />
+                    <FieldLabel
+                      className={cn(
+                        !field.value.includes(reaction) && "line-through text-muted-foreground"
+                      )}
+                      htmlFor={`reaction-${reaction}`}
+                    >
+                      {capitalize(reaction)}
+                    </FieldLabel>
+                  </Field>
+                ))}
+              </FieldGroup>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </FieldSet>
+          )}
+        />
+      </VStack>
     </form>
   )
 }

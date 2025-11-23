@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api"
 import { clerkAuth } from "@/lib/server/clerk"
 import { PodHeader } from "./_header"
 import { PodMembers } from "./_members"
-import { PodPostsToasts } from "./_toasts"
+import { PodPosts } from "./_posts"
 import type { PodId } from "./_types"
 
 export type PodPageProps = {
@@ -28,14 +28,16 @@ export default async function PodPage(props: PodPageProps) {
   const { podId } = await props.params
 
   return (
-    <VStack className="w-full px-4 max-w-[640px] mx-auto gap-6" items="center">
-      <PodPostsToasts podId={podId} />
+    <VStack className="w-full px-4 max-w-[640px] mx-auto gap-8 md:gap-12 lg:gap-16" items="center">
+      <VStack className="w-full gap-4">
+        <PodHeader podId={podId} />
 
-      <PodHeader podId={podId} />
+        <SubmitPostForm podId={podId} />
+      </VStack>
 
-      <SubmitPostForm podId={podId} />
+      <PodPosts podId={podId} />
 
-      <PodMembers className="my-16" podId={podId} />
+      <PodMembers podId={podId} />
     </VStack>
   )
 }

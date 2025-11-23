@@ -50,7 +50,7 @@ const StatBadge: React.FC<StatBadgeProps> = ({ field, first, last, ...props }) =
   last[field] === 0 ? null : (
     <Badge size="sm" variant="ghost" {...props}>
       <span className="inline-flex gap-0.5">
-        <NumberTicker className="text-muted-foreground" value={first[field]} />
+        <span className="text-muted-foreground">{first[field]}</span>
         {first._id !== last._id && (
           <>
             +<NumberTicker value={last[field] - first[field]} />

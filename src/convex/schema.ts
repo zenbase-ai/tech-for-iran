@@ -44,7 +44,7 @@ const schema = defineSchema({
     userId: v.string(),
     podId: v.id("pods"),
   })
-    .index("by_podId", ["podId", "userId"])
+    .index("by_podId", ["podId"])
     .index("by_userId", ["userId", "podId"]),
 
   // Posts submitted for engagement

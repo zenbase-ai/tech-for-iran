@@ -1,20 +1,18 @@
 "use client"
 
-import { useEffectEvent } from "react"
-import { LuArrowDown, LuUsers } from "react-icons/lu"
+import { LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { ProfileItem } from "@/components/presenters/profile/item"
-import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
+import { NumberTicker } from "@/components/ui/number-ticker"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
-import useInfiniteScroll from "@/hooks/use-infinite-scroll"
-import { cn, pluralize } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import type { PodId } from "./_types"
 
 export type PodMembersProps = {
@@ -26,7 +24,7 @@ export type PodMembersProps = {
 export const PodMembers: React.FC<PodMembersProps> = ({
   podId,
   className,
-  membersPageSize = 8,
+  membersPageSize = 6,
 }) => {
   const stats = useAuthQuery(api.pods.query.stats, { podId })
 
@@ -35,17 +33,17 @@ export const PodMembers: React.FC<PodMembersProps> = ({
     { podId },
     { initialNumItems: membersPageSize }
   )
-  const { isLoading, noResults, canLoadMore } = paginatedState(members)
-  const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(membersPageSize))
-  const observer = useInfiniteScroll({ loadMore })
+  const { isLoading, noResults } = paginatedState(members)
 
   return (
     <VStack className={cn("w-full gap-6", className)}>
-      {stats?.memberCount == null ? (
-        <Skeleton className="w-full h-8" />
-      ) : (
-        <SectionTitle>{pluralize(stats.memberCount, "member")}</SectionTitle>
-      )}
+      <SectionTitle>
+        Newest Members
+        <NumberTicker
+          className="float-right text-muted-foreground"
+          value={stats?.memberCount ?? 0}
+        />
+      </SectionTitle>
 
       {isLoading ? (
         <Skeleton className="w-full h-20" />
@@ -73,18 +71,6 @@ export const PodMembers: React.FC<PodMembersProps> = ({
               ))}
             </ItemGroup>
           </Box>
-          {canLoadMore && (
-            <Button
-              className="max-w-fit"
-              disabled={isLoading}
-              onClick={loadMore}
-              ref={observer.ref}
-              variant="outline"
-            >
-              More
-              <LuArrowDown />
-            </Button>
-          )}
         </VStack>
       )}
     </VStack>

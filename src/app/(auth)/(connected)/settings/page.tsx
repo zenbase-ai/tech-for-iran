@@ -5,7 +5,7 @@ import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ConfigForm } from "./_config/form"
+import { ConfigForm } from "./_config"
 import { DeleteAccountDialog } from "./_delete"
 import { ProfileHeader } from "./_profile"
 

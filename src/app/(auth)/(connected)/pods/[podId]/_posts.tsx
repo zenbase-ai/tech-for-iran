@@ -1,5 +1,6 @@
 "use client"
 
+import { useParams } from "next/navigation"
 import { useEffectEvent } from "react"
 import { LuNewspaper } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
@@ -14,15 +15,15 @@ import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import type { PodId } from "./_types"
+import type { PodPageParams } from "./_types"
 
 export type PodPostsProps = {
-  podId: PodId
   pageSize?: number
   className?: string
 }
 
-export const PodPosts: React.FC<PodPostsProps> = ({ podId, className, pageSize = 3 }) => {
+export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 3 }) => {
+  const { podId } = useParams<PodPageParams>()
   const stats = useAuthQuery(api.pods.query.stats, { podId })
   const posts = useAuthPaginatedQuery(
     api.pods.query.posts,
@@ -33,7 +34,7 @@ export const PodPosts: React.FC<PodPostsProps> = ({ podId, className, pageSize =
   const loadMore = useEffectEvent(() => canLoadMore && posts.loadMore(pageSize))
 
   return (
-    <VStack className={cn("w-full gap-6", className)}>
+    <VStack className={cn("w-full gap-4", className)}>
       <SectionTitle>
         <NumberTicker value={stats?.postCount ?? 0} />
         &nbsp;Posts

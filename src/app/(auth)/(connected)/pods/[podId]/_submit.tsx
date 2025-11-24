@@ -3,10 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAction } from "convex/react"
 import { capitalize } from "es-toolkit/string"
+import { useParams } from "next/navigation"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
 import { Stack, VStack } from "@/components/layout/stack"
+import { SectionTitle } from "@/components/layout/text"
 import {
   Field,
   FieldError,
@@ -21,15 +23,15 @@ import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
-import type { PodId } from "../_types"
-import { SubmitPost, submitPost } from "./schema"
+import { SubmitPost, submitPost } from "@/schemas/submit-post"
+import type { PodPageParams } from "./_types"
 
 export type SubmitPostFormProps = {
-  podId: PodId
   className?: string
 }
 
-export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
+export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ className }) => {
+  const { podId } = useParams<PodPageParams>()
   const form = useForm({
     resolver: zodResolver(SubmitPost),
     defaultValues: submitPost.defaultValues,
@@ -46,6 +48,8 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className
   return (
     <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
       <VStack className="gap-4">
+        <SectionTitle className="hidden lg:block">Boost a post</SectionTitle>
+
         {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
         <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">

@@ -1,3 +1,5 @@
 import type { Id } from "@/convex/_generated/dataModel"
 
-export type PodId = Id<"pods">
+export type PodPageParams = {
+  podId: Id<"pods">
+}

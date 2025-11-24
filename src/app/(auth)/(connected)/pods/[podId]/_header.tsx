@@ -1,5 +1,6 @@
 "use client"
 
+import { useParams } from "next/navigation"
 import { LuSend } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
 import { PageTitle } from "@/components/layout/text"
@@ -9,14 +10,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn, url } from "@/lib/utils"
-import type { PodId } from "./_types"
+import type { PodPageParams } from "./_types"
 
 export type PodHeaderProps = {
-  podId: PodId
   className?: string
 }
 
-export const PodHeader: React.FC<PodHeaderProps> = ({ podId, className }) => {
+export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
+  const { podId } = useParams<PodPageParams>()
   const pod = useAuthQuery(api.pods.query.get, { podId })
 
   if (!pod) {

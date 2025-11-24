@@ -1,8 +1,9 @@
 "use client"
 
+import { useParams } from "next/navigation"
 import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
-import { Box } from "@/components/layout/box"
+import { Grid } from "@/components/layout/grid"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { ProfileItem } from "@/components/presenters/profile/item"
@@ -16,15 +17,15 @@ import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginate
 import useAuthQuery from "@/hooks/use-auth-query"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { cn } from "@/lib/utils"
-import type { PodId } from "./_types"
+import type { PodPageParams } from "./_types"
 
 export type PodMembersProps = {
-  podId: PodId
   className?: string
   pageSize?: number
 }
 
-export const PodMembers: React.FC<PodMembersProps> = ({ podId, className, pageSize = 8 }) => {
+export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 8 }) => {
+  const { podId } = useParams<PodPageParams>()
   const stats = useAuthQuery(api.pods.query.stats, { podId })
 
   const members = useAuthPaginatedQuery(
@@ -37,7 +38,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({ podId, className, pageSi
   const observer = useInfiniteScroll({ loadMore })
 
   return (
-    <VStack className={cn("w-full gap-6", className)}>
+    <VStack className={cn("w-full gap-4", className)}>
       <SectionTitle>
         <NumberTicker value={stats?.memberCount ?? 0} />
         &nbsp;Members
@@ -60,7 +61,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({ podId, className, pageSi
         </Empty>
       ) : (
         <VStack className="gap-3">
-          <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Grid className="sm:grid-cols-2 gap-3">
             <ItemGroup className="contents">
               {members.results.map((member) => (
                 <ProfileItem
@@ -72,7 +73,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({ podId, className, pageSi
                 />
               ))}
             </ItemGroup>
-          </Box>
+          </Grid>
           {canLoadMore && (
             <LoadMoreButton
               isLoading={isLoading}

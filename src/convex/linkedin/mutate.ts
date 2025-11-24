@@ -1,8 +1,8 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
-import { config } from "@/app/(auth)/(connected)/settings/_config/schema"
 import { ConflictError, NotFoundError } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
+import { settingsConfig } from "@/schemas/settings-config"
 
 export const connectOwn = authMutation({
   args: {
@@ -84,7 +84,7 @@ export const upsertAccount = internalMutation({
 
     return await ctx.db.insert(
       "linkedinAccounts",
-      update({ unipileId, status, ...config.defaultValues })
+      update({ unipileId, status, ...settingsConfig.defaultValues })
     )
   },
 })

@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import { Config, config } from "./schema"
+import { SettingsConfig, settingsConfig } from "@/schemas/settings-config"
 
 export type ConfigFormProps = {
   className?: string
@@ -49,7 +49,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
 }) => {
   const configure = useMutation(api.linkedin.mutate.configure)
   const form = useForm({
-    resolver: zodResolver(Config),
+    resolver: zodResolver(SettingsConfig),
     defaultValues: { maxActions, commentPrompt },
   })
   const { isSubmitting } = form.formState
@@ -71,8 +71,8 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
                   aria-invalid={fieldState.invalid}
                   disabled={isSubmitting}
                   id={field.name}
-                  max={config.max.maxActions}
-                  min={config.min.maxActions}
+                  max={settingsConfig.max.maxActions}
+                  min={settingsConfig.min.maxActions}
                   onChange={(e) => field.onChange(e.target.valueAsNumber)}
                   type="number"
                 />
@@ -94,7 +94,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
                   aria-invalid={fieldState.invalid}
                   disabled={isSubmitting}
                   id={field.name}
-                  maxLength={config.max.commentPrompt}
+                  maxLength={settingsConfig.max.commentPrompt}
                 />
               </FieldContent>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

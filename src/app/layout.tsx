@@ -2,7 +2,6 @@ import type { Viewport } from "next"
 import { Suspense } from "react"
 import "./globals.css"
 import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
-import { Container } from "@/components/layout/container"
 import { Flash } from "@/components/layout/flash"
 import { Providers } from "@/components/providers"
 import { cn } from "@/lib/utils"
@@ -39,9 +38,9 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           <Suspense fallback={null}>
             <Flash position="top-center" />
           </Suspense>
-          <Container className="min-w-[320px] w-fit max-w-xl mx-auto py-21 md:py-28">
+          <section className="container min-w-[320px] w-fit mx-auto px-4 py-21 md:py-28">
             {children}
-          </Container>
+          </section>
         </Providers>
       </body>
     </html>

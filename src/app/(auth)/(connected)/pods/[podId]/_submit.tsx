@@ -8,7 +8,6 @@ import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
 import { Stack, VStack } from "@/components/layout/stack"
-import { SectionTitle } from "@/components/layout/text"
 import {
   Field,
   FieldError,
@@ -28,9 +27,10 @@ import type { PodPageParams } from "./_types"
 
 export type SubmitPostFormProps = {
   className?: string
+  title: React.ReactNode
 }
 
-export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ className }) => {
+export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ title, className }) => {
   const { podId } = useParams<PodPageParams>()
   const form = useForm({
     resolver: zodResolver(SubmitPost),
@@ -48,7 +48,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ className }) => 
   return (
     <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
       <VStack className="gap-4">
-        <SectionTitle className="hidden lg:block">Boost a post</SectionTitle>
+        {title}
 
         {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 

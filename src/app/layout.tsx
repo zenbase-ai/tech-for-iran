@@ -38,7 +38,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           <Suspense fallback={null}>
             <Flash position="top-center" />
           </Suspense>
-          <section className="container min-w-[320px] w-fit mx-auto px-4 py-21 md:py-28">
+          <section className="container min-w-[320px] w-fit mx-auto px-4 py-8 sm:py-12 md:py-16">
             {children}
           </section>
         </Providers>

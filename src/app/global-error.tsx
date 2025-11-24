@@ -20,7 +20,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       <body>
         <VStack
           as="main"
-          className="text-center mt-[20vh] size-full gap-4 md:gap-6 lg:gap-8"
+          className="text-center size-full gap-4 md:gap-6 lg:gap-8"
           items="center"
           justify="center"
         >

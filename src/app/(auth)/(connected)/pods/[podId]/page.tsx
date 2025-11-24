@@ -1,6 +1,7 @@
 import { fetchQuery } from "convex/nextjs"
 import type { Metadata } from "next"
 import { Stack, VStack } from "@/components/layout/stack"
+import { SectionTitle } from "@/components/layout/text"
 import { api } from "@/convex/_generated/api"
 import { clerkAuth } from "@/lib/server/clerk"
 import { cn } from "@/lib/utils"
@@ -35,7 +36,10 @@ export default function PodPage() {
 
       <Stack className={cn("flex-col lg:flex-row", gapcn)} items="start">
         <VStack className={cn(gapcn, "flex-1")}>
-          <SubmitPostForm className={cn(maxwcn)} />
+          <SubmitPostForm
+            className={cn(maxwcn)}
+            title={<SectionTitle className="hidden lg:block">Boost</SectionTitle>}
+          />
 
           <PodPosts className={cn(maxwcn)} />
         </VStack>

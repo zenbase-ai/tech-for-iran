@@ -32,7 +32,7 @@ export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) =
     { initialNumItems: pageSize }
   )
   const { isLoading, noResults, canLoadMore } = paginatedState(posts)
-  const loadMore = useEffectEvent(() => canLoadMore && posts.loadMore(pageSize * 2))
+  const loadMore = useEffectEvent(() => canLoadMore && posts.loadMore(pageSize))
 
   return (
     <VStack className={cn("w-full gap-4", className)}>

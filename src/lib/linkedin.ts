@@ -47,7 +47,8 @@ type ProfileName = { firstName: string; lastName: string }
 
 export const fullName = (p: ProfileName): string => `${p.firstName} ${p.lastName}`.trim()
 
-export const initials = (p: ProfileName): string => `${p.firstName[0]}${p.lastName[0]}`.trim()
+export const initials = (p: ProfileName): string =>
+  [p.firstName[0], p.lastName[0]].filter(Boolean).join("").trim()
 
 type PostAuthor = Doc<"posts">["author"]
 

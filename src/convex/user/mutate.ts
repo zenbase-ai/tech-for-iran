@@ -3,12 +3,12 @@ import { BadRequestError } from "@/convex/_helpers/errors"
 import { internalMutation } from "@/convex/_helpers/server"
 import { rateLimitError, ratelimits } from "@/convex/ratelimits"
 
-export const consumeRateLimit = internalMutation({
+export const rateLimit = internalMutation({
   args: {
     userId: v.string(),
     name: v.string(),
   },
-  handler: async (ctx, { userId, name }) => {
+  handler: async (ctx, { userId, name }): Promise<{ error?: string }> => {
     if (name !== "submitPost") {
       throw new BadRequestError("INVALID_NAME")
     }
@@ -16,6 +16,6 @@ export const consumeRateLimit = internalMutation({
     if (!limit.ok) {
       return { error: rateLimitError(limit) }
     }
-    return { error: null }
+    return {}
   },
 })

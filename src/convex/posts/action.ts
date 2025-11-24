@@ -19,7 +19,7 @@ export const submit = connectedMemberAction({
   },
   handler: async (ctx, { podId, urn, reactionTypes, comments }): Promise<Submit> => {
     const { userId } = ctx
-    const { unipileId } = ctx.account
+    const { unipileId, role } = ctx.account
 
     const memberCount = await podMembers.count(ctx, { bounds: { prefix: [podId] } })
     const targetCount = Math.min(50, Math.ceil((memberCount - 1) / 2))
@@ -27,61 +27,45 @@ export const submit = connectedMemberAction({
       return { postId: null, error: "0 members to engage." }
     }
 
-    if (ctx.account.role !== "sudo") {
-      const consume = await ctx.runMutation(internal.user.mutate.consumeRateLimit, {
+    if (role !== "sudo") {
+      const { error: rateError } = await ctx.runMutation(internal.user.mutate.rateLimit, {
         userId,
         name: "submitPost",
       })
-      if (consume.error != null) {
-        return { postId: null, error: consume.error }
+      if (rateError) {
+        return { postId: null, error: rateError }
       }
     }
 
-    const fetch = await ctx.runAction(internal.unipile.post.fetch, {
+    const { data, error: fetchError } = await ctx.runAction(internal.unipile.post.fetch, {
       unipileId,
       urn,
     })
-    if (fetch.error != null) {
-      console.error("posts:action/submit", "fetch", fetch.error)
-      return { postId: null, error: fetch.error }
+    if (fetchError != null) {
+      console.error("posts:action/submit", "fetch", fetchError)
+      return { postId: null, error: fetchError }
     }
-    if (fetch.data.is_repost) {
+    if (data.is_repost) {
       return { postId: null, error: "Reposts are not supported." }
     }
 
-    const { share_url: url, text, author, parsed_datetime: postedAt } = fetch.data
     const { postId, error: insertError } = await ctx.runMutation(internal.posts.mutate.insert, {
       userId,
       podId,
-      url,
       urn,
-      postedAt,
-      text,
+      url: data.share_url,
+      postedAt: data.parsed_datetime,
+      text: data.text,
       author: {
-        name: author.name,
-        headline: author.headline ?? "Company",
-        url: profileURL(author),
+        name: data.author.name,
+        headline: data.author.headline ?? "Company",
+        url: profileURL(data.author),
       },
     })
     if (insertError != null) {
       console.error("posts:action/submit", "insert", insertError)
       return { postId: null, error: insertError }
     }
-
-    const {
-      comment_counter: commentCount,
-      impressions_counter: impressionCount,
-      reaction_counter: reactionCount,
-      repost_counter: repostCount,
-    } = fetch.data
-    await ctx.runMutation(internal.stats.mutate.insert, {
-      userId,
-      postId,
-      commentCount,
-      impressionCount,
-      reactionCount,
-      repostCount,
-    })
 
     const { error: startError } = await ctx.runMutation(internal.engagement.workflow.start, {
       userId,
@@ -97,6 +81,15 @@ export const submit = connectedMemberAction({
       await ctx.runMutation(internal.posts.mutate.remove, { postId })
       return { postId: null, error: startError }
     }
+
+    await ctx.runMutation(internal.stats.mutate.insert, {
+      userId,
+      postId,
+      commentCount: data.comment_counter,
+      impressionCount: data.impressions_counter,
+      reactionCount: data.reaction_counter,
+      repostCount: data.repost_counter,
+    })
 
     return { postId, success: `Stay tuned for up to ${pluralize(targetCount, "engagement")}!` }
   },

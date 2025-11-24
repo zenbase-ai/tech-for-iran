@@ -50,7 +50,7 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
   size,
   variant,
   icon: CopyIcon = LuCopy,
-  delay = 1000,
+  delay = 2000,
   onClick,
   onCopy,
   isCopied,
@@ -95,11 +95,8 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
         localIsCopied && "pointer-events-none",
         className
       )}
-      key={String(localIsCopied)}
       layout
       onClick={handleCopy}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
       {...props}
     >
       {localIsCopied ? "Copied" : children}

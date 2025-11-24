@@ -2,7 +2,7 @@ import { regex } from "arkregex"
 import * as z from "zod"
 import { ReactionType } from "@/lib/linkedin"
 
-export const submitPost = {
+export const boostPost = {
   defaultValues: {
     url: "",
     comments: false,
@@ -25,10 +25,10 @@ const parsePostURN = (url: string): string | null => {
   return `urn:li:activity:${activityId}`
 }
 
-export const SubmitPost = z
+export const BoostPost = z
   .object({
     url: z.url("Please enter a valid URL"),
-    comments: z.boolean().default(submitPost.defaultValues.comments),
+    comments: z.boolean().default(boostPost.defaultValues.comments),
     reactionTypes: z.array(ReactionType).min(1, "Select at least one reaction type"),
   })
   .transform((data) => ({
@@ -44,4 +44,4 @@ export const SubmitPost = z
     urn: data.urn as string,
   }))
 
-export type SubmitPost = z.infer<typeof SubmitPost>
+export type BoostPost = z.infer<typeof BoostPost>

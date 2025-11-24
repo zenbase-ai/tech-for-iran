@@ -22,34 +22,31 @@ import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { cn } from "@/lib/utils"
-import { SubmitPost, submitPost } from "@/schemas/submit-post"
+import { BoostPost, boostPost } from "@/schemas/boost-post"
 import type { PodPageParams } from "./_types"
 
-export type SubmitPostFormProps = {
+export type BoostPostFormProps = {
   className?: string
-  title: React.ReactNode
 }
 
-export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ title, className }) => {
+export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className }) => {
   const { podId } = useParams<PodPageParams>()
   const form = useForm({
-    resolver: zodResolver(SubmitPost),
-    defaultValues: submitPost.defaultValues,
+    resolver: zodResolver(BoostPost),
+    defaultValues: boostPost.defaultValues,
   })
   const { isSubmitting } = form.formState
 
-  const submit = useAsyncFn(useAction(api.posts.action.submit), {
-    onSuccess: useEffectEvent(async () => form.reset()),
+  const boost = useAsyncFn(useAction(api.pods.action.boost), {
+    onSuccess: useEffectEvent(() => form.reset()),
   })
   const onSubmit = useEffectEvent(
-    async (data: SubmitPost) => await submit.execute({ podId, ...data })
+    async (data: BoostPost) => await boost.execute({ podId, ...data })
   )
 
   return (
     <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
       <VStack className="gap-4">
-        {title}
-
         {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
         <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
@@ -75,7 +72,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ title, className
 
           <Box className="max-w-fit">
             <HoverButton disabled={isSubmitting} type="submit">
-              Submit
+              Boost
             </HoverButton>
           </Box>
         </Stack>
@@ -111,7 +108,7 @@ export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ title, className
             <FieldSet className="w-fit" data-invalid={fieldState.invalid}>
               <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
               <FieldGroup className="grid grid-cols-2 gap-2" data-slot="checkbox-group">
-                {submitPost.options.reactionTypes.map((reaction) => (
+                {boostPost.options.reactionTypes.map((reaction) => (
                   <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
                     <Switch
                       aria-invalid={fieldState.invalid}

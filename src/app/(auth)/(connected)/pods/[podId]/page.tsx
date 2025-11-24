@@ -27,7 +27,7 @@ export default function PodPage() {
   "use memo"
 
   const gapcn = "gap-8 md:gap-12 lg:gap-16"
-  const maxwcn = "max-w-2xl"
+  const maxwcn = "min-w-[300px] max-w-2xl"
 
   return (
     <VStack className="gap-4 lg:gap-12" items="center">

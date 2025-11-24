@@ -40,7 +40,7 @@ const InviteButton: React.FC<InviteButtonProps> = ({ inviteCode, ...props }) => 
   const inviteURL = url("/sign-up", { searchParams: { inviteCode } })
 
   return (
-    <CopyButton content={inviteURL} icon={LuSend} size="sm" variant="muted" {...props}>
+    <CopyButton content={inviteURL} icon={LuSend} size="sm" {...props}>
       Invite
     </CopyButton>
   )

@@ -47,16 +47,15 @@ export const onComplete = internalMutation({
     }),
   },
   handler: async (ctx, { workflowId, context, result }) => {
+    await workflow.cleanup(ctx, workflowId)
+
     const { userId, postId } = context
     const { kind: status } = result
+    await ctx.db.patch(postId, update({ status }))
 
     const oneDay = 24 * 60 * 60 * 1000
+    await ctx.scheduler.runAfter(oneDay, internal.emails.postEngagement, { userId, postId })
 
-    await Promise.all([
-      workflow.cleanup(ctx, workflowId),
-      ctx.db.patch(postId, update({ status })),
-      ctx.scheduler.runAfter(oneDay, internal.emails.postEngagement, { userId, postId }),
-    ])
     return true
   },
 })

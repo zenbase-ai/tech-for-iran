@@ -55,7 +55,7 @@ export const authorProfile = ({ name, headline, url }: PostAuthor) => {
   if (!url) {
     return null
   }
-  const [firstName = "LinkedIn", lastName = "Account"] = name.split(" ", 2)
+  const [firstName = "LinkedIn", lastName = ""] = name.split(" ", 2)
   return {
     firstName,
     lastName,

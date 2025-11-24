@@ -55,6 +55,8 @@ export const postEngagement = internalAction({
   },
   handler: async (ctx, { userId, postId }) => {
     try {
+      await ctx.runAction(internal.posts.action.sync, { postId })
+
       const [userEmail, post, first, last] = await Promise.all([
         ctx.runAction(internal.clerk.fetchUserEmail, { userId }),
         ctx.runQuery(internal.posts.query.get, { postId }),

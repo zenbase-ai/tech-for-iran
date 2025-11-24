@@ -17,15 +17,7 @@ const workflowArgs = {
   comments: v.boolean(),
 }
 
-export type Start =
-  | {
-      workflowId: string
-      error: null
-    }
-  | {
-      workflowId: null
-      error: string
-    }
+export type Start = { workflowId: string; error: null } | { workflowId: null; error: string }
 
 export const start = internalMutation({
   args: workflowArgs,
@@ -58,13 +50,12 @@ export const onComplete = internalMutation({
     const { userId, postId } = context
     const { kind: status } = result
 
+    const oneDay = 24 * 60 * 60 * 1000
+
     await Promise.all([
       workflow.cleanup(ctx, workflowId),
       ctx.db.patch(postId, update({ status })),
-      ctx.scheduler.runAfter(24 * 60 * 60 * 1000, internal.emails.postEngagement, {
-        userId,
-        postId,
-      }),
+      ctx.scheduler.runAfter(oneDay, internal.emails.postEngagement, { userId, postId }),
     ])
     return true
   },

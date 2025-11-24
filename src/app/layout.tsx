@@ -2,8 +2,9 @@ import type { Viewport } from "next"
 import { Suspense } from "react"
 import "./globals.css"
 import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
-import { Flash } from "@/components/layout/flash"
 import { Providers } from "@/components/providers"
+import { Flash } from "@/components/ui/flash"
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
 export const viewport: Viewport = {
@@ -36,8 +37,10 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
       >
         <Providers>
           <Suspense fallback={null}>
-            <Flash position="top-center" />
+            <Flash />
           </Suspense>
+          <Toaster position="top-center" />
+
           <section className="container min-w-[320px] w-fit mx-auto px-4 py-8 sm:py-12 md:py-16">
             {children}
           </section>

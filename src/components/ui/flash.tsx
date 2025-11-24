@@ -2,12 +2,9 @@
 
 import { useSearchParams } from "next/navigation"
 import { useEffect } from "react"
-import { type ToasterProps, toast } from "sonner"
-import { Toaster } from "@/components/ui/sonner"
+import { toast } from "sonner"
 
-export type FlashProps = ToasterProps
-
-export const Flash: React.FC<FlashProps> = (props) => {
+export const Flash: React.FC = () => {
   const params = useSearchParams()
 
   const error = params.get("error")
@@ -32,5 +29,5 @@ export const Flash: React.FC<FlashProps> = (props) => {
     }
   }, [info])
 
-  return <Toaster {...props} />
+  return null
 }

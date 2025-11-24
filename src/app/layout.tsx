@@ -39,7 +39,9 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           <Suspense fallback={null}>
             <Flash position="top-center" />
           </Suspense>
-          <Container className="min-w-[320px] py-21 md:py-28">{children}</Container>
+          <Container className="min-w-[320px] w-fit max-w-xl mx-auto py-21 md:py-28">
+            {children}
+          </Container>
         </Providers>
       </body>
     </html>

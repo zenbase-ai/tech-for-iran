@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
+import { PageDescription, PageTitle } from "@/components/layout/text"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import NotFound from "@/public/not-found.png"
@@ -23,15 +24,20 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           items="center"
           justify="center"
         >
-          <h1 className="text-xl font-serif italic bold">Something went terribly wrong.</h1>
-          <Button onClick={reset}>Refresh</Button>
+          <VStack className="gap-2" items="center">
+            <PageTitle>Something went terribly wrong.</PageTitle>
+            <PageDescription>An error occured, please refresh the page.</PageDescription>
+            <Button onClick={reset}>Refresh</Button>
+          </VStack>
 
           <Box className="object-contain w-full max-w-[360px]">
             <Image alt="Error" className="dark:invert" height={662} src={NotFound} width={624} />
           </Box>
+
           <Badge className="text-base" variant="secondary">
             GLOBAL ERROR
           </Badge>
+
           {process.env.NODE_ENV === "development" && (
             <details className="mt-4 max-w-lg">
               <summary className="cursor-pointer text-sm text-muted-foreground">

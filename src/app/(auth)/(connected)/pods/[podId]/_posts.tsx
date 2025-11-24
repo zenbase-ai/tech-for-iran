@@ -7,7 +7,7 @@ import { NumberTicker } from "@/components/ui/number-ticker"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn } from "@/lib/utils"
+import { cn, plural } from "@/lib/utils"
 import type { PodId } from "./_types"
 
 export type PodPostsProps = {
@@ -22,9 +22,13 @@ export const PodPosts: React.FC<PodPostsProps> = ({ podId, count = 3, className 
 
   return (
     <VStack className={cn("w-full gap-6", className)}>
-      <SectionTitle>
-        Recently Boosted
-        <NumberTicker className="float-right text-muted-foreground" value={stats?.postCount ?? 0} />
+      <SectionTitle className="justify-between">
+        Latest Posts
+        <span className="font-normal text-muted-foreground">
+          <NumberTicker value={stats?.postCount ?? 0} />
+          &nbsp;
+          {plural(stats?.postCount ?? 0, "post")}
+        </span>
       </SectionTitle>
 
       {latest == null ? (

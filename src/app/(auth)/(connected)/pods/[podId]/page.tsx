@@ -28,7 +28,7 @@ export default async function PodPage(props: PodPageProps) {
   const { podId } = await props.params
 
   return (
-    <VStack className="w-full px-4 max-w-[640px] mx-auto gap-8 md:gap-12 lg:gap-16" items="center">
+    <VStack className="gap-8 md:gap-12 lg:gap-16" items="center">
       <VStack className="w-full gap-4">
         <PodHeader podId={podId} />
 

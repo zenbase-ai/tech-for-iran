@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn } from "@/lib/utils"
+import { cn, plural } from "@/lib/utils"
 import type { PodId } from "./_types"
 
 export type PodMembersProps = {
@@ -37,12 +37,13 @@ export const PodMembers: React.FC<PodMembersProps> = ({
 
   return (
     <VStack className={cn("w-full gap-6", className)}>
-      <SectionTitle>
+      <SectionTitle className="justify-between">
         Newest Members
-        <NumberTicker
-          className="float-right text-muted-foreground"
-          value={stats?.memberCount ?? 0}
-        />
+        <span className="font-normal text-muted-foreground">
+          <NumberTicker value={stats?.memberCount ?? 0} />
+          &nbsp;
+          {plural(stats?.memberCount ?? 0, "member")}
+        </span>
       </SectionTitle>
 
       {isLoading ? (

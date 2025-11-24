@@ -11,20 +11,21 @@ export const Flash: React.FC<FlashProps> = (props) => {
   const params = useSearchParams()
 
   const error = params.get("error")
+  const info = params.get("info")
+  const success = params.get("success")
+
   useEffect(() => {
     if (error) {
       toast.error(error)
     }
   }, [error])
 
-  const success = params.get("success")
   useEffect(() => {
     if (success) {
       toast.success(success)
     }
   }, [success])
 
-  const info = params.get("info")
   useEffect(() => {
     if (info) {
       toast.info(info)

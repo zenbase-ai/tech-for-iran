@@ -17,7 +17,7 @@ export default function SettingsPage() {
   "use memo"
 
   return (
-    <VStack as="main" className="px-2 w-full max-w-[640px] mx-auto gap-8 md:gap-12">
+    <VStack as="main" className="gap-8 md:gap-12">
       <ProfileHeader />
 
       <ConfigForm />

@@ -18,7 +18,7 @@ export const Loading: React.FC<LoadingProps> = ({ message, delay = 0, className 
   return (
     <motion.div
       animate={isMounted ? { opacity: 1 } : { opacity: 0 }}
-      className={cn("flex flex-col items-center justify-center py-1 w-fit mx-auto", className)}
+      className={cn("flex flex-col items-center justify-center py-1", className)}
     >
       <Logo animate className="text-muted" />
 

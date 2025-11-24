@@ -1,4 +1,5 @@
 import * as z from "zod"
+import type { Doc } from "@/convex/_generated/dataModel"
 
 /**
  * LinkedIn account statuses from Unipile webhook
@@ -42,29 +43,24 @@ type ProfileURL = { url: string } | { public_profile_url?: string; public_identi
 export const profileURL = (p: ProfileURL): string =>
   "url" in p ? p.url : p.public_profile_url || `https://www.linkedin.com/in/${p.public_identifier}`
 
-type ProfileName = { firstName: string; lastName: string } | { name: string }
+type ProfileName = { firstName: string; lastName: string }
 
-export const fullName = (p: ProfileName): string =>
-  "name" in p ? p.name : `${p.firstName} ${p.lastName}`.trim()
+export const fullName = (p: ProfileName): string => `${p.firstName} ${p.lastName}`.trim()
 
-export const initials = (p: ProfileName): string =>
-  "name" in p
-    ? p.name
-        .split(" ")
-        .map((name) => name[0])
-        .join("")
-    : `${p.firstName[0]}${p.lastName[0]}`.trim()
+export const initials = (p: ProfileName): string => `${p.firstName[0]}${p.lastName[0]}`.trim()
 
-export const authorProfile = (author: { name: string; headline: string; url?: string }) => {
-  if (!author.url) {
+type PostAuthor = Doc<"posts">["author"]
+
+export const authorProfile = ({ name, headline, url }: PostAuthor) => {
+  if (!url) {
     return null
   }
-  const [firstName, lastName] = author.name.split(" ")
+  const [firstName = "LinkedIn", lastName = "Account"] = name.split(" ", 2)
   return {
     firstName,
     lastName,
-    headline: author.headline,
-    url: author.url,
+    headline,
+    url,
     picture: "",
   }
 }

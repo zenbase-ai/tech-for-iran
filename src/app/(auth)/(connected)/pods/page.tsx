@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Pods | Crackedbook",
 }
 
-export default async function PodsPage() {
+export default function PodsPage() {
   "use memo"
 
   return (

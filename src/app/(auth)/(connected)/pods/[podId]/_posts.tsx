@@ -10,6 +10,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empt
 import { ItemGroup } from "@/components/ui/item"
 import { LoadMoreButton } from "@/components/ui/load-more-button"
 import { NumberTicker } from "@/components/ui/number-ticker"
+import { Repeat } from "@/components/ui/repeat"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
@@ -41,7 +42,9 @@ export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) =
       </SectionTitle>
 
       {isLoading ? (
-        <Skeleton className="w-full h-20" />
+        <Repeat count={pageSize}>
+          <Skeleton className="w-full h-20" />
+        </Repeat>
       ) : noResults ? (
         <Empty className="text-muted-foreground">
           <EmptyHeader>

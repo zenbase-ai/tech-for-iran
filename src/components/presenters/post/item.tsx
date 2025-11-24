@@ -1,4 +1,5 @@
 import { LuExternalLink } from "react-icons/lu"
+import { ProfileHeader } from "@/components/presenters/profile/header"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
 import { Item, ItemActions, ItemContent, ItemDescription } from "@/components/ui/item"
@@ -17,15 +18,9 @@ export const PostItem: React.FC<PostItemProps> = ({ post, profile }) => (
       <ProfileItem
         className="p-0"
         description={
-          <>
-            {profile.headline && (
-              <>
-                {profile.headline}
-                <br />
-              </>
-            )}
+          <ProfileHeader profile={profile}>
             <RelativeTime date={post._creationTime} />
-          </>
+          </ProfileHeader>
         }
         profile={profile}
       >

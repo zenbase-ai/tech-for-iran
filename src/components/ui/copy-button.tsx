@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center cursor-pointer rounded-full transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center cursor-pointer rounded-full transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-base",
   {
     variants: {
       variant: {
@@ -22,10 +22,9 @@ export const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
       },
       size: {
-        default: "size-8 [&_svg]:size-4",
-        sm: "size-6 [&_svg]:size-3",
-        md: "size-10 [&_svg]:size-5",
-        lg: "size-12 [&_svg]:size-6",
+        default: "h-9 gap-2 px-4 py-2 has-[>svg]:px-3 [&_svg]:size-4",
+        sm: "h-8 gap-1.5 px-3 [&_svg]:size-3 sm:text-sm",
+        lg: "h-[47px] gap-3 p-3 [&_svg]:size-6",
       },
     },
     defaultVariants: {
@@ -45,7 +44,7 @@ export type CopyButtonProps = Omit<HTMLMotionProps<"button">, "children" | "onCo
     onCopyChange?: (isCopied: boolean) => void
   }
 
-export const CopyButton: React.FC<CopyButtonProps> = ({
+export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
   content,
   className,
   size,
@@ -56,6 +55,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   onCopy,
   isCopied,
   onCopyChange,
+  children,
   ...props
 }) => {
   const [localIsCopied, setLocalIsCopied] = useState(isCopied ?? false)
@@ -90,23 +90,28 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
 
   return (
     <motion.button
-      className={cn(buttonVariants({ variant, size }), className)}
-      data-slot="copy-button"
+      className={cn(
+        buttonVariants({ variant, size }),
+        localIsCopied && "pointer-events-none",
+        className
+      )}
+      key={String(localIsCopied)}
+      layout
       onClick={handleCopy}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       {...props}
     >
+      {localIsCopied ? "Copied" : children}
       <AnimatePresence mode="wait">
         <motion.span
           animate={{ scale: 1 }}
-          data-slot="copy-button-icon"
           exit={{ scale: 0 }}
           initial={{ scale: 0 }}
           key={localIsCopied ? "check" : "copy"}
           transition={{ duration: 0.15 }}
         >
-          <Icon />
+          <Icon className="inline" />
         </motion.span>
       </AnimatePresence>
     </motion.button>

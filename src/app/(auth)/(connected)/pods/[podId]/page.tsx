@@ -34,13 +34,13 @@ export default function PodPage() {
       <PodHeader className={cn(maxwcn, "lg:border-b-2")} />
 
       <Stack className={cn("flex-col lg:flex-row", gapcn)} items="start">
-        <VStack className={cn(gapcn)}>
+        <VStack className={cn(gapcn, "flex-1")}>
           <SubmitPostForm className={cn(maxwcn)} />
 
           <PodPosts className={cn(maxwcn)} />
         </VStack>
 
-        <PodMembers className={cn(maxwcn)} />
+        <PodMembers className={cn(maxwcn, "flex-1")} />
       </Stack>
     </VStack>
   )

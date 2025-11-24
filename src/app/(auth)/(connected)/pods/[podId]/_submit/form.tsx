@@ -30,23 +30,22 @@ export type SubmitPostFormProps = {
 }
 
 export const SubmitPostForm: React.FC<SubmitPostFormProps> = ({ podId, className }) => {
-  const submit = useAsyncFn(useAction(api.posts.action.submit), {
-    onSuccess: useEffectEvent(async () => form.reset()),
-  })
   const form = useForm({
     resolver: zodResolver(SubmitPost),
     defaultValues: submitPost.defaultValues,
-    disabled: submit.pending,
+  })
+  const { isSubmitting } = form.formState
+
+  const submit = useAsyncFn(useAction(api.posts.action.submit), {
+    onSuccess: useEffectEvent(async () => form.reset()),
   })
   const onSubmit = useEffectEvent(
     async (data: SubmitPost) => await submit.execute({ podId, ...data })
   )
 
-  const { isSubmitting } = form.formState
-
   return (
-    <form className={cn("w-full", className)} onSubmit={form.handleSubmit(onSubmit)}>
-      <VStack className="w-full gap-4">
+    <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
+      <VStack className="gap-4">
         {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
         <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">

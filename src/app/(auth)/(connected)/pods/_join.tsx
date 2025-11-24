@@ -26,7 +26,6 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
       })
     ),
     defaultValues: { inviteCode: "" },
-    disabled: join.pending,
   })
   const { isSubmitting } = form.formState
 

@@ -8,6 +8,7 @@ import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
 import * as z from "zod"
+import { VStack } from "@/components/layout/stack"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,60 +41,65 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
 
   const onSubmit = useEffectEvent(async (data: ConnectGateSchema) => {
     form.clearErrors("inviteCode")
+    console.log("data", data)
 
     if (await validate(data)) {
+      console.log("valid")
       redirect(`/connect/dialog?${queryString(data)}`, RedirectType.replace)
     } else {
+      console.log("invalid")
       form.setError("inviteCode", { message: "Invalid invite code.", type: "value" })
     }
   })
 
   return (
     <AlertDialog open>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Please enter your invite code.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      <AlertDialogContent className="max-w-md">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <VStack className="gap-4">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                Please enter your invite code.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
 
-          <Controller
-            control={form.control}
-            name="inviteCode"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldContent>
-                  <Input
-                    {...field}
-                    aria-invalid={fieldState.invalid}
-                    autoFocus
-                    disabled={isSubmitting}
-                    id={field.name}
-                    placeholder="your super secret invite code"
-                    required
-                    type="text"
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </FieldContent>
-              </Field>
-            )}
-          />
+            <Controller
+              control={form.control}
+              name="inviteCode"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldContent>
+                    <Input
+                      {...field}
+                      aria-invalid={fieldState.invalid}
+                      autoFocus
+                      disabled={isSubmitting}
+                      id={field.name}
+                      placeholder="your super secret invite code"
+                      required
+                      type="text"
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </FieldContent>
+                </Field>
+              )}
+            />
 
-          <AlertDialogFooter>
-            <SignOutButton redirectUrl="/">
-              <AlertDialogCancel disabled={isSubmitting} type="button" variant="ghost">
-                Sign out
-              </AlertDialogCancel>
-            </SignOutButton>
-            <AlertDialogAction disabled={isSubmitting} size="default" type="submit">
-              Continue
-              {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </form>
+            <AlertDialogFooter>
+              <SignOutButton redirectUrl="/">
+                <AlertDialogCancel disabled={isSubmitting} type="button" variant="ghost">
+                  Sign out
+                </AlertDialogCancel>
+              </SignOutButton>
+              <AlertDialogAction disabled={isSubmitting} size="default" type="submit">
+                Continue
+                {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </VStack>
+        </form>
+      </AlertDialogContent>
     </AlertDialog>
   )
 }

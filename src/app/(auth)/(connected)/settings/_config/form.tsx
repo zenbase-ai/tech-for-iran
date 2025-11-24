@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
+import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
 import { Field, FieldContent, FieldError, FieldLabel } from "@/components/ui/field"
@@ -54,59 +55,58 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({
   const { isSubmitting } = form.formState
 
   return (
-    <form
-      className={cn("w-full flex flex-col gap-4", className)}
-      onSubmit={form.handleSubmit(configure)}
-    >
-      <SectionTitle>Configuration</SectionTitle>
+    <form className={className} onSubmit={form.handleSubmit(configure)}>
+      <VStack className="gap-4">
+        <SectionTitle>Configuration</SectionTitle>
 
-      <Controller
-        control={form.control}
-        name="maxActions"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor={field.name}>Daily Like &amp; Comment Limit</FieldLabel>
-            <FieldContent>
-              <Input
-                {...field}
-                aria-invalid={fieldState.invalid}
-                disabled={isSubmitting}
-                id={field.name}
-                max={config.max.maxActions}
-                min={config.min.maxActions}
-                onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                type="number"
-              />
-            </FieldContent>
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
+        <Controller
+          control={form.control}
+          name="maxActions"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Daily Like &amp; Comment Limit</FieldLabel>
+              <FieldContent>
+                <Input
+                  {...field}
+                  aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
+                  id={field.name}
+                  max={config.max.maxActions}
+                  min={config.min.maxActions}
+                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                  type="number"
+                />
+              </FieldContent>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
 
-      <Controller
-        control={form.control}
-        name="commentPrompt"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor={field.name}>Comment Prompt</FieldLabel>
-            <FieldContent>
-              <Textarea
-                {...field}
-                aria-invalid={fieldState.invalid}
-                disabled={isSubmitting}
-                id={field.name}
-                maxLength={config.max.commentPrompt}
-              />
-            </FieldContent>
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
+        <Controller
+          control={form.control}
+          name="commentPrompt"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Comment Prompt</FieldLabel>
+              <FieldContent>
+                <Textarea
+                  {...field}
+                  aria-invalid={fieldState.invalid}
+                  disabled={isSubmitting}
+                  id={field.name}
+                  maxLength={config.max.commentPrompt}
+                />
+              </FieldContent>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
 
-      <Button className="w-fit" disabled={isSubmitting} type="submit" variant="outline">
-        Save
-        {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
-      </Button>
+        <Button className="w-fit" disabled={isSubmitting} type="submit" variant="outline">
+          Save
+          {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
+        </Button>
+      </VStack>{" "}
     </form>
   )
 }

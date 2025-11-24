@@ -18,8 +18,8 @@ const schema = defineSchema({
     .index("by_unipileId", ["unipileId"]),
 
   linkedinProfiles: defineTable({
-    userId: v.optional(v.string()),
     unipileId: v.string(),
+    userId: v.optional(v.string()),
     providerId: v.optional(v.string()),
     firstName: v.string(),
     lastName: v.string(),
@@ -30,7 +30,9 @@ const schema = defineSchema({
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId", "unipileId"])
-    .index("by_unipileId", ["unipileId"]),
+    .index("by_unipileId", ["unipileId"])
+    .index("by_providerId", ["providerId"])
+    .index("by_url", ["url"]),
 
   // Pods (groups of users who engage with each other's posts)
   pods: defineTable({

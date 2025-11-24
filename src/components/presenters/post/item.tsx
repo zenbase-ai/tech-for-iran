@@ -8,7 +8,7 @@ import type { Doc } from "@/convex/_generated/dataModel"
 import { PostStats } from "./stats"
 
 export type PostItemProps = {
-  post: Doc<"posts">
+  post: Omit<Doc<"posts">, "author">
   profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "headline" | "url">
 }
 

@@ -5,6 +5,7 @@ import { pick } from "es-toolkit"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
+import { authorProfile } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/utils"
 
 export const lookup = authQuery({
@@ -41,18 +42,22 @@ export const posts = memberQuery({
       .order("desc")
       .paginate(paginationOpts)
 
-    const page = await pflatMap(items.page, async (post) => {
-      const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", post.userId)
+    const page = await pflatMap(items.page, async ({ author, ...post }) => {
+      if (!author.url) {
+        return []
+      }
+
+      const linkedinProfile = await getOneFrom(ctx.db, "linkedinProfiles", "by_url", author.url)
+      const profile =
+        (linkedinProfile &&
+          pick(linkedinProfile, ["firstName", "lastName", "picture", "headline", "url"])) ||
+        authorProfile(author)
+
       if (!profile) {
         return []
       }
 
-      return [
-        {
-          post,
-          profile: pick(profile, ["firstName", "lastName", "picture", "headline", "url"]),
-        },
-      ]
+      return [{ post, profile }]
     })
 
     return { ...items, page }

@@ -37,7 +37,7 @@ export const ReactionType = z.enum(["like", "celebrate", "love", "insightful", "
 
 export type ReactionType = z.infer<typeof ReactionType>
 
-type ProfileURL = { public_profile_url?: string; public_identifier: string } | { url: string }
+type ProfileURL = { url: string } | { public_profile_url?: string; public_identifier: string }
 
 export const profileURL = (p: ProfileURL): string =>
   "url" in p ? p.url : p.public_profile_url || `https://www.linkedin.com/in/${p.public_identifier}`
@@ -54,3 +54,17 @@ export const initials = (p: ProfileName): string =>
         .map((name) => name[0])
         .join("")
     : `${p.firstName[0]}${p.lastName[0]}`.trim()
+
+export const authorProfile = (author: { name: string; headline: string; url?: string }) => {
+  if (!author.url) {
+    return null
+  }
+  const [firstName, lastName] = author.name.split(" ")
+  return {
+    firstName,
+    lastName,
+    headline: author.headline,
+    url: author.url,
+    picture: "",
+  }
+}

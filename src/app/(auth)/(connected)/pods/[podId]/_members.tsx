@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
@@ -7,47 +8,47 @@ import { SectionTitle } from "@/components/layout/text"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
+import { LoadMoreButton } from "@/components/ui/load-more-button"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn, plural } from "@/lib/utils"
+import useInfiniteScroll from "@/hooks/use-infinite-scroll"
+import { cn } from "@/lib/utils"
 import type { PodId } from "./_types"
 
 export type PodMembersProps = {
   podId: PodId
   className?: string
-  membersPageSize?: number
+  pageSize?: number
 }
 
-export const PodMembers: React.FC<PodMembersProps> = ({
-  podId,
-  className,
-  membersPageSize = 6,
-}) => {
+export const PodMembers: React.FC<PodMembersProps> = ({ podId, className, pageSize = 8 }) => {
   const stats = useAuthQuery(api.pods.query.stats, { podId })
 
   const members = useAuthPaginatedQuery(
     api.pods.query.members,
     { podId },
-    { initialNumItems: membersPageSize }
+    { initialNumItems: pageSize }
   )
-  const { isLoading, noResults } = paginatedState(members)
+  const { isLoading, noResults, canLoadMore } = paginatedState(members)
+  const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(pageSize))
+  const observer = useInfiniteScroll({ loadMore })
 
   return (
     <VStack className={cn("w-full gap-6", className)}>
-      <SectionTitle className="justify-between">
-        Newest Members
-        <span className="font-normal text-muted-foreground">
-          <NumberTicker value={stats?.memberCount ?? 0} />
-          &nbsp;
-          {plural(stats?.memberCount ?? 0, "member")}
-        </span>
+      <SectionTitle>
+        <NumberTicker value={stats?.memberCount ?? 0} />
+        &nbsp;Members
       </SectionTitle>
 
       {isLoading ? (
-        <Skeleton className="w-full h-20" />
+        <>
+          <Skeleton className="w-full h-16" />
+          <Skeleton className="w-full h-16" />
+          <Skeleton className="w-full h-16" />
+        </>
       ) : noResults ? (
         <Empty className="text-muted-foreground">
           <EmptyHeader>
@@ -72,6 +73,14 @@ export const PodMembers: React.FC<PodMembersProps> = ({
               ))}
             </ItemGroup>
           </Box>
+          {canLoadMore && (
+            <LoadMoreButton
+              isLoading={isLoading}
+              label="members"
+              onClick={loadMore}
+              ref={observer.ref}
+            />
+          )}
         </VStack>
       )}
     </VStack>

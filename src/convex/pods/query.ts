@@ -29,19 +29,49 @@ export const get = memberQuery({
   },
 })
 
+export const posts = memberQuery({
+  args: {
+    podId: v.id("pods"),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, { podId, paginationOpts }) => {
+    const items = await ctx.db
+      .query("posts")
+      .withIndex("by_podId", (q) => q.eq("podId", podId).eq("status", "success"))
+      .order("desc")
+      .paginate(paginationOpts)
+
+    const page = await pflatMap(items.page, async (post) => {
+      const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", post.userId)
+      if (!profile) {
+        return []
+      }
+
+      return [
+        {
+          post,
+          profile: pick(profile, ["firstName", "lastName", "picture", "headline", "url"]),
+        },
+      ]
+    })
+
+    return { ...items, page }
+  },
+})
+
 export const members = memberQuery({
   args: {
     podId: v.id("pods"),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, { podId, paginationOpts }) => {
-    const memberships = await ctx.db
+    const items = await ctx.db
       .query("memberships")
       .withIndex("by_podId", (q) => q.eq("podId", podId))
       .order("desc")
       .paginate(paginationOpts)
 
-    const page = await pflatMap(memberships.page, async ({ userId, _creationTime }) => {
+    const page = await pflatMap(items.page, async ({ userId, _creationTime }) => {
       const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
       if (!profile) {
         return []
@@ -56,7 +86,7 @@ export const members = memberQuery({
       ]
     })
 
-    return { ...memberships, page }
+    return { ...items, page }
   },
 })
 

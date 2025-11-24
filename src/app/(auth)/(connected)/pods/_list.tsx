@@ -3,12 +3,12 @@
 import type { UsePaginatedQueryReturnType } from "convex/react"
 import Link from "next/link"
 import { useEffectEvent } from "react"
-import { LuArrowDown, LuUsers } from "react-icons/lu"
+import { LuUsers } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
-import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
+import { LoadMoreButton } from "@/components/ui/load-more-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { api } from "@/convex/_generated/api"
 import { paginatedState } from "@/hooks/use-auth-paginated-query"
@@ -56,16 +56,7 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
         </ItemGroup>
       </Box>
       {canLoadMore && (
-        <Button
-          className="max-w-fit"
-          disabled={isLoading}
-          onClick={loadMore}
-          ref={observer.ref}
-          variant="outline"
-        >
-          More
-          <LuArrowDown />
-        </Button>
+        <LoadMoreButton isLoading={isLoading} label="pods" onClick={loadMore} ref={observer.ref} />
       )}
     </VStack>
   )

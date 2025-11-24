@@ -108,7 +108,11 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
                 type="submit"
               >
                 Delete
-                {isSubmitting ? <Spinner variant="ellipsis" /> : <LuEraser />}
+                {isSubmitting ? (
+                  <Spinner className="size-3" variant="ellipsis" />
+                ) : (
+                  <LuEraser className="size-3" />
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </VStack>

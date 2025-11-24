@@ -1,46 +1,63 @@
 "use client"
 
+import { useEffectEvent } from "react"
+import { LuNewspaper } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PostItem } from "@/components/presenters/post/item"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { ItemGroup } from "@/components/ui/item"
+import { LoadMoreButton } from "@/components/ui/load-more-button"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
+import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn, plural } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import type { PodId } from "./_types"
 
 export type PodPostsProps = {
   podId: PodId
-  count?: number
+  pageSize?: number
   className?: string
 }
 
-export const PodPosts: React.FC<PodPostsProps> = ({ podId, count = 3, className }) => {
+export const PodPosts: React.FC<PodPostsProps> = ({ podId, className, pageSize = 3 }) => {
   const stats = useAuthQuery(api.pods.query.stats, { podId })
-  const latest = useAuthQuery(api.posts.query.latest, { podId, take: count })
+  const posts = useAuthPaginatedQuery(
+    api.pods.query.posts,
+    { podId },
+    { initialNumItems: pageSize }
+  )
+  const { isLoading, noResults, canLoadMore } = paginatedState(posts)
+  const loadMore = useEffectEvent(() => canLoadMore && posts.loadMore(pageSize))
 
   return (
     <VStack className={cn("w-full gap-6", className)}>
-      <SectionTitle className="justify-between">
-        Latest Posts
-        <span className="font-normal text-muted-foreground">
-          <NumberTicker value={stats?.postCount ?? 0} />
-          &nbsp;
-          {plural(stats?.postCount ?? 0, "post")}
-        </span>
+      <SectionTitle>
+        <NumberTicker value={stats?.postCount ?? 0} />
+        &nbsp;Posts
       </SectionTitle>
 
-      {latest == null ? (
-        Array.from({ length: count }).map((_, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: best we can do
-          <Skeleton className="w-full h-20" key={index} />
-        ))
+      {isLoading ? (
+        <Skeleton className="w-full h-20" />
+      ) : noResults ? (
+        <Empty className="text-muted-foreground">
+          <EmptyHeader>
+            <EmptyMedia>
+              <LuNewspaper className="size-8" />
+            </EmptyMedia>
+            <EmptyTitle>No posts&hellip; yet.</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <VStack className="gap-3">
-          {latest.map(({ post, profile }) => (
-            <PostItem key={post._id} post={post} profile={profile} />
-          ))}
+          <ItemGroup className="contents">
+            {posts.results.map(({ post, profile }) => (
+              <PostItem key={post._id} post={post} profile={profile} />
+            ))}
+          </ItemGroup>
+          {canLoadMore && <LoadMoreButton isLoading={isLoading} label="posts" onClick={loadMore} />}
         </VStack>
       )}
     </VStack>

@@ -85,13 +85,17 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
 
             <AlertDialogFooter>
               <SignOutButton redirectUrl="/">
-                <AlertDialogCancel disabled={isSubmitting} type="button" variant="ghost">
+                <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="ghost">
                   Sign out
                 </AlertDialogCancel>
               </SignOutButton>
-              <AlertDialogAction disabled={isSubmitting} size="default" type="submit">
+              <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">
                 Continue
-                {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
+                {isSubmitting ? (
+                  <Spinner className="size-3" variant="ellipsis" />
+                ) : (
+                  <LuArrowRight className="size-3" />
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </VStack>

@@ -41,13 +41,10 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
 
   const onSubmit = useEffectEvent(async (data: ConnectGateSchema) => {
     form.clearErrors("inviteCode")
-    console.log("data", data)
 
     if (await validate(data)) {
-      console.log("valid")
       redirect(`/connect/dialog?${queryString(data)}`, RedirectType.replace)
     } else {
-      console.log("invalid")
       form.setError("inviteCode", { message: "Invalid invite code.", type: "value" })
     }
   })

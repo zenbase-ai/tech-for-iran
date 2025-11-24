@@ -34,10 +34,7 @@ export const latest = memberQuery({
       }
 
       return [
-        {
-          post: pick(post, ["_id", "podId", "url", "text", "_creationTime"]),
-          profile: pick(profile, ["firstName", "lastName", "picture", "url", "headline"]),
-        },
+        { post, profile: pick(profile, ["firstName", "lastName", "picture", "url", "headline"]) },
       ]
     })
   },

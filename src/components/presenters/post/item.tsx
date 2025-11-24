@@ -7,7 +7,7 @@ import type { Doc } from "@/convex/_generated/dataModel"
 import { PostStats } from "./stats"
 
 export type PostItemProps = {
-  post: Pick<Doc<"posts">, "_id" | "podId" | "url" | "text" | "_creationTime">
+  post: Doc<"posts">
   profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "headline" | "url">
 }
 
@@ -18,8 +18,12 @@ export const PostItem: React.FC<PostItemProps> = ({ post, profile }) => (
         className="p-0"
         description={
           <>
-            {profile.headline}
-            <br />
+            {profile.headline && (
+              <>
+                {profile.headline}
+                <br />
+              </>
+            )}
             <RelativeTime date={post._creationTime} />
           </>
         }

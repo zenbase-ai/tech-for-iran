@@ -6,6 +6,7 @@ import {
   type ItemProps,
   ItemTitle,
 } from "@/components/ui/item"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { fullName } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 import { ProfileAvatar } from "./avatar"
@@ -13,12 +14,7 @@ import { ProfileAvatar } from "./avatar"
 export type ProfileItemProps = ItemProps & {
   fancy?: boolean
   description?: React.ReactNode
-  profile: {
-    firstName: string
-    lastName: string
-    picture: string
-    url: string
-  }
+  profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "url">
 }
 
 export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = ({

@@ -37,21 +37,20 @@ export const ReactionType = z.enum(["like", "celebrate", "love", "insightful", "
 
 export type ReactionType = z.infer<typeof ReactionType>
 
-type ProfileURL = {
-  public_profile_url?: string
-  public_identifier: string
-}
+type ProfileURL = { public_profile_url?: string; public_identifier: string } | { url: string }
 
-export const profileURL = ({ public_profile_url, public_identifier }: ProfileURL): string =>
-  public_profile_url || `https://www.linkedin.com/in/${public_identifier}`
+export const profileURL = (p: ProfileURL): string =>
+  "url" in p ? p.url : p.public_profile_url || `https://www.linkedin.com/in/${p.public_identifier}`
 
-type ProfileName = {
-  firstName: string
-  lastName: string
-}
+type ProfileName = { firstName: string; lastName: string } | { name: string }
 
-export const fullName = ({ firstName, lastName }: ProfileName): string =>
-  `${firstName} ${lastName}`.trim()
+export const fullName = (p: ProfileName): string =>
+  "name" in p ? p.name : `${p.firstName} ${p.lastName}`.trim()
 
-export const initials = ({ firstName, lastName }: ProfileName): string =>
-  `${firstName[0]}${lastName[0]}`.trim()
+export const initials = (p: ProfileName): string =>
+  "name" in p
+    ? p.name
+        .split(" ")
+        .map((name) => name[0])
+        .join("")
+    : `${p.firstName[0]}${p.lastName[0]}`.trim()

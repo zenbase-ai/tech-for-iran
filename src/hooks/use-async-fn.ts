@@ -14,7 +14,7 @@ export type UseAsyncFnOptions<TData extends Record<string, unknown>> = {
 }
 
 export type UseAsyncFn<TArgs extends unknown[], TData extends Record<string, unknown>> = {
-  execute: (...args: TArgs) => Promise<TData | undefined>
+  execute: (...args: TArgs) => Promise<TData>
   data: TData | null
   error: Error | null
   pending: boolean
@@ -30,9 +30,9 @@ export default function useAsyncFn<TArgs extends unknown[], TData extends Record
   const [error, setError] = useState<Error | null>(null)
   const [pending, setPending] = useState(false)
 
-  const execute = useEffectEvent(async (...args: TArgs): Promise<TData | undefined> => {
+  const execute = useEffectEvent(async (...args: TArgs): Promise<TData> => {
     if (!isMounted) {
-      return
+      throw new Error("AsyncFn called from a component that is not mounted")
     }
 
     startTransition(() => {
@@ -62,6 +62,7 @@ export default function useAsyncFn<TArgs extends unknown[], TData extends Record
         }
       })
       options.onError?.(toError(e))
+      throw e
     }
   })
 

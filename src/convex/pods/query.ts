@@ -12,8 +12,15 @@ export const lookup = authQuery({
   args: {
     inviteCode: v.string(),
   },
-  handler: async (ctx, { inviteCode }) =>
-    !!(await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)),
+  handler: async (ctx, { inviteCode }) => {
+    const pod = await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)
+    if (!pod) {
+      return null
+    }
+
+    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [pod._id] } })
+    return { pod: pick(pod, ["_id", "name", "createdBy"]), memberCount }
+  },
 })
 
 export const get = memberQuery({

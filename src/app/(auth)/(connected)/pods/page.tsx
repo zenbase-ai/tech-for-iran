@@ -7,8 +7,6 @@ export const metadata: Metadata = {
 }
 
 export default function PodsPage() {
-  "use memo"
-
   return (
     <>
       <PageTitle>Engagement Pods</PageTitle>

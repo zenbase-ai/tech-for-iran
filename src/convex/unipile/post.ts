@@ -35,16 +35,8 @@ export const fetch = internalAction({
     unipileId: v.string(),
     urn: v.string(),
   },
-  handler: async (_ctx, { unipileId: account_id, urn }) => {
-    const { data, error } = Fetch.safeParse(
-      await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json()
-    )
-    if (error) {
-      return { data: null, error: errorMessage(error) }
-    }
-
-    return { data, error: null }
-  },
+  handler: async (_ctx, { unipileId: account_id, urn }) =>
+    Fetch.parse(await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json()),
 })
 
 export const react = internalAction({

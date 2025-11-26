@@ -55,13 +55,11 @@ export const postEngagement = internalAction({
   },
   handler: async (ctx, { userId, postId }) => {
     try {
-      await ctx.runAction(internal.posts.action.sync, { postId })
-
       const [userEmail, post, first, last] = await Promise.all([
         ctx.runAction(internal.clerk.fetchUserEmail, { userId }),
         ctx.runQuery(internal.posts.query.get, { postId }),
         ctx.runQuery(internal.stats.query.first, { postId }),
-        ctx.runQuery(internal.stats.query.last, { postId }),
+        ctx.runAction(internal.posts.action.sync, { postId }),
       ])
 
       if (!(first && last) || first._id === last._id) {

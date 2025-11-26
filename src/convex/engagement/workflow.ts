@@ -7,6 +7,17 @@ import { errorMessage } from "@/convex/_helpers/errors"
 import { internalMutation, update } from "@/convex/_helpers/server"
 import { AvailableMember } from "./query"
 
+export const workflow = new WorkflowManager(components.workflow, {
+  workpoolOptions: {
+    maxParallelism: 16,
+    defaultRetryBehavior: {
+      maxAttempts: 3,
+      initialBackoffMs: 500,
+      base: 2,
+    },
+  },
+})
+
 const workflowArgs = {
   userId: v.string(),
   podId: v.id("pods"),
@@ -34,40 +45,6 @@ export const start = internalMutation({
     } catch (error) {
       return { workflowId: null, error: errorMessage(error) }
     }
-  },
-})
-
-export const onComplete = internalMutation({
-  args: {
-    workflowId: vWorkflowId,
-    result: vResultValidator,
-    context: v.object({
-      userId: v.string(),
-      postId: v.id("posts"),
-    }),
-  },
-  handler: async (ctx, { workflowId, context, result }) => {
-    await workflow.cleanup(ctx, workflowId)
-
-    const { userId, postId } = context
-    const { kind: status } = result
-    await ctx.db.patch(postId, update({ status }))
-
-    const oneDay = 24 * 60 * 60 * 1000
-    await ctx.scheduler.runAfter(oneDay, internal.emails.postEngagement, { userId, postId })
-
-    return true
-  },
-})
-
-export const workflow = new WorkflowManager(components.workflow, {
-  workpoolOptions: {
-    maxParallelism: 16,
-    defaultRetryBehavior: {
-      maxAttempts: 3,
-      initialBackoffMs: 500,
-      base: 2,
-    },
   },
 })
 
@@ -184,5 +161,28 @@ export const perform = workflow.define({
         }
       }
     }
+  },
+})
+
+export const onComplete = internalMutation({
+  args: {
+    workflowId: vWorkflowId,
+    result: vResultValidator,
+    context: v.object({
+      userId: v.string(),
+      postId: v.id("posts"),
+    }),
+  },
+  handler: async (ctx, { workflowId, context, result }) => {
+    await workflow.cleanup(ctx, workflowId)
+
+    const { userId, postId } = context
+    const { kind: status } = result
+    await ctx.db.patch(postId, update({ status }))
+
+    const oneDay = 24 * 60 * 60 * 1000
+    await ctx.scheduler.runAfter(oneDay, internal.emails.postEngagement, { userId, postId })
+
+    return true
   },
 })

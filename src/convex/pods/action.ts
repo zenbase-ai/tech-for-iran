@@ -4,7 +4,7 @@ import type { Id } from "@/convex/_generated/dataModel"
 import { authAction, connectedMemberAction } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
 import { profileURL } from "@/lib/linkedin"
-import { pluralize } from "@/lib/utils"
+import { errorMessage, pluralize } from "@/lib/utils"
 
 export const validate = authAction({
   args: {
@@ -44,14 +44,13 @@ export const boost = connectedMemberAction({
       }
     }
 
-    const { data, error: fetchError } = await ctx.runAction(internal.unipile.post.fetch, {
-      unipileId,
-      urn,
-    })
-    if (fetchError != null) {
-      console.error("posts:action/submit", "fetch", fetchError)
-      return { postId: null, error: fetchError }
+    let data: (typeof internal.unipile.post.fetch)["_returnType"]
+    try {
+      data = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
+    } catch (error) {
+      return { postId: null, error: errorMessage(error) }
     }
+
     if (data.is_repost) {
       return { postId: null, error: "Reposts are not supported." }
     }

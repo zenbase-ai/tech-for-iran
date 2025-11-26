@@ -1,27 +1,18 @@
 import { v } from "convex/values"
 import { internal } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { internalAction } from "@/convex/_generated/server"
 import { profileURL } from "@/lib/linkedin"
-
-type Sync = {
-  postId: Id<"posts">
-  userId: string
-  error?: string
-}
 
 export const sync = internalAction({
   args: {
     postId: v.id("posts"),
   },
-  handler: async (ctx, { postId }): Promise<Sync> => {
+  handler: async (ctx, { postId }): Promise<Doc<"stats">> => {
     const { userId, urn } = await ctx.runQuery(internal.posts.query.get, { postId })
     const { unipileId } = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
 
-    const { data, error } = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
-    if (error != null) {
-      return { postId, userId, error }
-    }
+    const data = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
 
     await ctx.runMutation(internal.posts.mutate.upsert, {
       postId,
@@ -36,7 +27,7 @@ export const sync = internalAction({
       },
     })
 
-    await ctx.runMutation(internal.stats.mutate.insert, {
+    return await ctx.runMutation(internal.stats.mutate.insert, {
       userId,
       postId,
       commentCount: data.comment_counter,
@@ -44,7 +35,5 @@ export const sync = internalAction({
       reactionCount: data.reaction_counter,
       repostCount: data.repost_counter,
     })
-
-    return { postId, userId }
   },
 })

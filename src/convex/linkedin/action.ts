@@ -39,6 +39,18 @@ export const sync = internalAction({
       location: data.location,
       headline: data.headline || "",
     })
+
+    // Infer timezone from location and update account working hours
+    const timezone = await ctx.runAction(internal.linkedin.timezone.inferTimezone, {
+      location: data.location,
+    })
+
+    await ctx.runMutation(internal.linkedin.mutate.updateWorkingHours, {
+      unipileId,
+      timezone,
+      workingHoursStart: 9,
+      workingHoursEnd: 17,
+    })
   },
 })
 

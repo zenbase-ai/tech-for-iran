@@ -46,7 +46,10 @@ export const connectOwn = authMutation({
 export const configure = connectedMutation({
   args: {
     maxActions: v.number(),
-    commentPrompt: v.string(),
+    commentPrompt: v.optional(v.string()),
+    timezone: v.string(),
+    workingHoursStart: v.number(),
+    workingHoursEnd: v.number(),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(ctx.account._id, update(args))
@@ -119,5 +122,18 @@ export const upsertProfile = internalMutation({
       "linkedinProfiles",
       update({ userId, unipileId, ...patch, scheduledRefresh: undefined })
     )
+  },
+})
+
+export const updateWorkingHours = internalMutation({
+  args: {
+    unipileId: v.string(),
+    timezone: v.string(),
+    workingHoursStart: v.number(),
+    workingHoursEnd: v.number(),
+  },
+  handler: async (ctx, { unipileId, ...patch }) => {
+    const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
+    await ctx.db.patch(account._id, update(patch))
   },
 })

@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import { internalAction } from "@/convex/_generated/server"
 import { unipile } from "@/lib/server/unipile"
 
-type Profile = {
+type BaseProfile = {
   provider_id: string
   public_identifier: string
   first_name: string
@@ -13,7 +13,7 @@ type Profile = {
   profile_picture_url: string
 }
 
-type GetOwn = Profile & {
+type GetOwn = BaseProfile & {
   object: "AccountOwnerProfile"
   public_profile_url: string
 }
@@ -26,7 +26,7 @@ export const getOwn = internalAction({
     await unipile.get<GetOwn>("api/v1/users/me", { searchParams: { account_id } }).json(),
 })
 
-type Get = Profile & {
+type Get = BaseProfile & {
   object: "UserProfile"
   provider: "LINKEDIN"
   is_relationship: boolean
@@ -57,10 +57,14 @@ export const sendConnectionRequest = internalAction({
     id: v.string(),
     message: v.optional(v.string()),
   },
-  handler: async (_ctx, { message, unipileId: account_id, id: provider_id }) =>
+  handler: async (_ctx, args) =>
     await unipile
       .post<SendConnectionRequest>("api/v1/users/invite", {
-        json: { account_id, provider_id, message },
+        json: {
+          account_id: args.unipileId,
+          provider_id: args.id,
+          message: args.message,
+        },
       })
       .json(),
 })

@@ -1,9 +1,8 @@
-import { vWorkflowId, WorkflowManager } from "@convex-dev/workflow"
+import { vWorkflowId, type WorkflowId, WorkflowManager } from "@convex-dev/workflow"
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
 import { pick } from "es-toolkit"
-import { components, internal } from "@/convex/_generated/api"
-import { errorMessage } from "@/convex/_helpers/errors"
+import { api, components, internal } from "@/convex/_generated/api"
 import { internalMutation, update } from "@/convex/_helpers/server"
 import { AvailableMember } from "./query"
 
@@ -18,33 +17,37 @@ export const workflow = new WorkflowManager(components.workflow, {
   },
 })
 
-const workflowArgs = {
+const startArgs = {
   userId: v.string(),
   podId: v.id("pods"),
   postId: v.id("posts"),
   urn: v.string(),
-  targetCount: v.number(),
   reactionTypes: v.array(v.string()),
   comments: v.boolean(),
 }
 
-export type Start = { workflowId: string; error: null } | { workflowId: null; error: string }
+type Start = {
+  workflowId: WorkflowId
+  targetCount: number
+}
 
 export const start = internalMutation({
-  args: workflowArgs,
+  args: startArgs,
   handler: async (ctx, args): Promise<Start> => {
-    try {
-      const workflowId = await workflow.start(ctx, internal.engagement.workflow.perform, args, {
+    const targetCount = await ctx.runQuery(api.engagement.query.targetCount, { podId: args.podId })
+    const workflowId = await workflow.start(
+      ctx,
+      internal.engagement.workflow.perform,
+      { ...args, targetCount },
+      {
         context: pick(args, ["userId", "postId"]),
         onComplete: internal.engagement.workflow.onComplete,
         startAsync: true,
-      })
+      }
+    )
 
-      await ctx.db.patch(args.postId, update({ workflowId, status: "pending" } as const))
-      return { workflowId, error: null }
-    } catch (error) {
-      return { workflowId: null, error: errorMessage(error) }
-    }
+    await ctx.db.patch(args.postId, update({ workflowId, status: "pending" } as const))
+    return { workflowId, targetCount }
   },
 })
 
@@ -89,7 +92,7 @@ export const start = internalMutation({
  * - Example: minDelay=1, maxDelay=30 → 1-30 seconds + 0-2.5s jitter per reaction
  */
 export const perform = workflow.define({
-  args: workflowArgs,
+  args: { ...startArgs, targetCount: v.number() },
   handler: async (step, { userId, postId, podId, urn, reactionTypes, targetCount, comments }) => {
     const minDelay = 10
     const maxDelay = 30

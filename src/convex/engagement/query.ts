@@ -5,6 +5,10 @@ import { internalQuery } from "@/convex/_generated/server"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { isConnected } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/utils"
+import { NotFoundError } from "../_helpers/errors"
+import { memberQuery } from "../_helpers/server"
+import { podMembers } from "../aggregates"
+import { isWithinWorkingHours } from "./helpers"
 
 export const AvailableMember = z.object({
   account: z.object({
@@ -44,18 +48,38 @@ export const availableMembers = internalQuery({
           return []
         }
 
+        if (!isWithinWorkingHours(account)) {
+          return []
+        }
+
         const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
         if (!profile) {
           return []
         }
 
-        const { success, data, error } = AvailableMember.safeParse({ account, profile })
-        if (!success) {
-          console.error("workflows/engagement:selectAvailableAccount", error)
-          return []
-        }
+        const data = AvailableMember.parse({ account, profile })
 
         return [data]
       }
     ),
+})
+
+export const targetCount = memberQuery({
+  args: {
+    podId: v.id("pods"),
+  },
+  handler: async (ctx, { podId }) => {
+    const [pod, memberCount] = await Promise.all([
+      ctx.db.get(podId),
+      podMembers.count(ctx, { bounds: { prefix: [podId] } }),
+    ])
+    if (!pod) {
+      throw new NotFoundError()
+    }
+
+    return Math.min(
+      pod.maxEngagementCap ?? 50,
+      Math.ceil((memberCount - 1) * ((pod.engagementTargetPercent ?? 50) / 100))
+    )
+  },
 })

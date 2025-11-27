@@ -12,6 +12,9 @@ const schema = defineSchema({
     role: v.optional(v.union(v.literal("sudo"))),
     maxActions: v.number(),
     commentPrompt: v.optional(v.string()),
+    timezone: v.optional(v.string()),
+    workingHoursStart: v.optional(v.number()),
+    workingHoursEnd: v.optional(v.number()),
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId", "unipileId"])
@@ -38,6 +41,8 @@ const schema = defineSchema({
   pods: defineTable({
     name: v.string(), // Pod name (e.g., "YC Alumni")
     inviteCode: v.string(), // Unique invite code for joining
+    engagementTargetPercent: v.optional(v.number()),
+    maxEngagementCap: v.optional(v.number()),
     createdBy: v.string(), // Reference to profile who created the pod
   }).index("by_inviteCode", ["inviteCode"]), // Efficient lookup by invite code
 

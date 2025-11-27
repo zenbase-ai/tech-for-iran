@@ -1,11 +1,7 @@
 import { v } from "convex/values"
 import type { Id } from "@/convex/_generated/dataModel"
 import { internalMutation, update } from "@/convex/_helpers/server"
-
-type Insert = {
-  postId: Id<"posts">
-  error?: string
-}
+import { ConflictError } from "../_helpers/errors"
 
 export const insert = internalMutation({
   args: {
@@ -21,17 +17,17 @@ export const insert = internalMutation({
     }),
     postedAt: v.number(),
   },
-  handler: async (ctx, args): Promise<Insert> => {
+  handler: async (ctx, args): Promise<Id<"posts">> => {
     const exists = await ctx.db
       .query("posts")
       .withIndex("by_urn", (q) => q.eq("urn", args.urn))
       .first()
     if (exists) {
-      return { postId: exists._id, error: "Cannot resubmit a post." }
+      throw new ConflictError("Cannot resubmit a post.")
     }
 
     const postId = await ctx.db.insert("posts", update(args))
-    return { postId }
+    return postId
   },
 })
 

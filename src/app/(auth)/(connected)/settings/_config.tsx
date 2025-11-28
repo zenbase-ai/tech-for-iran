@@ -16,8 +16,8 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
+import { HourSelect } from "@/components/ui/hour-select"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
@@ -98,19 +98,12 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
                 render={({ field, fieldState }) => (
                   <Field className="w-fit max-w-w-2/5" data-invalid={fieldState.invalid}>
                     <FieldContent>
-                      <NativeSelect
+                      <HourSelect
                         {...field}
                         aria-invalid={fieldState.invalid}
                         id={field.name}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10))}
-                      >
-                        {Array.from({ length: 24 }, (_, i) => (
-                          // biome-ignore lint/suspicious/noArrayIndexKey: it's a valid key
-                          <NativeSelectOption key={i} value={i.toString()}>
-                            {i.toString().padStart(2, "0")}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
+                        max={form.watch("workingHoursEnd")}
+                      />
                     </FieldContent>
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
@@ -127,19 +120,12 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
                 render={({ field, fieldState }) => (
                   <Field className="w-fit max-w-2/5" data-invalid={fieldState.invalid}>
                     <FieldContent>
-                      <NativeSelect
+                      <HourSelect
                         {...field}
                         aria-invalid={fieldState.invalid}
                         id={field.name}
-                        onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10))}
-                      >
-                        {Array.from({ length: 24 }, (_, i) => (
-                          // biome-ignore lint/suspicious/noArrayIndexKey: it's a valid key
-                          <NativeSelectOption key={i} value={i.toString()}>
-                            {i.toString().padStart(2, "0")}
-                          </NativeSelectOption>
-                        ))}
-                      </NativeSelect>
+                        min={form.watch("workingHoursStart")}
+                      />
                     </FieldContent>
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>

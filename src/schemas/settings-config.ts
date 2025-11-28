@@ -26,7 +26,6 @@ export const SettingsConfig = z
       .int()
       .min(settingsConfig.min.maxActions, { message: "Minimum 1 action per day" })
       .max(settingsConfig.max.maxActions, { message: "Maximum 25 actions per day" }),
-    timezone: z.string(),
     workingHoursStart: z
       .number()
       .int()

@@ -8,13 +8,20 @@ import { LuArrowRight } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
-import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
-import { TimezoneSelect } from "@/components/ui/timezone-select"
 import { api } from "@/convex/_generated/api"
+import type { Doc } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 import { SettingsConfig, settingsConfig } from "@/schemas/settings-config"
@@ -30,21 +37,20 @@ export const ConfigForm: React.FC<ConfigFormProps> = ({ className }) => {
     return <Skeleton className={cn("h-29 w-full", className)} />
   }
 
-  const config = pick(account, Object.keys(SettingsConfig.shape) as (keyof SettingsConfig)[])
-  return <ActualConfigForm className={className} config={config} />
+  return <ActualConfigForm account={account} className={className} />
 }
 
 type ActualConfigFormProps = ConfigFormProps & {
-  config: Partial<SettingsConfig>
+  account: Doc<"linkedinAccounts">
 }
 
-const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ config, className }) => {
+const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className }) => {
   const configure = useMutation(api.linkedin.mutate.configure)
   const form = useForm({
     resolver: zodResolver(SettingsConfig),
     defaultValues: {
       ...settingsConfig.defaultValues,
-      ...config,
+      ...pick(account, Object.keys(SettingsConfig.shape) as (keyof SettingsConfig)[]),
     },
   })
 
@@ -53,7 +59,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ config, className }
       <VStack className="gap-4">
         <SectionTitle>Configuration</SectionTitle>
 
-        <HStack className="gap-4" items="start" wrap>
+        <HStack className="gap-4 md:gap-6" items="start" wrap>
           <Controller
             control={form.control}
             name="maxActions"
@@ -135,18 +141,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ config, className }
               />
             </HStack>
 
-            <Controller
-              control={form.control}
-              name="timezone"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldContent>
-                    <TimezoneSelect {...field} id={field.name} />
-                  </FieldContent>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+            <FieldDescription>Timezone: {account.timezone}</FieldDescription>
           </FieldGroup>
         </HStack>
 

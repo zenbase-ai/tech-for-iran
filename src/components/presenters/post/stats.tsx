@@ -16,8 +16,6 @@ export type PostStatsProps = StackProps & {
 
 export const PostStats: React.FC<PostStatsProps> = ({ podId, postId, className, ...props }) => {
   const stats = useAuthQuery(api.posts.query.stats, { podId, postId })
-  console.dir(stats)
-
   if (stats == null) {
     return <Skeleton className={cn("w-full h-14", className)} />
   }

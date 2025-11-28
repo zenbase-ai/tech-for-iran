@@ -159,7 +159,7 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
               </HStack>
 
               <FieldDescription className="font-mono">
-                reactions = min(members &times target / 100, cap )
+                reactions = min(members &times; target / 100, cap )
               </FieldDescription>
             </FieldGroup>
             {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}

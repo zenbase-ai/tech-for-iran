@@ -36,8 +36,8 @@ http.route({
     const unipileId = data.AccountStatus.account_id
     const status = data.AccountStatus.message
 
+    await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { unipileId, status })
     if (isConnected(status)) {
-      await ctx.runMutation(internal.linkedin.mutate.upsertAccount, { unipileId, status })
       await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
     } else if (needsReconnection(status)) {
       await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })

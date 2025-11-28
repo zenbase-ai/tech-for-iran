@@ -1,5 +1,7 @@
+import { generateObject } from "ai"
 import { v } from "convex/values"
 import { DateTime } from "luxon"
+import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
 import { errorMessage } from "@/convex/_helpers/errors"
@@ -7,7 +9,8 @@ import { authAction, connectedAction } from "@/convex/_helpers/server"
 import { env } from "@/lib/env.mjs"
 import { profileURL } from "@/lib/linkedin"
 import { CONVEX_SITE_URL } from "@/lib/server/convex"
-import { unipile } from "@/lib/server/unipile"
+import { openai } from "@/lib/server/openai"
+import { UnipileAPIError, unipile } from "@/lib/server/unipile"
 import { url } from "@/lib/utils"
 
 export const syncOwn = connectedAction({
@@ -28,29 +31,38 @@ export const sync = internalAction({
     unipileId: v.string(),
   },
   handler: async (ctx, { unipileId }) => {
-    const data = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
-    await ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
-      unipileId,
-      providerId: data.provider_id,
-      firstName: data.first_name,
-      lastName: data.last_name,
-      picture: data.profile_picture_url,
-      url: profileURL(data),
-      location: data.location,
-      headline: data.headline || "",
-    })
-
-    // Infer timezone from location and update account working hours
-    const timezone = await ctx.runAction(internal.linkedin.timezone.inferTimezone, {
-      location: data.location,
-    })
-
-    await ctx.runMutation(internal.linkedin.mutate.updateWorkingHours, {
-      unipileId,
-      timezone,
-      workingHoursStart: 9,
-      workingHoursEnd: 17,
-    })
+    try {
+      const data = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
+      await Promise.all([
+        ctx
+          .runAction(internal.linkedin.action.inferTimezone, { location: data.location })
+          .then((timezone) =>
+            ctx.runMutation(internal.linkedin.mutate.updateAccount, { unipileId, timezone })
+          ),
+        ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
+          unipileId,
+          providerId: data.provider_id,
+          firstName: data.first_name,
+          lastName: data.last_name,
+          picture: data.profile_picture_url,
+          url: profileURL(data),
+          location: data.location,
+          headline: data.headline || "",
+        }),
+      ])
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
+        unipileId,
+        status: "SYNC_SUCCESS",
+      })
+    } catch (error) {
+      if (error instanceof UnipileAPIError) {
+        await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
+          unipileId,
+          status: "ERROR",
+        })
+      }
+      throw error
+    }
   },
 })
 
@@ -87,4 +99,43 @@ export const generateHostedAuthURL = authAction({
         },
       })
       .json(),
+})
+
+const TimezoneSchema = z.object({
+  timezone: z.string(), // IANA timezone identifier
+  confidence: z.enum(["high", "medium", "low"]),
+})
+
+export const inferTimezone = internalAction({
+  args: {
+    location: v.string(),
+  },
+  handler: async (_ctx, { location }): Promise<string> => {
+    // Empty/invalid location → default
+    if (!location || location.trim() === "") {
+      return "America/New_York"
+    }
+
+    try {
+      const { object } = await generateObject({
+        model: openai("gpt-5.1-mini"),
+        schema: TimezoneSchema,
+        prompt: `Infer the IANA timezone identifier from this LinkedIn location: "${location}"
+
+Examples:
+- "San Francisco, California" → America/Los_Angeles
+- "London, UK" → Europe/London
+- "New York, NY" → America/New_York
+- "Remote" → America/New_York (default for ambiguous)
+- "Tokyo" → Asia/Tokyo
+
+Return the most likely IANA timezone. If uncertain, default to America/New_York.`,
+      })
+
+      return object.timezone
+    } catch (error) {
+      console.error("inferTimezone", errorMessage(error))
+      return "America/New_York" // Fallback on any error
+    }
+  },
 })

@@ -72,7 +72,7 @@ export const deleteAccountAndProfile = internalMutation({
   },
 })
 
-export const upsertAccount = internalMutation({
+export const upsertAccountStatus = internalMutation({
   args: {
     unipileId: v.string(),
     status: v.string(),
@@ -89,6 +89,17 @@ export const upsertAccount = internalMutation({
       "linkedinAccounts",
       update({ unipileId, status, ...settingsConfig.defaultValues })
     )
+  },
+})
+
+export const updateAccount = internalMutation({
+  args: {
+    unipileId: v.string(),
+    timezone: v.string(),
+  },
+  handler: async (ctx, { unipileId, timezone }) => {
+    const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
+    await ctx.db.patch(account._id, update({ timezone }))
   },
 })
 

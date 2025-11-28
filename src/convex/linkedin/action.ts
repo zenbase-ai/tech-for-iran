@@ -12,6 +12,7 @@ import { CONVEX_SITE_URL } from "@/lib/server/convex"
 import { openai } from "@/lib/server/openai"
 import { UnipileAPIError, unipile } from "@/lib/server/unipile"
 import { url } from "@/lib/utils"
+import { settingsConfig } from "@/schemas/settings-config"
 
 export const syncOwn = connectedAction({
   args: {},
@@ -33,23 +34,16 @@ export const sync = internalAction({
   handler: async (ctx, { unipileId }) => {
     try {
       const data = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
-      await Promise.all([
-        ctx
-          .runAction(internal.linkedin.action.inferTimezone, { location: data.location })
-          .then((timezone) =>
-            ctx.runMutation(internal.linkedin.mutate.updateAccount, { unipileId, timezone })
-          ),
-        ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
-          unipileId,
-          providerId: data.provider_id,
-          firstName: data.first_name,
-          lastName: data.last_name,
-          picture: data.profile_picture_url,
-          url: profileURL(data),
-          location: data.location,
-          headline: data.headline || "",
-        }),
-      ])
+      await ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
+        unipileId,
+        providerId: data.provider_id,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        picture: data.profile_picture_url,
+        url: profileURL(data),
+        location: data.location,
+        headline: data.headline || "",
+      })
       await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
         unipileId,
         status: "SYNC_SUCCESS",
@@ -113,14 +107,13 @@ export const inferTimezone = internalAction({
   handler: async (_ctx, { location }): Promise<string> => {
     // Empty/invalid location → default
     if (!location || location.trim() === "") {
-      return "America/New_York"
+      return settingsConfig.defaultValues.timezone
     }
 
-    try {
-      const { object } = await generateObject({
-        model: openai("gpt-5.1-mini"),
-        schema: TimezoneSchema,
-        prompt: `Infer the IANA timezone identifier from this LinkedIn location: "${location}"
+    const { object } = await generateObject({
+      model: openai("gpt-5-mini-2025-08-07"),
+      schema: TimezoneSchema,
+      prompt: `Infer the IANA timezone identifier from this LinkedIn location: "${location}"
 
 Examples:
 - "San Francisco, California" → America/Los_Angeles
@@ -130,12 +123,8 @@ Examples:
 - "Tokyo" → Asia/Tokyo
 
 Return the most likely IANA timezone. If uncertain, default to America/New_York.`,
-      })
+    })
 
-      return object.timezone
-    } catch (error) {
-      console.error("inferTimezone", errorMessage(error))
-      return "America/New_York" // Fallback on any error
-    }
+    return object.timezone
   },
 })

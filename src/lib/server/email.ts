@@ -12,7 +12,7 @@ export const createEmail = async ({
   to,
   body,
 }: CreateEmailParams): Promise<SendEmailOptions> => ({
-  from: "Crackedbook <noreply@crackedbook.xyz>",
+  from: "Crackedbook Concierge <concierge@email.crackedbook.xyz>",
   to,
   subject,
   html: await pretty(await render(body)),

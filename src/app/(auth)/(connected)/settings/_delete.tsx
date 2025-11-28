@@ -6,7 +6,7 @@ import { useAction } from "convex/react"
 import { RedirectType, redirect } from "next/navigation"
 import { useEffect, useEffectEvent, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { LuEraser, LuX } from "react-icons/lu"
+import { LuEraser } from "react-icons/lu"
 import * as z from "zod"
 import { VStack } from "@/components/layout/stack"
 import {
@@ -87,7 +87,6 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
                       autoComplete="off"
                       autoFocus
                       className="font-mono font-bold"
-                      disabled={isSubmitting}
                       id={field.name}
                       required
                     />
@@ -98,7 +97,6 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
 
             <AlertDialogFooter>
               <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="default">
-                <LuX />
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction

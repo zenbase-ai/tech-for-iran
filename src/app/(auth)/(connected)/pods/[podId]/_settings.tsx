@@ -107,7 +107,6 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
                           <InputGroupInput
                             {...field}
                             aria-invalid={fieldState.invalid}
-                            disabled={isSubmitting}
                             id={field.name}
                             max={podSettings.max.engagementTargetPercent}
                             min={podSettings.min.engagementTargetPercent}
@@ -140,7 +139,6 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
                           <InputGroupInput
                             {...field}
                             aria-invalid={fieldState.invalid}
-                            disabled={isSubmitting}
                             id={field.name}
                             max={podSettings.max.maxEngagementCap}
                             min={podSettings.min.maxEngagementCap}
@@ -159,7 +157,7 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
               </HStack>
 
               <FieldDescription className="font-mono">
-                reactions = min(members &times; target / 100, cap )
+                max reactions = min(members &times; target / 100, cap)
               </FieldDescription>
             </FieldGroup>
             {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
@@ -169,11 +167,7 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
               </AlertDialogCancel>
               <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">
                 Save
-                {isSubmitting ? (
-                  <Spinner className="size-3" variant="ellipsis" />
-                ) : (
-                  <LuArrowRight className="size-3" />
-                )}
+                {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
               </AlertDialogAction>
             </AlertDialogFooter>
           </VStack>

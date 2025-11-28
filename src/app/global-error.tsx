@@ -35,18 +35,21 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             justify="center"
           >
             <VStack className="gap-2" items="center">
+              <Badge className="font-mono" variant="secondary">
+                GLOBAL ERROR
+              </Badge>
+
               <PageTitle>Something went terribly wrong.</PageTitle>
               <PageDescription>An error occured, please refresh the page.</PageDescription>
-              <Button onClick={reset}>Refresh</Button>
+
+              <Button className="mt-6" onClick={reset}>
+                Refresh
+              </Button>
             </VStack>
 
             <Box className="object-contain w-full max-w-[360px]">
               <Image alt="Error" className="dark:invert" height={662} src={NotFound} width={624} />
             </Box>
-
-            <Badge className="text-base" variant="secondary">
-              GLOBAL ERROR
-            </Badge>
 
             {process.env.NODE_ENV === "development" && (
               <details className="mt-4 max-w-lg">

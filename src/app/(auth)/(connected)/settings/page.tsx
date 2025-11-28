@@ -1,6 +1,7 @@
 import { SignOutButton } from "@clerk/nextjs"
+import { SubscriptionDetailsButton } from "@clerk/nextjs/experimental"
 import type { Metadata } from "next"
-import { LuEraser, LuLogOut } from "react-icons/lu"
+import { LuCreditCard, LuEraser, LuLogOut } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
@@ -24,22 +25,32 @@ export default function SettingsPage() {
 
       <Separator />
 
-      <HStack className="gap-4" items="center">
-        <SectionTitle className="mr-auto">Account</SectionTitle>
+      <VStack className="gap-4" items="start">
+        <SectionTitle className="text-center">Account</SectionTitle>
 
-        <DeleteAccountDialog>
-          <Button size="sm" variant="ghost">
-            Delete
-            <LuEraser />
-          </Button>
-        </DeleteAccountDialog>
-        <SignOutButton redirectUrl="/">
-          <Button size="sm" variant="ghost">
-            Sign Out
-            <LuLogOut />
-          </Button>
-        </SignOutButton>
-      </HStack>
+        <HStack className="gap-4" items="center">
+          <SubscriptionDetailsButton>
+            <Button size="sm" variant="outline">
+              <LuCreditCard />
+              Subscription
+            </Button>
+          </SubscriptionDetailsButton>
+
+          <SignOutButton redirectUrl="/">
+            <Button size="sm" variant="outline">
+              <LuLogOut />
+              Sign Out
+            </Button>
+          </SignOutButton>
+
+          <DeleteAccountDialog>
+            <Button size="sm" variant="outline">
+              <LuEraser />
+              Delete
+            </Button>
+          </DeleteAccountDialog>
+        </HStack>
+      </VStack>
     </VStack>
   )
 }

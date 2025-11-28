@@ -19,7 +19,17 @@ export default function HomePage() {
 
       <PageTitle>Crackedbook</PageTitle>
 
-      <Button asChild>
+      <VStack className="gap-4">
+        <ol className="list-decimal list-inside">
+          <li>I love supporting my friends in what they do</li>
+          <li>I wish I could support them whenever they need it</li>
+          <li>But I'm busy as fuck all day every day</li>
+        </ol>
+
+        <p className="font-medium">So I joined Crackedbook, to do it automatically.</p>
+      </VStack>
+
+      <Button asChild className="mt-6">
         <Link href="/pods">
           Enter
           <LuArrowRight />

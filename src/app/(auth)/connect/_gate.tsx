@@ -43,7 +43,7 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
     form.clearErrors("inviteCode")
 
     if (await validate(data)) {
-      redirect(`/connect/dialog?${queryString(data)}`, RedirectType.replace)
+      redirect(`/connect/membership?${queryString(data)}`, RedirectType.replace)
     } else {
       form.setError("inviteCode", { message: "Invalid invite code.", type: "value" })
     }
@@ -69,7 +69,6 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
                       {...field}
                       aria-invalid={fieldState.invalid}
                       autoFocus
-                      disabled={isSubmitting}
                       id={field.name}
                       placeholder="your super secret invite code"
                       required
@@ -89,11 +88,7 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
               </SignOutButton>
               <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">
                 Continue
-                {isSubmitting ? (
-                  <Spinner className="size-3" variant="ellipsis" />
-                ) : (
-                  <LuArrowRight className="size-3" />
-                )}
+                {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
               </AlertDialogAction>
             </AlertDialogFooter>
           </VStack>

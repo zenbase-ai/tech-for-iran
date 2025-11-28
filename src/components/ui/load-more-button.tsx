@@ -28,10 +28,6 @@ export const LoadMoreButton: React.FC<LoadMoreButtonProps> = ({
     variant={variant}
   >
     {children ?? `More ${label ?? "items"}`}
-    {isLoading ? (
-      <Spinner className={cn(size === "sm" && "size-3")} variant="ellipsis" />
-    ) : (
-      <Icon className={cn(size === "sm" && "size-3")} />
-    )}
+    {isLoading ? <Spinner variant="ellipsis" /> : <Icon />}
   </Button>
 )

@@ -69,12 +69,6 @@ export const boost = connectedMemberAction({
       }
     }
 
-    await ctx.runAction(api.autumn.track, {
-      entityId: userId,
-      featureId: "boost_posts",
-      idempotencyKey: postId,
-    })
-
     try {
       const { targetCount } = await ctx.runMutation(internal.engagement.workflow.start, {
         userId,

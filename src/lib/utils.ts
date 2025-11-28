@@ -32,24 +32,26 @@ export const toError = (error: unknown): Error =>
 // =================================================================
 // ============================= URLs ==============================
 // =================================================================
-export const queryString = (params: Record<string, string | undefined>) => {
+type QueryParams = Record<string, string | null | undefined>
+
+export const queryString = (params: QueryParams) => {
   const searchParams = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined) {
+    if (value !== undefined && value !== null) {
       searchParams.set(key, value)
     }
   }
   return searchParams.toString()
 }
 
-const queryParams = (searchParams?: Record<string, string | undefined>) =>
+const queryParams = (searchParams?: QueryParams) =>
   searchParams && Object.keys(searchParams).length !== 0 ? `?${queryString(searchParams)}` : ""
 
 // Typed route and URL helpers
 export type Route<T extends string> = NextRoute<T> | "/sign-in" | "/sign-up"
 
 export type RouteOptions = {
-  searchParams?: Record<string, string | undefined>
+  searchParams?: QueryParams
 }
 
 export const route = <T extends string>(path: Route<T>, { searchParams }: RouteOptions = {}) =>

@@ -17,11 +17,16 @@ export default function NotFoundPage() {
       justify="center"
     >
       <VStack className="gap-2" items="center">
-        <PageTitle>You found a secret hallway.</PageTitle>
-        <PageDescription>The page you are looking for does not exist.</PageDescription>
-        <Badge className="text-base" variant="secondary">
+        <Badge className="font-mono" variant="secondary">
           CODE 404
         </Badge>
+
+        <PageTitle>You found a secret hallway.</PageTitle>
+        <PageDescription>The page you are looking for does not exist.</PageDescription>
+
+        <Button asChild className="mt-6">
+          <Link href="/">Take me home</Link>
+        </Button>
       </VStack>
 
       <Box className="w-full max-w-[360px]">
@@ -34,10 +39,6 @@ export default function NotFoundPage() {
           width={624}
         />
       </Box>
-
-      <Button asChild>
-        <Link href="/">Take me home</Link>
-      </Button>
     </VStack>
   )
 }

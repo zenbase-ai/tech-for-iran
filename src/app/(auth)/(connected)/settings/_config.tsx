@@ -4,25 +4,16 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { pick } from "es-toolkit"
 import { Controller, useForm } from "react-hook-form"
-import { LuArrowRight, LuThumbsUp } from "react-icons/lu"
+import { LuThumbsUp } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
-import { SectionTitle } from "@/components/layout/text"
 import { AccountTimezone } from "@/components/presenters/account/timezone"
-import { Button } from "@/components/ui/button"
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
+import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { HourSelect } from "@/components/ui/hour-select"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
+import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 import { SettingsConfig, settingsConfig } from "@/schemas/settings-config"
@@ -46,7 +37,7 @@ type ActualConfigFormProps = ConfigFormProps & {
 }
 
 const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className }) => {
-  const configure = useMutation(api.linkedin.mutate.configure)
+  const configure = useAsyncFn(useMutation(api.linkedin.mutate.configure))
   const form = useForm({
     resolver: zodResolver(SettingsConfig),
     defaultValues: {
@@ -57,10 +48,9 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
   const { formState } = form
 
   return (
-    <form className={className} onSubmit={form.handleSubmit(configure)}>
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: autosave!
+    <form className={className} onBlur={form.handleSubmit(configure.execute)}>
       <VStack className="gap-4">
-        <SectionTitle>Configuration</SectionTitle>
-
         <HStack className="gap-4 md:gap-6" items="start" wrap>
           <Controller
             control={form.control}
@@ -134,16 +124,12 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
               />
             </HStack>
 
-            <FieldDescription>
-              <AccountTimezone timezone={account.timezone} />
-            </FieldDescription>
+            <AccountTimezone
+              className="text-muted-foreground text-sm"
+              timezone={account.timezone}
+            />
           </FieldGroup>
         </HStack>
-
-        <Button className="w-fit" disabled={formState.isSubmitting} size="sm" type="submit">
-          Save
-          {formState.isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
-        </Button>
 
         {formState.errors.root && <FieldError errors={[formState.errors.root]} />}
       </VStack>

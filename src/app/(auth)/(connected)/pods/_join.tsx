@@ -40,7 +40,6 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
               {...field}
               aria-invalid={fieldState.invalid}
               autoFocus={autoFocus}
-              disabled={isSubmitting}
               id={field.name}
               placeholder="Enter an invite code"
               type="text"

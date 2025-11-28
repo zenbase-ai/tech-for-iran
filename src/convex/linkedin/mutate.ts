@@ -52,6 +52,7 @@ export const configure = connectedMutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(ctx.account._id, update(args))
+    return { success: "Settings updated!" }
   },
 })
 

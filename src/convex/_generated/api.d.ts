@@ -14,7 +14,6 @@ import type * as admin_aggregates from "../admin/aggregates.js";
 import type * as admin_moderation from "../admin/moderation.js";
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as autumn from "../autumn.js";
 import type * as clerk from "../clerk.js";
 import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
@@ -58,7 +57,6 @@ declare const fullApi: ApiFromModules<{
   "admin/moderation": typeof admin_moderation;
   aggregates: typeof aggregates;
   auth: typeof auth;
-  autumn: typeof autumn;
   clerk: typeof clerk;
   crons: typeof crons;
   emails: typeof emails;
@@ -117,7 +115,6 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
-  autumn: {};
   podMembers: {
     btree: {
       aggregateBetween: FunctionReference<

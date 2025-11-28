@@ -65,10 +65,10 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
           <VStack className="gap-4">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogDescription className="text-foreground">
                 Your fellow alumni are counting on you!
               </AlertDialogDescription>
-              <AlertDialogDescription className="text-sm text-muted-foreground">
+              <AlertDialogDescription className="text-sm">
                 This will permanently delete your account and remove your data from our servers.
               </AlertDialogDescription>
             </AlertDialogHeader>

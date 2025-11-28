@@ -43,7 +43,8 @@ const schema = defineSchema({
     inviteCode: v.string(), // Unique invite code for joining
     engagementTargetPercent: v.optional(v.number()),
     maxEngagementCap: v.optional(v.number()),
-    createdBy: v.string(), // Reference to profile who created the pod
+    createdBy: v.string(), // Reference to userId who created the pod
+    updatedAt: v.optional(v.number()),
   }).index("by_inviteCode", ["inviteCode"]), // Efficient lookup by invite code
 
   // Pod members (join table for many-to-many relationship)

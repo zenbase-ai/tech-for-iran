@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
 import { cn, url } from "@/lib/utils"
+import { PodSettingsDialog } from "./_settings"
 import type { PodPageParams } from "./_types"
 
 export type PodHeaderProps = {
@@ -27,7 +28,11 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
     <HStack className={cn("w-full gap-2", className)} items="center" justify="between">
       <PageTitle>{pod.name}</PageTitle>
 
-      <InviteButton className="-mt-1" inviteCode={pod.inviteCode} />
+      <HStack className="gap-2" items="center">
+        <PodSettingsDialog pod={pod} />
+
+        <InviteButton inviteCode={pod.inviteCode} />
+      </HStack>
     </HStack>
   )
 }

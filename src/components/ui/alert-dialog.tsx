@@ -5,9 +5,11 @@ import type { VariantProps } from "class-variance-authority"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export const AlertDialog: React.FC<React.ComponentProps<typeof AlertDialogPrimitive.Root>> = ({
-  ...props
-}) => <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
+export type AlertDialogProps = React.ComponentProps<typeof AlertDialogPrimitive.Root>
+
+export const AlertDialog: React.FC<AlertDialogProps> = ({ ...props }) => (
+  <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
+)
 
 export const AlertDialogTrigger: React.FC<
   React.ComponentProps<typeof AlertDialogPrimitive.Trigger>
@@ -82,7 +84,7 @@ export const AlertDialogDescription: React.FC<
   React.ComponentProps<typeof AlertDialogPrimitive.Description>
 > = ({ className, ...props }) => (
   <AlertDialogPrimitive.Description
-    className={cn(className)}
+    className={cn("text-muted-foreground", className)}
     data-slot="alert-dialog-description"
     {...props}
   />

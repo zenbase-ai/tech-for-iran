@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils"
 
-export const Textarea: React.FC<React.ComponentProps<"textarea">> = ({ className, ...props }) => (
+export type TextareaProps = React.ComponentProps<"textarea">
+
+export const Textarea: React.FC<TextareaProps> = ({ className, ...props }) => (
   <textarea
     className={cn(
       "flex field-sizing-content min-h-16 w-full px-3 py-2",

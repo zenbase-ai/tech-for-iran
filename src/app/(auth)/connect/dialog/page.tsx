@@ -49,10 +49,10 @@ export default function ConnectDialogPage() {
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>Let's connect your LinkedIn</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="text-foreground">
             This lets us handle engagements for you automatically.
           </AlertDialogDescription>
-          <AlertDialogDescription className="text-muted-foreground">
+          <AlertDialogDescription>
             We&apos;ll redirect you in {pluralize(countdown, "second")}.
           </AlertDialogDescription>
         </AlertDialogHeader>

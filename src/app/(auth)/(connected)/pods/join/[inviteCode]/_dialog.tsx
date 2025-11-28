@@ -29,7 +29,7 @@ export const JoinDialog: React.FC<JoinDialogProps> = ({ pod, memberCount }) => (
           <AlertDialogTitle>
             Join <NumberTicker value={memberCount} /> new friends
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-lg text-muted-foreground italic">
+          <AlertDialogDescription className="text-lg italic">
             You have uttered la contrasegna to <strong>{pod.name}</strong>.
           </AlertDialogDescription>
         </AlertDialogHeader>

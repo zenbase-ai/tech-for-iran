@@ -1,3 +1,4 @@
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AutumnProvider } from "./autumn"
 import { ClerkClientProvider } from "./clerk"
@@ -9,7 +10,9 @@ export const Providers: React.FC<React.PropsWithChildren> = ({ children }) => (
     <TooltipProvider>
       <ClerkClientProvider>
         <ConvexClientProvider>
-          <AutumnProvider>{children}</AutumnProvider>
+          <AutumnProvider>
+            <NuqsAdapter>{children}</NuqsAdapter>
+          </AutumnProvider>
         </ConvexClientProvider>
       </ClerkClientProvider>
     </TooltipProvider>

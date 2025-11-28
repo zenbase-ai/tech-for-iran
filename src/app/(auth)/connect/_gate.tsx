@@ -56,9 +56,7 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
           <VStack className="gap-4">
             <AlertDialogHeader>
               <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
-              <AlertDialogDescription className="text-muted-foreground">
-                Please enter your invite code.
-              </AlertDialogDescription>
+              <AlertDialogDescription>Please enter your invite code.</AlertDialogDescription>
             </AlertDialogHeader>
 
             <Controller

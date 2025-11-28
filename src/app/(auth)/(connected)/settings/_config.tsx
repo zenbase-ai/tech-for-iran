@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { pick } from "es-toolkit"
 import { Controller, useForm } from "react-hook-form"
-import { LuArrowRight } from "react-icons/lu"
+import { LuArrowRight, LuGlobe, LuThumbsUp } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
@@ -53,6 +53,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
       ...pick(account, Object.keys(SettingsConfig.shape) as (keyof SettingsConfig)[]),
     },
   })
+  const { formState } = form
 
   return (
     <form className={className} onSubmit={form.handleSubmit(configure)}>
@@ -64,18 +65,23 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
             control={form.control}
             name="maxActions"
             render={({ field, fieldState }) => (
-              <Field className="w-[128px]" data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor={field.name}>Daily Engagements</FieldLabel>
+              <Field className="w-[160px]" data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Send up to N reactions</FieldLabel>
                 <FieldContent>
-                  <Input
-                    {...field}
-                    aria-invalid={fieldState.invalid}
-                    id={field.name}
-                    max={settingsConfig.max.maxActions}
-                    min={settingsConfig.min.maxActions}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                    type="number"
-                  />
+                  <InputGroup>
+                    <InputGroupInput
+                      {...field}
+                      aria-invalid={fieldState.invalid}
+                      id={field.name}
+                      max={settingsConfig.max.maxActions}
+                      min={settingsConfig.min.maxActions}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      type="number"
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <LuThumbsUp />
+                    </InputGroupAddon>
+                  </InputGroup>
                 </FieldContent>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </Field>
@@ -83,7 +89,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
           />
 
           <FieldGroup className="gap-3 w-[192px]">
-            <FieldLabel htmlFor="workingHoursStart">Working Hours</FieldLabel>
+            <FieldLabel htmlFor="workingHoursStart">Between the hours of</FieldLabel>
 
             <HStack className="gap-3" items="center" wrap>
               <Controller
@@ -141,21 +147,22 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
               />
             </HStack>
 
-            <FieldDescription>Timezone: {account.timezone}</FieldDescription>
+            <FieldDescription>
+              <LuGlobe className="inline" />
+              &nbsp;
+              {(account.timezone ?? settingsConfig.defaultValues.timezone)
+                .replace("_", " ")
+                .replace("/", " / ")}
+            </FieldDescription>
           </FieldGroup>
         </HStack>
 
-        <Button
-          className="w-fit"
-          disabled={form.formState.isSubmitting}
-          type="submit"
-          variant="outline"
-        >
+        <Button className="w-fit" disabled={formState.isSubmitting} size="sm" type="submit">
           Save
-          {form.formState.isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
+          {formState.isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
         </Button>
 
-        {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+        {formState.errors.root && <FieldError errors={[formState.errors.root]} />}
       </VStack>
     </form>
   )

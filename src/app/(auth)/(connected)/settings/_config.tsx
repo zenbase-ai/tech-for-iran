@@ -4,9 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { pick } from "es-toolkit"
 import { Controller, useForm } from "react-hook-form"
-import { LuArrowRight, LuGlobe, LuThumbsUp } from "react-icons/lu"
+import { LuArrowRight, LuThumbsUp } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
+import { AccountTimezone } from "@/components/presenters/account/timezone"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -134,11 +135,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
             </HStack>
 
             <FieldDescription>
-              <LuGlobe className="inline" />
-              &nbsp;
-              {(account.timezone ?? settingsConfig.defaultValues.timezone)
-                .replace("_", " ")
-                .replace("/", " / ")}
+              <AccountTimezone timezone={account.timezone} />
             </FieldDescription>
           </FieldGroup>
         </HStack>

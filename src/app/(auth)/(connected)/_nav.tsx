@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react"
 import Link from "next/link"
-import { LuHandMetal, LuSettings, LuThumbsUp } from "react-icons/lu"
+import { LuHouse, LuSettings, LuThumbsUp } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,7 +36,7 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
       <HStack className={cn(navcn, "p-2")} items="center">
         <Button asChild size="icon" variant="ghost">
           <Link href="/pods">
-            <LuHandMetal />
+            <LuHouse />
           </Link>
         </Button>
 

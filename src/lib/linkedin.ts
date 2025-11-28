@@ -1,3 +1,4 @@
+import { pick } from "es-toolkit"
 import * as z from "zod"
 import type { Doc } from "@/convex/_generated/dataModel"
 
@@ -50,18 +51,32 @@ export const fullName = (p: ProfileName): string => `${p.firstName} ${p.lastName
 export const initials = (p: ProfileName): string =>
   [p.firstName[0], p.lastName[0]].filter(Boolean).join("").trim()
 
-type PostAuthor = Doc<"posts">["author"]
+export type PostProfile = {
+  firstName: string
+  lastName: string
+  picture: string
+  headline: string
+  url: string
+}
 
-export const authorProfile = ({ name, headline, url }: PostAuthor) => {
-  if (!url) {
-    return null
+export const postProfile = (
+  profile: Doc<"linkedinProfiles"> | null,
+  author: Doc<"posts">["author"]
+): PostProfile | null => {
+  if (!profile) {
+    const { name, headline, url } = author
+    if (!url) {
+      return null
+    }
+    const [firstName = "LinkedIn", lastName = ""] = name.split(" ", 2)
+    return {
+      firstName,
+      lastName,
+      headline,
+      url,
+      picture: "",
+    }
   }
-  const [firstName = "LinkedIn", lastName = ""] = name.split(" ", 2)
-  return {
-    firstName,
-    lastName,
-    headline,
-    url,
-    picture: "",
-  }
+
+  return pick(profile, ["firstName", "lastName", "picture", "headline", "url"])
 }

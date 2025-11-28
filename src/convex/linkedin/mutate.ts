@@ -119,7 +119,7 @@ export const upsertProfile = internalMutation({
       getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
     ])
 
-    if (!userId) {
+    if (!profile) {
       throw new NotFoundError()
     }
 

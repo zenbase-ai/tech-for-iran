@@ -53,16 +53,16 @@ type SendConnectionRequest = {
 
 export const sendConnectionRequest = internalAction({
   args: {
-    unipileId: v.string(),
-    id: v.string(),
+    fromUnipileId: v.string(),
+    toProviderId: v.string(),
     message: v.optional(v.string()),
   },
   handler: async (_ctx, args) =>
     await unipile
       .post<SendConnectionRequest>("api/v1/users/invite", {
         json: {
-          account_id: args.unipileId,
-          provider_id: args.id,
+          account_id: args.fromUnipileId,
+          provider_id: args.toProviderId,
           message: args.message,
         },
       })

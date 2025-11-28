@@ -27,16 +27,6 @@ export const boost = connectedMemberAction({
     const { userId } = ctx
     const { unipileId, role } = ctx.account
 
-    if (role !== "sudo") {
-      const { error: rateError } = await ctx.runMutation(internal.user.mutate.rateLimit, {
-        userId,
-        name: "submitPost",
-      })
-      if (rateError) {
-        return { postId: null, error: rateError }
-      }
-    }
-
     let data: (typeof internal.unipile.post.fetch)["_returnType"]
     try {
       data = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
@@ -67,6 +57,23 @@ export const boost = connectedMemberAction({
       console.error("posts:action/submit", "insert", error)
       return { postId: null, error: errorMessage(error) }
     }
+
+    if (role !== "sudo") {
+      const { error: rateError } = await ctx.runMutation(internal.user.mutate.rateLimit, {
+        userId,
+        name: "submitPost",
+      })
+      if (rateError) {
+        await ctx.runMutation(internal.posts.mutate.remove, { postId })
+        return { postId: null, error: rateError }
+      }
+    }
+
+    await ctx.runAction(api.autumn.track, {
+      entityId: userId,
+      featureId: "boost_posts",
+      idempotencyKey: postId,
+    })
 
     try {
       const { targetCount } = await ctx.runMutation(internal.engagement.workflow.start, {

@@ -3,6 +3,7 @@ import * as z from "zod"
 
 export const env = createEnv({
   server: {
+    AUTUMN_SECRET_KEY: z.string().min(1),
     CLERK_JWT_ISSUER_DOMAIN: z.url(),
     CLERK_SECRET_KEY: z.string().min(1),
     CONVEX_DEPLOYMENT: z.string().min(1),
@@ -21,6 +22,7 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: z.url(),
   },
   runtimeEnv: {
+    AUTUMN_SECRET_KEY: process.env.AUTUMN_SECRET_KEY,
     CLERK_JWT_ISSUER_DOMAIN: process.env.CLERK_JWT_ISSUER_DOMAIN,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,

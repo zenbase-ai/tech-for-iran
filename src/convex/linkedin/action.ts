@@ -4,7 +4,7 @@ import { DateTime } from "luxon"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
-import { errorMessage } from "@/convex/_helpers/errors"
+import { errorMessage, NotFoundError } from "@/convex/_helpers/errors"
 import { authAction, connectedAction } from "@/convex/_helpers/server"
 import { env } from "@/lib/env.mjs"
 import { profileURL } from "@/lib/linkedin"
@@ -33,6 +33,11 @@ export const sync = internalAction({
   },
   handler: async (ctx, { unipileId }) => {
     try {
+      const profile = await ctx.runQuery(internal.linkedin.query.getProfile, { unipileId })
+      if (!profile) {
+        throw new NotFoundError(`profile[unipileId=${unipileId}]`)
+      }
+
       const data = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
       await ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
         unipileId,

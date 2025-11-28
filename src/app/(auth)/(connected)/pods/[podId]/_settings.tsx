@@ -3,11 +3,12 @@
 import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
+import { pick } from "es-toolkit"
 import { parseAsBoolean, useQueryState } from "nuqs"
 import type React from "react"
 import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { LuArrowRight, LuSettings, LuThumbsUp } from "react-icons/lu"
+import { LuArrowRight, LuThumbsUp } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import {
   AlertDialog,
@@ -17,10 +18,9 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  type AlertDialogProps,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
 import {
   Field,
   FieldContent,
@@ -41,17 +41,18 @@ import type { Doc } from "@/convex/_generated/dataModel"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { PodSettings, podSettings } from "@/schemas/pod-settings"
 
-export type PodSettingsDialogProps = {
+export type PodSettingsDialogProps = React.PropsWithChildren<{
   pod: Doc<"pods">
-}
+}>
 
-export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ pod }) => {
+export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, pod }) => {
   const { userId } = useAuth()
+  const isCreator = userId === pod.createdBy
+
   const [showSettings, setShowSettings] = useQueryState(
     "settings",
     parseAsBoolean.withDefault(false)
   )
-  const isCreator = userId === pod.createdBy
 
   useEffect(() => {
     if (!isCreator && showSettings) {
@@ -59,56 +60,26 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ pod }) => 
     }
   }, [isCreator, showSettings, setShowSettings])
 
-  return (
-    <>
-      <Button
-        className="rounded-full"
-        disabled={!isCreator}
-        onClick={() => setShowSettings(true)}
-        size="sm"
-        variant="ghost"
-      >
-        <LuSettings />
-      </Button>
-
-      <ActualSettingsDialog onOpenChange={setShowSettings} open={showSettings} pod={pod} />
-    </>
-  )
-}
-
-type ActualSettingsDialogProps = AlertDialogProps & {
-  pod: Doc<"pods">
-}
-
-const ActualSettingsDialog: React.FC<ActualSettingsDialogProps> = ({ pod, ...props }) => {
   const configure = useAsyncFn(useMutation(api.pods.mutate.configure), {
-    onSuccess: useEffectEvent(() => {
-      props.onOpenChange?.(false)
-    }),
+    onSuccess: useEffectEvent(() => setShowSettings(false)),
   })
 
   const form = useForm({
     resolver: zodResolver(PodSettings),
-    defaultValues: podSettings.defaultValues,
+    defaultValues: {
+      ...podSettings.defaultValues,
+      ...pick(pod, Object.keys(PodSettings.shape) as (keyof PodSettings)[]),
+    },
   })
   const { isSubmitting } = form.formState
-
-  // Sync pod values to form
-  useEffect(() => {
-    if (pod.engagementTargetPercent != null) {
-      form.setValue("engagementTargetPercent", pod.engagementTargetPercent)
-    }
-    if (pod.maxEngagementCap != null) {
-      form.setValue("maxEngagementCap", pod.maxEngagementCap)
-    }
-  }, [pod.engagementTargetPercent, pod.maxEngagementCap, form.setValue])
 
   const onSubmit = useEffectEvent(async (data: PodSettings) => {
     await configure.execute({ podId: pod._id, ...data })
   })
 
   return (
-    <AlertDialog {...props}>
+    <AlertDialog onOpenChange={setShowSettings} open={showSettings}>
+      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <VStack className="gap-4">
@@ -118,7 +89,6 @@ const ActualSettingsDialog: React.FC<ActualSettingsDialogProps> = ({ pod, ...pro
                 Configure engagement targeting for this pod.
               </AlertDialogDescription>
             </AlertDialogHeader>
-
             <FieldGroup className="gap-4">
               <HStack className="gap-4" items="start" wrap>
                 <Controller
@@ -189,14 +159,12 @@ const ActualSettingsDialog: React.FC<ActualSettingsDialogProps> = ({ pod, ...pro
               </HStack>
 
               <FieldDescription className="font-mono">
-                reactions = min(members &times; target / 100, cap)
+                reactions = min(members &times target / 100, cap )
               </FieldDescription>
             </FieldGroup>
-
             {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
-
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isSubmitting} size="sm" type="button">
+              <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="ghost">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">

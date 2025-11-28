@@ -1,9 +1,10 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { LuSend } from "react-icons/lu"
+import { LuSend, LuSettings } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
 import { PageTitle } from "@/components/layout/text"
+import { Button } from "@/components/ui/button"
 import { CopyButton, type CopyButtonProps } from "@/components/ui/copy-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
@@ -29,7 +30,11 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
       <PageTitle>{pod.name}</PageTitle>
 
       <HStack className="gap-2" items="center">
-        <PodSettingsDialog pod={pod} />
+        <PodSettingsDialog pod={pod}>
+          <Button className="rounded-full" size="sm" variant="ghost">
+            <LuSettings />
+          </Button>
+        </PodSettingsDialog>
 
         <InviteButton inviteCode={pod.inviteCode} />
       </HStack>

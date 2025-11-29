@@ -43,7 +43,7 @@ export const isConnected = (status?: string | null): boolean =>
 export const needsReconnection = (status?: string | null): boolean =>
   status == null || RECONNECT_STATUSES.has(status as ConnectionStatus)
 
-export const ReactionType = z.enum(["like", "celebrate", "love", "insightful", "funny", "support"])
+export const ReactionType = z.enum(["like", "love", "celebrate", "insightful", "funny", "support"])
 
 export type ReactionType = z.infer<typeof ReactionType>
 

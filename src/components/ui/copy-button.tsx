@@ -99,7 +99,7 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
       onClick={handleCopy}
       {...props}
     >
-      {localIsCopied ? "Copied" : children}
+      {children}
       <AnimatePresence mode="wait">
         <motion.span
           animate={{ scale: 1 }}

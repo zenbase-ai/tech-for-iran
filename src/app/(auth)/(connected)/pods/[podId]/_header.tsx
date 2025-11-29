@@ -1,15 +1,16 @@
 "use client"
 
+import { useAuth } from "@clerk/nextjs"
 import { useParams } from "next/navigation"
-import { LuSend, LuSettings } from "react-icons/lu"
+import { LuSettings } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
 import { PageTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
-import { CopyButton, type CopyButtonProps } from "@/components/ui/copy-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn, url } from "@/lib/utils"
+import { cn } from "@/lib/utils"
+import { InviteButton } from "./_invite"
 import { PodSettingsDialog } from "./_settings"
 import type { PodPageParams } from "./_types"
 
@@ -18,6 +19,7 @@ export type PodHeaderProps = {
 }
 
 export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
+  const { userId } = useAuth()
   const { podId } = useParams<PodPageParams>()
   const pod = useAuthQuery(api.pods.query.get, { podId })
 
@@ -26,32 +28,18 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
   }
 
   return (
-    <HStack className={cn("w-full gap-2", className)} items="center" justify="between">
-      <PageTitle>{pod.name}</PageTitle>
+    <HStack className={cn("w-full gap-2", className)} items="center">
+      <PageTitle className="mr-auto">{pod.name}</PageTitle>
 
-      <HStack className="gap-2" items="center">
+      <InviteButton inviteCode={pod.inviteCode} variant="outline" />
+
+      {pod.createdBy === userId && (
         <PodSettingsDialog pod={pod}>
-          <Button className="rounded-full" size="sm" variant="ghost">
+          <Button className="rounded-full" size="sm" variant="outline">
             <LuSettings />
           </Button>
         </PodSettingsDialog>
-
-        <InviteButton inviteCode={pod.inviteCode} />
-      </HStack>
+      )}
     </HStack>
-  )
-}
-
-type InviteButtonProps = CopyButtonProps & {
-  inviteCode: string
-}
-
-const InviteButton: React.FC<InviteButtonProps> = ({ inviteCode, ...props }) => {
-  const inviteURL = url("/sign-up", { searchParams: { inviteCode } })
-
-  return (
-    <CopyButton content={inviteURL} icon={LuSend} size="sm" {...props}>
-      Invite
-    </CopyButton>
   )
 }

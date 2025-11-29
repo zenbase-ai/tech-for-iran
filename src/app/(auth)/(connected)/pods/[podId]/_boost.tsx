@@ -105,9 +105,12 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className }) => {
           control={form.control}
           name="reactionTypes"
           render={({ field, fieldState }) => (
-            <FieldSet className="w-fit" data-invalid={fieldState.invalid}>
+            <FieldSet data-invalid={fieldState.invalid}>
               <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
-              <FieldGroup className="grid grid-cols-2 gap-2" data-slot="checkbox-group">
+              <FieldGroup
+                className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+                data-slot="checkbox-group"
+              >
                 {boostPost.options.reactionTypes.map((reaction) => (
                   <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
                     <Switch

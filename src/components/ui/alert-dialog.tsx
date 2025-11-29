@@ -11,17 +11,21 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({ ...props }) => (
   <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
 )
 
-export const AlertDialogTrigger: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Trigger>
-> = ({ ...props }) => <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />
+export type AlertDialogTriggerProps = React.ComponentProps<typeof AlertDialogPrimitive.Trigger>
 
-export const AlertDialogPortal: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Portal>
-> = ({ ...props }) => <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />
+export const AlertDialogTrigger: React.FC<AlertDialogTriggerProps> = ({ ...props }) => (
+  <AlertDialogPrimitive.Trigger data-slot="alert-dialog-trigger" {...props} />
+)
 
-export const AlertDialogOverlay: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Overlay>
-> = ({ className, ...props }) => (
+export type AlertDialogPortalProps = React.ComponentProps<typeof AlertDialogPrimitive.Portal>
+
+export const AlertDialogPortal: React.FC<AlertDialogPortalProps> = ({ ...props }) => (
+  <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />
+)
+
+export type AlertDialogOverlayProps = React.ComponentProps<typeof AlertDialogPrimitive.Overlay>
+
+export const AlertDialogOverlay: React.FC<AlertDialogOverlayProps> = ({ className, ...props }) => (
   <AlertDialogPrimitive.Overlay
     className={cn(
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
@@ -32,9 +36,9 @@ export const AlertDialogOverlay: React.FC<
   />
 )
 
-export const AlertDialogContent: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Content>
-> = ({ className, ...props }) => (
+export type AlertDialogContentProps = React.ComponentProps<typeof AlertDialogPrimitive.Content>
+
+export const AlertDialogContent: React.FC<AlertDialogContentProps> = ({ className, ...props }) => (
   <AlertDialogPortal>
     <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
@@ -70,9 +74,9 @@ export const AlertDialogFooter: React.FC<React.ComponentProps<"div">> = ({
   />
 )
 
-export const AlertDialogTitle: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Title>
-> = ({ className, ...props }) => (
+export type AlertDialogTitleProps = React.ComponentProps<typeof AlertDialogPrimitive.Title>
+
+export const AlertDialogTitle: React.FC<AlertDialogTitleProps> = ({ className, ...props }) => (
   <AlertDialogPrimitive.Title
     className={cn("text-xl font-semibold font-serif italic", className)}
     data-slot="alert-dialog-title"
@@ -80,9 +84,14 @@ export const AlertDialogTitle: React.FC<
   />
 )
 
-export const AlertDialogDescription: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Description>
-> = ({ className, ...props }) => (
+export type AlertDialogDescriptionProps = React.ComponentProps<
+  typeof AlertDialogPrimitive.Description
+>
+
+export const AlertDialogDescription: React.FC<AlertDialogDescriptionProps> = ({
+  className,
+  ...props
+}) => (
   <AlertDialogPrimitive.Description
     className={cn("text-muted-foreground", className)}
     data-slot="alert-dialog-description"
@@ -90,18 +99,30 @@ export const AlertDialogDescription: React.FC<
   />
 )
 
-export const AlertDialogAction: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Action> & VariantProps<typeof buttonVariants>
-> = ({ className, variant = "default", size, ...props }) => (
+export type AlertDialogActionProps = React.ComponentProps<typeof AlertDialogPrimitive.Action> &
+  VariantProps<typeof buttonVariants>
+
+export const AlertDialogAction: React.FC<AlertDialogActionProps> = ({
+  className,
+  variant = "default",
+  size,
+  ...props
+}) => (
   <AlertDialogPrimitive.Action
     className={cn(buttonVariants({ variant, size, className }))}
     {...props}
   />
 )
 
-export const AlertDialogCancel: React.FC<
-  React.ComponentProps<typeof AlertDialogPrimitive.Cancel> & VariantProps<typeof buttonVariants>
-> = ({ className, variant = "ghost", size, ...props }) => (
+export type AlertDialogCancelProps = React.ComponentProps<typeof AlertDialogPrimitive.Cancel> &
+  VariantProps<typeof buttonVariants>
+
+export const AlertDialogCancel: React.FC<AlertDialogCancelProps> = ({
+  className,
+  variant = "ghost",
+  size,
+  ...props
+}) => (
   <AlertDialogPrimitive.Cancel
     className={cn(buttonVariants({ variant, size, className }))}
     {...props}

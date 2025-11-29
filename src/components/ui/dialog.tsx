@@ -5,26 +5,33 @@ import { LuX } from "react-icons/lu"
 
 import { cn } from "@/lib/utils"
 
-export const Dialog: React.FC<React.ComponentProps<typeof DialogPrimitive.Root>> = ({
-  ...props
-}) => <DialogPrimitive.Root data-slot="dialog" {...props} />
+export type DialogProps = React.ComponentProps<typeof DialogPrimitive.Root>
 
-export const DialogTrigger: React.FC<React.ComponentProps<typeof DialogPrimitive.Trigger>> = ({
-  ...props
-}) => <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+export const Dialog: React.FC<DialogProps> = ({ ...props }) => (
+  <DialogPrimitive.Root data-slot="dialog" {...props} />
+)
 
-export const DialogPortal: React.FC<React.ComponentProps<typeof DialogPrimitive.Portal>> = ({
-  ...props
-}) => <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+export type DialogTriggerProps = React.ComponentProps<typeof DialogPrimitive.Trigger>
 
-export const DialogClose: React.FC<React.ComponentProps<typeof DialogPrimitive.Close>> = ({
-  ...props
-}) => <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+export const DialogTrigger: React.FC<DialogTriggerProps> = ({ ...props }) => (
+  <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+)
 
-export const DialogOverlay: React.FC<React.ComponentProps<typeof DialogPrimitive.Overlay>> = ({
-  className,
-  ...props
-}) => (
+export type DialogPortalProps = React.ComponentProps<typeof DialogPrimitive.Portal>
+
+export const DialogPortal: React.FC<DialogPortalProps> = ({ ...props }) => (
+  <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+)
+
+export type DialogCloseProps = React.ComponentProps<typeof DialogPrimitive.Close>
+
+export const DialogClose: React.FC<DialogCloseProps> = ({ ...props }) => (
+  <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+)
+
+export type DialogOverlayProps = React.ComponentProps<typeof DialogPrimitive.Overlay>
+
+export const DialogOverlay: React.FC<DialogOverlayProps> = ({ className, ...props }) => (
   <DialogPrimitive.Overlay
     className={cn(
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
@@ -35,11 +42,16 @@ export const DialogOverlay: React.FC<React.ComponentProps<typeof DialogPrimitive
   />
 )
 
-export const DialogContent: React.FC<
-  React.ComponentProps<typeof DialogPrimitive.Content> & {
-    showCloseButton?: boolean
-  }
-> = ({ className, children, showCloseButton = true, ...props }) => (
+export type DialogContentProps = React.ComponentProps<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean
+}
+
+export const DialogContent: React.FC<DialogContentProps> = ({
+  className,
+  children,
+  showCloseButton = true,
+  ...props
+}) => (
   <DialogPortal data-slot="dialog-portal">
     <DialogOverlay />
     <DialogPrimitive.Content

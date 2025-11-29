@@ -1,12 +1,11 @@
 "use client"
 
-import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { pick } from "es-toolkit"
 import { parseAsBoolean, useQueryState } from "nuqs"
 import type React from "react"
-import { useEffect, useEffectEvent } from "react"
+import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight, LuThumbsUp } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
@@ -46,19 +45,10 @@ export type PodSettingsDialogProps = React.PropsWithChildren<{
 }>
 
 export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, pod }) => {
-  const { userId } = useAuth()
-  const isCreator = userId === pod.createdBy
-
   const [showSettings, setShowSettings] = useQueryState(
     "settings",
     parseAsBoolean.withDefault(false)
   )
-
-  useEffect(() => {
-    if (!isCreator && showSettings) {
-      setShowSettings(false)
-    }
-  }, [isCreator, showSettings, setShowSettings])
 
   const configure = useAsyncFn(useMutation(api.pods.mutate.configure), {
     onSuccess: useEffectEvent(() => setShowSettings(false)),

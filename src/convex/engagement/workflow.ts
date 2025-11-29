@@ -105,7 +105,7 @@ export const perform = workflow.define({
 
     const post = await step.runQuery(internal.posts.query.get, { postId })
 
-    for (let i = 1; i <= targetCount; i++) {
+    for (let i = 0; i < targetCount; i++) {
       const availableMembers = await step.runQuery(internal.engagement.query.availableMembers, {
         podId,
         skipUserIds,
@@ -117,8 +117,8 @@ export const perform = workflow.define({
       const { account, profile } = AvailableMember.parse(
         await step.runAction(internal.engagement.generate.sample, { items: availableMembers })
       )
-      skipUserIds.push(account.userId)
 
+      skipUserIds.push(account.userId)
       const { unipileId } = account
 
       const [reactDelay, reactionType] = await Promise.all([

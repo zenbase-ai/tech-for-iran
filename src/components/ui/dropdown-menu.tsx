@@ -5,21 +5,31 @@ import { LuCheck, LuChevronRight, LuCircle } from "react-icons/lu"
 
 import { cn } from "@/lib/utils"
 
-export const DropdownMenu: React.FC<React.ComponentProps<typeof DropdownMenuPrimitive.Root>> = ({
+export type DropdownMenuProps = React.ComponentProps<typeof DropdownMenuPrimitive.Root>
+
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({ ...props }) => (
+  <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
+)
+
+export type DropdownMenuPortalProps = React.ComponentProps<typeof DropdownMenuPrimitive.Portal>
+
+export const DropdownMenuPortal: React.FC<DropdownMenuPortalProps> = ({ ...props }) => (
+  <DropdownMenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
+)
+
+export type DropdownMenuTriggerProps = React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>
+
+export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({ ...props }) => (
+  <DropdownMenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
+)
+
+export type DropdownMenuContentProps = React.ComponentProps<typeof DropdownMenuPrimitive.Content>
+
+export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
+  className,
+  sideOffset = 4,
   ...props
-}) => <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
-
-export const DropdownMenuPortal: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.Portal>
-> = ({ ...props }) => <DropdownMenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
-
-export const DropdownMenuTrigger: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>
-> = ({ ...props }) => <DropdownMenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
-
-export const DropdownMenuContent: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.Content>
-> = ({ className, sideOffset = 4, ...props }) => (
+}) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       className={cn(
@@ -33,17 +43,24 @@ export const DropdownMenuContent: React.FC<
   </DropdownMenuPrimitive.Portal>
 )
 
-export const DropdownMenuGroup: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.Group>
-> = ({ ...props }) => <DropdownMenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
+export type DropdownMenuGroupProps = React.ComponentProps<typeof DropdownMenuPrimitive.Group>
 
-export const DropdownMenuItem: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
-    className?: string
-    inset?: boolean
-    variant?: "default" | "destructive"
-  }
-> = ({ className, inset, variant = "default", ...props }) => (
+export const DropdownMenuGroup: React.FC<DropdownMenuGroupProps> = ({ ...props }) => (
+  <DropdownMenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
+)
+
+export type DropdownMenuItemProps = React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
+  className?: string
+  inset?: boolean
+  variant?: "default" | "destructive"
+}
+
+export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
+  className,
+  inset,
+  variant = "default",
+  ...props
+}) => (
   <DropdownMenuPrimitive.Item
     className={cn(
       "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:text-destructive! [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 data-inset:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -56,13 +73,20 @@ export const DropdownMenuItem: React.FC<
   />
 )
 
-export const DropdownMenuCheckboxItem: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem> & {
-    className?: string
-    children?: React.ReactNode
-    checked?: boolean
-  }
-> = ({ className, children, checked, ...props }) => (
+export type DropdownMenuCheckboxItemProps = React.ComponentProps<
+  typeof DropdownMenuPrimitive.CheckboxItem
+> & {
+  className?: string
+  children?: React.ReactNode
+  checked?: boolean
+}
+
+export const DropdownMenuCheckboxItem: React.FC<DropdownMenuCheckboxItemProps> = ({
+  className,
+  children,
+  checked,
+  ...props
+}) => (
   <DropdownMenuPrimitive.CheckboxItem
     checked={checked}
     className={cn(
@@ -81,18 +105,26 @@ export const DropdownMenuCheckboxItem: React.FC<
   </DropdownMenuPrimitive.CheckboxItem>
 )
 
-export const DropdownMenuRadioGroup: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>
-> = ({ ...props }) => (
+export type DropdownMenuRadioGroupProps = React.ComponentProps<
+  typeof DropdownMenuPrimitive.RadioGroup
+>
+
+export const DropdownMenuRadioGroup: React.FC<DropdownMenuRadioGroupProps> = ({ ...props }) => (
   <DropdownMenuPrimitive.RadioGroup data-slot="dropdown-menu-radio-group" {...props} />
 )
 
-export const DropdownMenuRadioItem: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem> & {
-    className?: string
-    children?: React.ReactNode
-  }
-> = ({ className, children, ...props }) => (
+export type DropdownMenuRadioItemProps = React.ComponentProps<
+  typeof DropdownMenuPrimitive.RadioItem
+> & {
+  className?: string
+  children?: React.ReactNode
+}
+
+export const DropdownMenuRadioItem: React.FC<DropdownMenuRadioItemProps> = ({
+  className,
+  children,
+  ...props
+}) => (
   <DropdownMenuPrimitive.RadioItem
     className={cn(
       "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -110,12 +142,16 @@ export const DropdownMenuRadioItem: React.FC<
   </DropdownMenuPrimitive.RadioItem>
 )
 
-export const DropdownMenuLabel: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.Label> & {
-    className?: string
-    inset?: boolean
-  }
-> = ({ className, inset, ...props }) => (
+export type DropdownMenuLabelProps = React.ComponentProps<typeof DropdownMenuPrimitive.Label> & {
+  className?: string
+  inset?: boolean
+}
+
+export const DropdownMenuLabel: React.FC<DropdownMenuLabelProps> = ({
+  className,
+  inset,
+  ...props
+}) => (
   <DropdownMenuPrimitive.Label
     className={cn("px-2 py-1.5 text-sm font-medium data-inset:pl-8", className)}
     data-inset={inset}
@@ -124,9 +160,14 @@ export const DropdownMenuLabel: React.FC<
   />
 )
 
-export const DropdownMenuSeparator: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.Separator>
-> = ({ className, ...props }) => (
+export type DropdownMenuSeparatorProps = React.ComponentProps<
+  typeof DropdownMenuPrimitive.Separator
+>
+
+export const DropdownMenuSeparator: React.FC<DropdownMenuSeparatorProps> = ({
+  className,
+  ...props
+}) => (
   <DropdownMenuPrimitive.Separator
     className={cn("bg-border -mx-1 my-1 h-px", className)}
     data-slot="dropdown-menu-separator"
@@ -145,17 +186,26 @@ export const DropdownMenuShortcut: React.FC<React.ComponentProps<"span">> = ({
   />
 )
 
-export const DropdownMenuSub: React.FC<React.ComponentProps<typeof DropdownMenuPrimitive.Sub>> = ({
-  ...props
-}) => <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
+export type DropdownMenuSubProps = React.ComponentProps<typeof DropdownMenuPrimitive.Sub>
 
-export const DropdownMenuSubTrigger: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.SubTrigger> & {
-    className?: string
-    inset?: boolean
-    children?: React.ReactNode
-  }
-> = ({ className, inset, children, ...props }) => (
+export const DropdownMenuSub: React.FC<DropdownMenuSubProps> = ({ ...props }) => (
+  <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
+)
+
+export type DropdownMenuSubTriggerProps = React.ComponentProps<
+  typeof DropdownMenuPrimitive.SubTrigger
+> & {
+  className?: string
+  inset?: boolean
+  children?: React.ReactNode
+}
+
+export const DropdownMenuSubTrigger: React.FC<DropdownMenuSubTriggerProps> = ({
+  className,
+  inset,
+  children,
+  ...props
+}) => (
   <DropdownMenuPrimitive.SubTrigger
     className={cn(
       "focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-inset:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -170,9 +220,14 @@ export const DropdownMenuSubTrigger: React.FC<
   </DropdownMenuPrimitive.SubTrigger>
 )
 
-export const DropdownMenuSubContent: React.FC<
-  React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>
-> = ({ className, ...props }) => (
+export type DropdownMenuSubContentProps = React.ComponentProps<
+  typeof DropdownMenuPrimitive.SubContent
+>
+
+export const DropdownMenuSubContent: React.FC<DropdownMenuSubContentProps> = ({
+  className,
+  ...props
+}) => (
   <DropdownMenuPrimitive.SubContent
     className={cn(
       "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg",

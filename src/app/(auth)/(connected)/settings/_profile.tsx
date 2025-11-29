@@ -14,12 +14,14 @@ import useAuthQuery from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
 export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) => {
-  const { profile } = useAuthQuery(api.linkedin.query.getState) ?? {}
+  const linkedin = useAuthQuery(api.linkedin.query.getState)
   const sync = useAsyncFn(useAction(api.linkedin.action.syncOwn))
 
-  if (profile == null) {
+  if (linkedin?.profile == null) {
     return <Skeleton className={cn("w-full h-24", className)} />
   }
+
+  const { profile } = linkedin
 
   return (
     <ProfileItem

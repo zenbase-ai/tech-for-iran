@@ -33,7 +33,7 @@ http.route({
 
     switch (event.type) {
       case "subscription.pastDue":
-        await ctx.runMutation(internal.linkedin.mutate.updateAccountSubscription, {
+        await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
           userId,
           subscription: "member",
         })
@@ -42,7 +42,7 @@ http.route({
       case "subscription.updated":
       case "subscription.active": {
         const subscription = SubscriptionPlan.parse(event.data.items[0].plan?.slug ?? "member")
-        await ctx.runMutation(internal.linkedin.mutate.updateAccountSubscription, {
+        await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
           userId,
           subscription,
         })

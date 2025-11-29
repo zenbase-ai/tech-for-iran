@@ -20,18 +20,19 @@ export default function SettingsPage() {
     <VStack as="main" className="gap-8 md:gap-12 pb-16">
       <ProfileHeader />
 
-      <ConfigForm />
-
-      <Separator />
-
       <VStack className="gap-4" items="start">
         <SectionTitle>Membership</SectionTitle>
 
         <PricingTable collapseFeatures={false} />
       </VStack>
 
-      <HStack className="gap-4" items="center">
-        <SectionTitle className="mr-auto">Account</SectionTitle>
+      <Separator />
+
+      <ConfigForm />
+
+      <Separator />
+
+      <HStack className="gap-4" items="center" justify="around">
         <SignOutButton redirectUrl="/">
           <Button size="sm" variant="ghost">
             <LuLogOut />

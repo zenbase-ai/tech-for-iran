@@ -17,14 +17,20 @@ export type NavProps = {
 }
 
 export const Nav: React.FC<NavProps> = ({ className }) => {
+  const linkedin = useAuthQuery(api.linkedin.query.getState)
   const stats = useAuthQuery(api.user.query.stats)
   const navcn = cn(
     "gap-3",
     "h-13",
     "rounded-full",
-    "bg-background/50 backdrop-blur-md",
+    "backdrop-blur-md",
     "border border-border shadow-md outline-none",
-    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+    {
+      "bg-background/50": [undefined, "member"].includes(linkedin?.account?.subscription),
+      "bg-slate-300/50": linkedin?.account?.subscription === "silver_member",
+      "bg-amber-200/50": linkedin?.account?.subscription === "gold_member",
+    }
   )
 
   return (

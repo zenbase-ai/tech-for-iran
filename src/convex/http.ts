@@ -1,3 +1,4 @@
+import type { BillingSubscriptionWebhookEvent } from "@clerk/backend"
 import { httpRouter } from "convex/server"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
@@ -14,7 +15,16 @@ http.route({
   handler: httpAction(resend.handleResendEventWebhook),
 })
 
-const SubscriptionPlan = z.enum(["member", "silver_member", "gold_member"])
+const SubscriptionPlan = z
+  .enum(["member", "silver_member", "gold_member"])
+  .optional()
+  .default("member")
+const SubscriptionEvent = new Set([
+  "subscription.created",
+  "subscription.updated",
+  "subscription.active",
+  "subscription.pastDue",
+])
 
 http.route({
   path: "/webhooks/clerk",
@@ -31,24 +41,31 @@ http.route({
       return new Response(null, { status: 201 })
     }
 
-    switch (event.type) {
-      case "subscription.pastDue":
-        await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
-          userId,
-          subscription: "member",
-        })
-        break
-      case "subscription.created":
-      case "subscription.updated":
-      case "subscription.active": {
-        const subscription = SubscriptionPlan.parse(event.data.items[0].plan?.slug ?? "member")
-        await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
-          userId,
-          subscription,
-        })
-        break
-      }
+    if (!SubscriptionEvent.has(event.type)) {
+      return new Response(null, { status: 201 })
     }
+
+    if (event.type === "subscription.pastDue") {
+      await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
+        userId,
+        subscription: "member",
+      })
+      return new Response(null, { status: 201 })
+    }
+
+    const { success, data: subscription } = SubscriptionPlan.safeParse(
+      (event as BillingSubscriptionWebhookEvent).data.items.findLast(
+        ({ status }) => status === "active"
+      )?.plan?.slug
+    )
+    if (!success) {
+      console.warn("clerk:webhook", "!subscription", event)
+      return new Response(null, { status: 201 })
+    }
+    await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
+      userId,
+      subscription,
+    })
 
     return new Response(null, { status: 201 })
   }),

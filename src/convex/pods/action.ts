@@ -14,7 +14,9 @@ export const validate = authAction({
     !!(await ctx.runQuery(api.pods.query.lookup, { inviteCode })),
 })
 
-type Boost = { postId: Id<"posts">; success: string } | { postId: null; error: string }
+type Boost =
+  | { postId: Id<"posts">; success: string }
+  | { postId: null; error: string; info?: string }
 
 export const boost = connectedMemberAction({
   args: {
@@ -26,12 +28,16 @@ export const boost = connectedMemberAction({
   },
   handler: async (ctx, { podId, urn, reactionTypes, comments }): Promise<Boost> => {
     const { userId } = ctx
-    const { unipileId } = ctx.account
+    const { unipileId, subscription } = ctx.account
 
     {
       const { ok, retryAfter } = await ratelimits.check(ctx, ...boostPostRateLimit(ctx.account))
       if (!ok) {
-        return { postId: null, error: rateLimitError({ retryAfter }) }
+        return {
+          postId: null,
+          error: rateLimitError({ retryAfter }),
+          info: subscription !== "gold_member" ? "Maybe upgrade your membership?" : undefined,
+        }
       }
     }
 
@@ -67,7 +73,11 @@ export const boost = connectedMemberAction({
       const { ok, retryAfter } = await ratelimits.limit(ctx, ...boostPostRateLimit(ctx.account))
       if (!ok) {
         await ctx.runMutation(internal.posts.mutate.remove, { postId })
-        return { postId: null, error: rateLimitError({ retryAfter }) }
+        return {
+          postId: null,
+          error: rateLimitError({ retryAfter }),
+          info: subscription !== "gold_member" ? "Maybe upgrade your membership?" : undefined,
+        }
       }
     }
 

@@ -96,7 +96,7 @@ export const upsertAccountStatus = internalMutation({
   },
 })
 
-export const updateAccount = internalMutation({
+export const updateAccountTimezone = internalMutation({
   args: {
     unipileId: v.string(),
     timezone: v.string(),

@@ -12,7 +12,7 @@ export type ConnectCallbackPageProps = {
 
 export default async function ConnectCallbackPage(props: ConnectCallbackPageProps) {
   const [{ token }, { account_id: unipileId, inviteCode }] = await Promise.all([
-    clerkAuth().catch(clerkAuth),
+    clerkAuth(),
     props.searchParams,
   ])
 

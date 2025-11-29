@@ -2,6 +2,7 @@ import { v } from "convex/values"
 import { api, internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { authAction, connectedMemberAction } from "@/convex/_helpers/server"
+import { boostPostRateLimit, rateLimitError, ratelimits } from "@/convex/ratelimits"
 import { profileURL } from "@/lib/linkedin"
 import { errorMessage, pluralize } from "@/lib/utils"
 
@@ -25,47 +26,48 @@ export const boost = connectedMemberAction({
   },
   handler: async (ctx, { podId, urn, reactionTypes, comments }): Promise<Boost> => {
     const { userId } = ctx
-    const { unipileId, role } = ctx.account
+    const { unipileId } = ctx.account
 
-    let data: (typeof internal.unipile.post.fetch)["_returnType"]
-    try {
-      data = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
-    } catch (error) {
-      return { postId: null, error: errorMessage(error) }
+    {
+      const { ok, retryAfter } = await ratelimits.check(ctx, ...boostPostRateLimit(ctx.account))
+      if (!ok) {
+        return { postId: null, error: rateLimitError({ retryAfter }) }
+      }
     }
 
+    const { data, error: fetchError } = await ctx.runAction(internal.unipile.post.fetch, {
+      unipileId,
+      urn,
+    })
+    if (fetchError != null) {
+      return { postId: null, error: fetchError }
+    }
     if (data.is_repost) {
       return { postId: null, error: "Reposts are not supported." }
     }
 
-    let postId: Id<"posts">
-    try {
-      postId = await ctx.runMutation(internal.posts.mutate.insert, {
-        userId,
-        podId,
-        urn,
-        url: data.share_url,
-        postedAt: data.parsed_datetime,
-        text: data.text,
-        author: {
-          name: data.author.name,
-          headline: data.author.headline ?? "Company",
-          url: profileURL(data.author),
-        },
-      })
-    } catch (error) {
-      console.error("posts:action/submit", "insert", error)
-      return { postId: null, error: errorMessage(error) }
+    const { postId, error: insertError } = await ctx.runMutation(internal.posts.mutate.insert, {
+      userId,
+      podId,
+      urn,
+      url: data.share_url,
+      postedAt: data.parsed_datetime,
+      text: data.text,
+      author: {
+        name: data.author.name,
+        headline: data.author.headline ?? "Company",
+        url: profileURL(data.author),
+      },
+    })
+    if (insertError != null) {
+      return { postId: null, error: insertError }
     }
 
-    if (role !== "sudo") {
-      const { error: rateError } = await ctx.runMutation(internal.user.mutate.rateLimit, {
-        userId,
-        name: "submitPost",
-      })
-      if (rateError) {
+    {
+      const { ok, retryAfter } = await ratelimits.limit(ctx, ...boostPostRateLimit(ctx.account))
+      if (!ok) {
         await ctx.runMutation(internal.posts.mutate.remove, { postId })
-        return { postId: null, error: rateError }
+        return { postId: null, error: rateLimitError({ retryAfter }) }
       }
     }
 
@@ -78,6 +80,7 @@ export const boost = connectedMemberAction({
         reactionTypes,
         comments,
       })
+
       await ctx.runMutation(internal.stats.mutate.insert, {
         userId,
         postId,

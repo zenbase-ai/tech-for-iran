@@ -68,6 +68,7 @@
     "react-timeago": "^8.3.0",
     "resend": "^6.5.2",
     "sonner": "^2.0.7",
+    "svix": "^1.81.0",
     "tailwind-merge": "^3.4.0",
     "ts-essentials": "^10.1.1",
     "ts-pattern": "^5.9.0",

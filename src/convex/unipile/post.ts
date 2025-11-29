@@ -5,7 +5,7 @@ import { internalAction } from "@/convex/_generated/server"
 import { unipile } from "@/lib/server/unipile"
 import { errorMessage } from "@/lib/utils"
 
-const Fetch = z.object({
+const FetchData = z.object({
   object: z.literal("Post"),
   provider: z.literal("LINKEDIN"),
   id: z.string(),
@@ -29,15 +29,30 @@ const Fetch = z.object({
   reaction_counter: z.number().int(),
   repost_counter: z.number().int(),
 })
+type FetchData = z.infer<typeof FetchData>
+type Fetch = { data: FetchData; error: null } | { data: null; error: string }
 
 export const fetch = internalAction({
   args: {
     unipileId: v.string(),
     urn: v.string(),
   },
-  handler: async (_ctx, { unipileId: account_id, urn }) =>
-    Fetch.parse(await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json()),
+  handler: async (_ctx, { urn: post_id, unipileId: account_id }): Promise<Fetch> => {
+    try {
+      const data = FetchData.parse(
+        await unipile.get(`api/v1/posts/${post_id}`, { searchParams: { account_id } }).json()
+      )
+      return { data, error: null }
+    } catch (error: unknown) {
+      return { data: null, error: errorMessage(error) }
+    }
+  },
 })
+
+type ReactData = {
+  object: "ReactionAdded"
+}
+type React = { data: ReactData; error: null } | { data: null; error: string }
 
 export const react = internalAction({
   args: {
@@ -45,13 +60,13 @@ export const react = internalAction({
     urn: v.string(),
     reactionType: v.string(),
   },
-  handler: async (_ctx, args) => {
-    const { urn: post_id, unipileId: account_id, reactionType: reaction_type } = args
+  handler: async (
+    _ctx,
+    { urn: post_id, unipileId: account_id, reactionType: reaction_type }
+  ): Promise<React> => {
     try {
       const data = await unipile
-        .post<{
-          object: "ReactionAdded"
-        }>("api/v1/posts/reaction", { json: { account_id, post_id, reaction_type } })
+        .post<ReactData>("api/v1/posts/reaction", { json: { account_id, post_id, reaction_type } })
         .json()
       return { data, error: null }
     } catch (error: unknown) {
@@ -60,21 +75,28 @@ export const react = internalAction({
   },
 })
 
+type CommentData = {
+  object: "CommentSent"
+}
+type Comment = { data: CommentData; error: null } | { data: null; error: string }
+
 export const comment = internalAction({
   args: {
     unipileId: v.string(),
     urn: v.string(),
     commentText: v.string(),
   },
-  handler: async (_ctx, args) => {
-    const { urn, unipileId: account_id, commentText: text } = args
+  handler: async (
+    _ctx,
+    { urn: post_id, unipileId: account_id, commentText: text }
+  ): Promise<Comment> => {
     if (text.length === 0 || text.length > 1250) {
-      return { error: "Text must be between 1 and 1250 characters long." }
+      return { data: null, error: "Text must be between 1 and 1250 characters long." }
     }
 
     try {
       const data = await unipile
-        .post<{ object: "CommentSent" }>(`api/v1/posts/${urn}/comments`, {
+        .post<CommentData>(`api/v1/posts/${post_id}/comments`, {
           json: { account_id, text },
         })
         .json()

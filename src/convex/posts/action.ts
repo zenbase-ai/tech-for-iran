@@ -8,11 +8,15 @@ export const sync = internalAction({
   args: {
     postId: v.id("posts"),
   },
-  handler: async (ctx, { postId }): Promise<Doc<"stats">> => {
+  handler: async (ctx, { postId }): Promise<Doc<"stats"> | null> => {
     const { userId, urn } = await ctx.runQuery(internal.posts.query.get, { postId })
     const { unipileId } = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
 
-    const data = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
+    const { data, error } = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
+    if (error != null) {
+      console.error("posts:action/sync", "fetch", error)
+      return null
+    }
 
     await ctx.runMutation(internal.posts.mutate.upsert, {
       postId,
@@ -27,7 +31,7 @@ export const sync = internalAction({
       },
     })
 
-    return await ctx.runMutation(internal.stats.mutate.insert, {
+    const stats = await ctx.runMutation(internal.stats.mutate.insert, {
       userId,
       postId,
       commentCount: data.comment_counter,
@@ -35,5 +39,6 @@ export const sync = internalAction({
       reactionCount: data.reaction_counter,
       repostCount: data.repost_counter,
     })
+    return stats
   },
 })

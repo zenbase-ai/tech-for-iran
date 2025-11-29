@@ -1,4 +1,4 @@
-import { fetchMutation } from "convex/nextjs"
+import { fetchAction, fetchMutation } from "convex/nextjs"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { clerkAuth } from "@/lib/server/clerk"
@@ -17,6 +17,7 @@ export default async function ConnectCallbackPage(props: ConnectCallbackPageProp
   ])
 
   await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId }, { token })
+  await fetchAction(api.linkedin.action.syncOwn, {}, { token })
 
   if (inviteCode) {
     return redirect(`/pods/join/${inviteCode}`, RedirectType.replace)

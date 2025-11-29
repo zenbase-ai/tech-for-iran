@@ -3,6 +3,7 @@ import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
 import { ConnectionStatus, isConnected, needsReconnection } from "@/lib/linkedin"
+import { validateWebhook } from "./clerk/webhook"
 import { resend } from "./emails"
 
 const http = httpRouter()
@@ -13,19 +14,59 @@ http.route({
   handler: httpAction(resend.handleResendEventWebhook),
 })
 
+const SubscriptionPlan = z.enum(["member", "silver_member", "gold_member"])
+
+http.route({
+  path: "/webhooks/clerk",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    const event = await validateWebhook(request)
+    if (!event) {
+      return new Response(null, { status: 201 })
+    }
+
+    const userId = "payer" in event.data ? event.data.payer?.user_id : undefined
+    if (!userId) {
+      console.warn("clerk:webhook", "!userId", event)
+      return new Response(null, { status: 201 })
+    }
+
+    switch (event.type) {
+      case "subscription.pastDue":
+        await ctx.runMutation(internal.linkedin.mutate.updateAccountSubscription, {
+          userId,
+          subscription: "member",
+        })
+        break
+      case "subscription.created":
+      case "subscription.updated":
+      case "subscription.active": {
+        const subscription = SubscriptionPlan.parse(event.data.items[0].plan?.slug ?? "member")
+        await ctx.runMutation(internal.linkedin.mutate.updateAccountSubscription, {
+          userId,
+          subscription,
+        })
+        break
+      }
+    }
+
+    return new Response(null, { status: 201 })
+  }),
+})
+
+const UnipileAccountStatus = z.object({
+  AccountStatus: z.object({
+    account_id: z.string(),
+    account_type: z.literal("LINKEDIN"),
+    message: ConnectionStatus,
+  }),
+})
+
 http.route({
   path: "/webhooks/unipile",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     const payload = await request.json()
-
-    const UnipileAccountStatus = z.object({
-      AccountStatus: z.object({
-        account_id: z.string(),
-        account_type: z.literal("LINKEDIN"),
-        message: ConnectionStatus,
-      }),
-    })
 
     const { success, data } = UnipileAccountStatus.safeParse(payload)
     if (!success) {

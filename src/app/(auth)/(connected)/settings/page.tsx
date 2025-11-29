@@ -1,7 +1,6 @@
-import { SignOutButton } from "@clerk/nextjs"
-import { SubscriptionDetailsButton } from "@clerk/nextjs/experimental"
+import { PricingTable, SignOutButton } from "@clerk/nextjs"
 import type { Metadata } from "next"
-import { LuCreditCard, LuEraser, LuLogOut } from "react-icons/lu"
+import { LuEraser, LuLogOut } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
@@ -18,7 +17,7 @@ export default function SettingsPage() {
   "use memo"
 
   return (
-    <VStack as="main" className="gap-8 md:gap-12">
+    <VStack as="main" className="gap-8 md:gap-12 pb-16">
       <ProfileHeader />
 
       <ConfigForm />
@@ -26,31 +25,26 @@ export default function SettingsPage() {
       <Separator />
 
       <VStack className="gap-4" items="start">
-        <SectionTitle className="text-center">Account</SectionTitle>
+        <SectionTitle>Membership</SectionTitle>
 
-        <HStack className="gap-4" items="center">
-          <SubscriptionDetailsButton>
-            <Button size="sm" variant="outline">
-              <LuCreditCard />
-              Subscription
-            </Button>
-          </SubscriptionDetailsButton>
-
-          <SignOutButton redirectUrl="/">
-            <Button size="sm" variant="outline">
-              <LuLogOut />
-              Sign Out
-            </Button>
-          </SignOutButton>
-
-          <DeleteAccountDialog>
-            <Button size="sm" variant="outline">
-              <LuEraser />
-              Delete
-            </Button>
-          </DeleteAccountDialog>
-        </HStack>
+        <PricingTable collapseFeatures={false} />
       </VStack>
+
+      <HStack className="gap-4" items="center">
+        <SectionTitle className="mr-auto">Account</SectionTitle>
+        <SignOutButton redirectUrl="/">
+          <Button size="sm" variant="ghost">
+            <LuLogOut />
+            Sign out
+          </Button>
+        </SignOutButton>
+        <DeleteAccountDialog>
+          <Button size="sm" variant="ghost">
+            <LuEraser />
+            Delete my account
+          </Button>
+        </DeleteAccountDialog>
+      </HStack>
     </VStack>
   )
 }

@@ -103,6 +103,21 @@ export const updateAccount = internalMutation({
   },
 })
 
+export const updateAccountSubscription = internalMutation({
+  args: {
+    userId: v.string(),
+    subscription: v.union(
+      v.literal("member"),
+      v.literal("silver_member"),
+      v.literal("gold_member")
+    ),
+  },
+  handler: async (ctx, { userId, subscription }) => {
+    const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_userId", userId)
+    await ctx.db.patch(account._id, update({ subscription }))
+  },
+})
+
 export const upsertProfile = internalMutation({
   args: {
     unipileId: v.string(),

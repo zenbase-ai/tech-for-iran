@@ -14,7 +14,10 @@ import type * as admin_aggregates from "../admin/aggregates.js";
 import type * as admin_moderation from "../admin/moderation.js";
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as clerk from "../clerk.js";
+import type * as clerk_client from "../clerk/client.js";
+import type * as clerk_mutate from "../clerk/mutate.js";
+import type * as clerk_query from "../clerk/query.js";
+import type * as clerk_webhook from "../clerk/webhook.js";
 import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
 import type * as engagement_generate from "../engagement/generate.js";
@@ -41,7 +44,6 @@ import type * as unipile_account from "../unipile/account.js";
 import type * as unipile_post from "../unipile/post.js";
 import type * as unipile_profile from "../unipile/profile.js";
 import type * as user_action from "../user/action.js";
-import type * as user_mutate from "../user/mutate.js";
 import type * as user_query from "../user/query.js";
 
 import type {
@@ -57,7 +59,10 @@ declare const fullApi: ApiFromModules<{
   "admin/moderation": typeof admin_moderation;
   aggregates: typeof aggregates;
   auth: typeof auth;
-  clerk: typeof clerk;
+  "clerk/client": typeof clerk_client;
+  "clerk/mutate": typeof clerk_mutate;
+  "clerk/query": typeof clerk_query;
+  "clerk/webhook": typeof clerk_webhook;
   crons: typeof crons;
   emails: typeof emails;
   "engagement/generate": typeof engagement_generate;
@@ -84,7 +89,6 @@ declare const fullApi: ApiFromModules<{
   "unipile/post": typeof unipile_post;
   "unipile/profile": typeof unipile_profile;
   "user/action": typeof user_action;
-  "user/mutate": typeof user_mutate;
   "user/query": typeof user_query;
 }>;
 

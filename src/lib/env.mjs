@@ -5,6 +5,7 @@ export const env = createEnv({
   server: {
     CLERK_JWT_ISSUER_DOMAIN: z.url(),
     CLERK_SECRET_KEY: z.string().min(1),
+    CLERK_SIGNING_SECRET: z.string().min(1),
     CONVEX_DEPLOYMENT: z.string().min(1),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
     OPENAI_API_KEY: z.string().min(1),
@@ -23,6 +24,7 @@ export const env = createEnv({
   runtimeEnv: {
     CLERK_JWT_ISSUER_DOMAIN: process.env.CLERK_JWT_ISSUER_DOMAIN,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    CLERK_SIGNING_SECRET: process.env.CLERK_SIGNING_SECRET,
     CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,

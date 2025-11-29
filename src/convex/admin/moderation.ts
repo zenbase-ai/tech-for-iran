@@ -14,7 +14,7 @@ export const deleteUser = internalAction({
 
     await ctx.runAction(internal.unipile.account.disconnect, { unipileId })
     await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId })
-    await ctx.runAction(internal.clerk.deleteUser, { userId })
+    await ctx.runAction(internal.clerk.mutate.deleteUser, { userId })
 
     return true
   },

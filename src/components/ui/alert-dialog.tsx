@@ -92,7 +92,7 @@ export const AlertDialogDescription: React.FC<
 
 export const AlertDialogAction: React.FC<
   React.ComponentProps<typeof AlertDialogPrimitive.Action> & VariantProps<typeof buttonVariants>
-> = ({ className, variant, size, ...props }) => (
+> = ({ className, variant = "default", size, ...props }) => (
   <AlertDialogPrimitive.Action
     className={cn(buttonVariants({ variant, size, className }))}
     {...props}
@@ -101,7 +101,7 @@ export const AlertDialogAction: React.FC<
 
 export const AlertDialogCancel: React.FC<
   React.ComponentProps<typeof AlertDialogPrimitive.Cancel> & VariantProps<typeof buttonVariants>
-> = ({ className, variant = "outline", size, ...props }) => (
+> = ({ className, variant = "ghost", size, ...props }) => (
   <AlertDialogPrimitive.Cancel
     className={cn(buttonVariants({ variant, size, className }))}
     {...props}

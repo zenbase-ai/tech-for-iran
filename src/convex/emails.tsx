@@ -29,7 +29,7 @@ export const reconnectAccount = internalAction({
         return { error: "!userId" }
       }
 
-      const userEmail = await ctx.runAction(internal.clerk.fetchUserEmail, { userId })
+      const userEmail = await ctx.runAction(internal.clerk.query.userEmail, { userId })
 
       await resend.sendEmail(
         ctx,
@@ -56,15 +56,25 @@ export const postEngagement = internalAction({
   handler: async (ctx, { userId, postId }) => {
     try {
       const [userEmail, post, first, last] = await Promise.all([
-        ctx.runAction(internal.clerk.fetchUserEmail, { userId }),
+        ctx.runAction(internal.clerk.query.userEmail, { userId }),
         ctx.runQuery(internal.posts.query.get, { postId }),
         ctx.runQuery(internal.stats.query.first, { postId }),
         ctx.runAction(internal.posts.action.sync, { postId }),
       ])
 
-      if (!(first && last) || first._id === last._id) {
-        console.warn("emails:postEngagement", { userId, postId, first, last })
-        return { error: "!first || !last || first._id === last._id" }
+      if (first == null || last == null) {
+        console.warn("emails:postEngagement", "!first || !last", { userId, postId, first, last })
+        return { error: "!first || !last" }
+      }
+
+      if (first._id === last._id) {
+        console.warn("emails:postEngagement", "first._id === last._id", {
+          userId,
+          postId,
+          first,
+          last,
+        })
+        return { error: "first._id === last._id" }
       }
 
       await resend.sendEmail(

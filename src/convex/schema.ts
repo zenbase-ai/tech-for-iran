@@ -9,6 +9,9 @@ const schema = defineSchema({
     userId: v.optional(v.string()),
     unipileId: v.string(),
     status: v.string(),
+    subscription: v.optional(
+      v.union(v.literal("member"), v.literal("silver_member"), v.literal("gold_member"))
+    ),
     role: v.optional(v.union(v.literal("sudo"))),
     maxActions: v.number(),
     commentPrompt: v.optional(v.string()),

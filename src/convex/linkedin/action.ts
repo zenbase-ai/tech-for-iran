@@ -33,7 +33,12 @@ export const sync = internalAction({
   },
   handler: async (ctx, { unipileId }) => {
     try {
-      const data = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
+      const {
+        location,
+        headline = "",
+        ...data
+      } = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
+
       await ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
         unipileId,
         providerId: data.provider_id,
@@ -41,21 +46,15 @@ export const sync = internalAction({
         lastName: data.last_name,
         picture: data.profile_picture_url,
         url: profileURL(data),
-        location: data.location,
-        headline: data.headline || "",
-      })
-      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
-        unipileId,
-        status: "SYNC_SUCCESS",
+        location,
+        headline,
       })
 
-      const timezone = await ctx.runAction(internal.linkedin.action.inferTimezone, {
-        location: data.location,
-      })
-      await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, {
-        unipileId,
-        timezone,
-      })
+      const timezone = await ctx.runAction(internal.linkedin.action.inferTimezone, { location })
+      await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { unipileId, timezone })
+
+      const status = "SYNC_SUCCESS"
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { unipileId, status })
     } catch (error) {
       if (error instanceof UnipileAPIError) {
         await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {

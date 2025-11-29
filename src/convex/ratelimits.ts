@@ -35,9 +35,9 @@ export const boostPostRateLimit = ({
   const name = `boostPost:${userId}`
   const config: RateLimitConfig =
     subscription === "gold_member"
-      ? { kind: "fixed window", rate: 7, period: 7 * 24 * HOUR }
+      ? { kind: "fixed window", rate: 2, period: 24 * HOUR }
       : subscription === "silver_member"
-        ? { kind: "fixed window", rate: 2, period: 28 * 24 * HOUR }
+        ? { kind: "fixed window", rate: 2, period: 7 * 24 * HOUR }
         : { kind: "fixed window", rate: 2, period: 365 * 24 * HOUR }
   return [name, { config }] as const
 }

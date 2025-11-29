@@ -2,6 +2,14 @@ import { pick } from "es-toolkit"
 import * as z from "zod"
 import type { Doc } from "@/convex/_generated/dataModel"
 
+export const SubscriptionPlan = z
+  .enum(["member", "silver_member", "gold_member"])
+  .optional()
+  .default("member")
+export type SubscriptionPlan = z.infer<typeof SubscriptionPlan>
+
+export const subscriptionPlan = (slug?: string | null) => SubscriptionPlan.parse(slug)
+
 /**
  * LinkedIn account statuses from Unipile webhook
  * @see https://docs.unipile.com/api-reference/webhooks/account-status

@@ -1,9 +1,9 @@
-import type { BillingSubscriptionWebhookEvent } from "@clerk/backend"
+import type { BillingSubscriptionWebhookEvent as SubscriptionEventPayload } from "@clerk/backend"
 import { httpRouter } from "convex/server"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
-import { ConnectionStatus, isConnected, needsReconnection } from "@/lib/linkedin"
+import { ConnectionStatus, isConnected, needsReconnection, SubscriptionPlan } from "@/lib/linkedin"
 import { validateWebhook } from "./clerk/webhook"
 import { resend } from "./emails"
 
@@ -15,10 +15,6 @@ http.route({
   handler: httpAction(resend.handleResendEventWebhook),
 })
 
-const SubscriptionPlan = z
-  .enum(["member", "silver_member", "gold_member"])
-  .optional()
-  .default("member")
 const SubscriptionEvent = new Set([
   "subscription.created",
   "subscription.updated",
@@ -53,15 +49,11 @@ http.route({
       return new Response(null, { status: 201 })
     }
 
-    const { success, data: subscription } = SubscriptionPlan.safeParse(
-      (event as BillingSubscriptionWebhookEvent).data.items.findLast(
-        ({ status }) => status === "active"
-      )?.plan?.slug
+    const subscription = SubscriptionPlan.parse(
+      (event as SubscriptionEventPayload).data.items.findLast(({ status }) => status === "active")
+        ?.plan?.slug
     )
-    if (!success) {
-      console.warn("clerk:webhook", "!subscription", event)
-      return new Response(null, { status: 201 })
-    }
+
     await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
       userId,
       subscription,

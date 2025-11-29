@@ -24,12 +24,7 @@ export default function SettingsPage() {
       <VStack className="gap-4" items="start">
         <SectionTitle>Membership</SectionTitle>
 
-        <PricingTable
-          collapseFeatures={false}
-          newSubscriptionRedirectUrl={route("/pods", {
-            searchParams: { success: "Your patronage is appreciated!" },
-          })}
-        />
+        <PricingTable collapseFeatures={false} newSubscriptionRedirectUrl={route("/pods")} />
       </VStack>
 
       <Separator />

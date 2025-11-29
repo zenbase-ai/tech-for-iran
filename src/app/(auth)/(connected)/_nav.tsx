@@ -10,6 +10,7 @@ import { NumberTicker } from "@/components/ui/number-ticker"
 import { ThemeToggler } from "@/components/ui/theme-toggler"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
+import { subscriptionPlan } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 
 export type NavProps = {
@@ -19,18 +20,20 @@ export type NavProps = {
 export const Nav: React.FC<NavProps> = ({ className }) => {
   const linkedin = useAuthQuery(api.linkedin.query.getState)
   const stats = useAuthQuery(api.user.query.stats)
+  const subscription = subscriptionPlan(linkedin?.account?.subscription)
+
   const navcn = cn(
     "gap-3",
     "h-13",
     "rounded-full",
-    "backdrop-blur-md",
-    "border border-border shadow-md outline-none",
+    "bg-background/50 backdrop-blur-md",
+    "border shadow-md outline-none",
     "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
     {
-      "bg-background/50": [undefined, "member"].includes(linkedin?.account?.subscription),
-      "bg-slate-300/50": linkedin?.account?.subscription === "silver_member",
-      "bg-amber-200/50": linkedin?.account?.subscription === "gold_member",
-    }
+      member: "border-border",
+      silver_member: "border-slate-300",
+      gold_member: "border-amber-400",
+    }[subscription]
   )
 
   return (

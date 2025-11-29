@@ -51,7 +51,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: autosave!
     <form className={className} onBlur={form.handleSubmit(configure.execute)}>
       <VStack className="gap-4">
-        <HStack className="gap-4 md:gap-6" items="start" wrap>
+        <HStack className="gap-4 md:gap-6" items="start" justify="around" wrap>
           <Controller
             control={form.control}
             name="maxActions"

@@ -1,6 +1,6 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
-import { ConflictError, NotFoundError } from "@/convex/_helpers/errors"
+import { ConflictError, errorMessage, NotFoundError } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
 import { settingsConfig } from "@/schemas/settings-config"
 
@@ -51,8 +51,12 @@ export const configure = connectedMutation({
     workingHoursEnd: v.number(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(ctx.account._id, update(args))
-    return { success: "Settings updated!" }
+    try {
+      await ctx.db.patch(ctx.account._id, update(args))
+      return {}
+    } catch (error) {
+      return { error: errorMessage(error) }
+    }
   },
 })
 
@@ -68,7 +72,7 @@ export const deleteAccountAndProfile = internalMutation({
 
     await Promise.all([ctx.db.delete(account._id), ctx.db.delete(profile._id)])
 
-    return { unipileId: account.unipileId, account, profile }
+    return { unipileId, account, profile }
   },
 })
 

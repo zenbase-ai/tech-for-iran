@@ -26,7 +26,7 @@ export const PostStats: React.FC<PostStatsProps> = ({ podId, postId, className, 
   }
 
   return (
-    <HStack className={cn("gap-3", className)} items="center" wrap {...props}>
+    <HStack className={cn("gap-1", className)} items="center" wrap {...props}>
       <PostStat field="reactionCount" first={first} last={last} />
       <PostStat field="commentCount" first={first} last={last} />
       <PostStat field="repostCount" first={first} last={last} />

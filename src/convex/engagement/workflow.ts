@@ -183,7 +183,14 @@ export const onComplete = internalMutation({
     const { kind: status } = result
     await ctx.db.patch(postId, update({ status }))
 
-    const oneDay = 24 * 60 * 60 * 1000
+    const oneMinute = 60 * 1000
+    const oneHour = 60 * oneMinute
+    const syncSchedule = [15 * oneMinute, 30 * oneMinute, 60 * oneMinute, 4 * oneHour, 12 * oneHour]
+    for (const syncDelay of syncSchedule) {
+      await ctx.scheduler.runAfter(syncDelay, internal.posts.action.sync, { postId })
+    }
+
+    const oneDay = 24 * oneHour
     await ctx.scheduler.runAfter(oneDay, internal.emails.postEngagement, { userId, postId })
 
     return true

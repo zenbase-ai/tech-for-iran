@@ -1,3 +1,4 @@
+import { ExternalLink } from "@/components/ui/external-link"
 import {
   Item,
   ItemContent,
@@ -30,7 +31,7 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
       <ProfileAvatar className={cn(fancy && "size-12")} profile={profile} />
     </ItemMedia>
     <ItemContent>
-      <a href={profile.url} rel="noopener noreferrer" target="_blank">
+      <ExternalLink href={profile.url}>
         <ItemTitle
           className={cn(
             "-mt-0.5 line-clamp-1",
@@ -42,7 +43,7 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
         {description && (
           <ItemDescription className="leading-[1.15] text-xs">{description}</ItemDescription>
         )}
-      </a>
+      </ExternalLink>
     </ItemContent>
     {children}
   </Item>

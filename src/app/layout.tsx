@@ -8,11 +8,12 @@ import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
 export const viewport: Viewport = {
-  themeColor: "#74abae",
-  initialScale: 1.0,
-  width: "device-width",
-  viewportFit: "cover",
   colorScheme: "light dark",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  themeColor: "#74abae",
+  viewportFit: "cover",
+  width: "device-width",
 }
 
 export default function RootLayout({ children }: React.PropsWithChildren) {

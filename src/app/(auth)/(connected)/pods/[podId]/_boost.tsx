@@ -27,9 +27,10 @@ import type { PodPageParams } from "./_types"
 
 export type BoostPostFormProps = {
   className?: string
+  autoFocus?: boolean
 }
 
-export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className }) => {
+export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFocus }) => {
   const { podId } = useParams<PodPageParams>()
   const form = useForm({
     resolver: zodResolver(BoostPost),
@@ -58,7 +59,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className }) => {
                 <Input
                   {...field}
                   aria-invalid={fieldState.invalid}
-                  autoFocus
+                  autoFocus={autoFocus}
                   className="h-9 sm:h-11"
                   disabled={isSubmitting}
                   id={field.name}

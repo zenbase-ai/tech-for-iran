@@ -35,7 +35,7 @@ export default function PodPage() {
 
       <Stack className={cn("flex-col lg:flex-row", gapcn)} items="start">
         <VStack className={cn(gapcn, "flex-1")}>
-          <BoostPostForm className={cn(maxwcn)} />
+          <BoostPostForm autoFocus className={cn(maxwcn)} />
 
           <PodPosts className={cn(maxwcn)} />
         </VStack>

@@ -2,11 +2,9 @@
 
 import { motion } from "motion/react"
 import Link from "next/link"
-import { LuHouse, LuSettings, LuThumbsUp } from "react-icons/lu"
+import { LuHouse, LuSettings } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { NumberTicker } from "@/components/ui/number-ticker"
 import { ThemeToggler } from "@/components/ui/theme-toggler"
 import { api } from "@/convex/_generated/api"
 import useAuthQuery from "@/hooks/use-auth-query"
@@ -19,7 +17,6 @@ export type NavProps = {
 
 export const Nav: React.FC<NavProps> = ({ className }) => {
   const linkedin = useAuthQuery(api.linkedin.query.getState)
-  const stats = useAuthQuery(api.user.query.stats)
   const subscription = subscriptionPlan(linkedin?.account?.subscription)
 
   const navcn = cn(
@@ -56,13 +53,6 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
         </Button>
 
         <ThemeToggler variant="ghost" />
-      </HStack>
-
-      <HStack className={cn(navcn)} items="center">
-        <Badge variant="ghost">
-          <NumberTicker value={stats?.engagementCount ?? 0} />
-          <LuThumbsUp className="text-muted-foreground" />
-        </Badge>
       </HStack>
     </motion.nav>
   )

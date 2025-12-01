@@ -35,10 +35,10 @@ export const JoinDialog: React.FC<JoinDialogProps> = ({ pod, memberCount }) => (
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogAction size="sm">
+          <AlertDialogAction asChild size="sm">
             <Link href={`/pods/${pod._id}`}>
               Enter
-              <LuArrowRight className="size-3" />
+              <LuArrowRight className="size-3 inline" />
             </Link>
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -8,5 +8,8 @@ export const deleteUser = internalAction({
   args: {
     userId: v.string(),
   },
-  handler: async (_ctx, { userId }) => await clerk.users.deleteUser(userId),
+  handler: async (_ctx, { userId }) => {
+    await clerk.users.deleteUser(userId)
+    return true
+  },
 })

@@ -84,8 +84,8 @@ const schema = defineSchema({
     postedAt: v.number(),
     updatedAt: v.number(),
   })
-    .index("by_userId", ["userId", "status"])
-    .index("by_podId", ["podId", "status"])
+    .index("by_userId", ["userId"])
+    .index("by_podId", ["podId"])
     .index("by_urn", ["urn"]),
 
   stats: defineTable({

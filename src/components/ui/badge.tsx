@@ -18,9 +18,10 @@ export const badgeVariants = cva(
           "border-transparent text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground dark:[a&]:hover:bg-accent/50",
       },
       size: {
-        default: "px-3",
-        sm: "px-2",
-        xs: "px-1",
+        default: "px-3 h-9",
+        xs: "px-3 h-6",
+        sm: "px-3 h-8",
+        lg: "px-6 h-[47px]",
       },
     },
     defaultVariants: {

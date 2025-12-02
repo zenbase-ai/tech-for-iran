@@ -19,10 +19,10 @@ export type TextShimmerProps = {
 
 export const TextShimmer: React.FC<TextShimmerProps> = ({
   children,
-  as: Component = "p",
+  as: Component = "span",
   className,
-  duration = 2,
-  spread = 2,
+  duration = 3,
+  spread = 8,
   initial = { backgroundPosition: "100% center" },
   animate = { backgroundPosition: "0% center" },
 }) => {

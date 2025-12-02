@@ -47,7 +47,7 @@
     "arkregex": "^0.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "convex": "^1.29.3",
+    "convex": "1.29.3",
     "convex-helpers": "^0.1.106",
     "es-toolkit": "^1.42.0",
     "ky": "^1.14.0",

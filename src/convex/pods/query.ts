@@ -1,13 +1,13 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
-import { pick } from "es-toolkit"
+import { pick, sumBy } from "es-toolkit"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
 import { isWithinWorkingHours } from "@/convex/engagement/helpers"
 import { isConnected, postProfile } from "@/lib/linkedin"
-import { pfilter, pflatMap } from "@/lib/utils"
+import { pflatMap, pmap } from "@/lib/utils"
 
 export const lookup = authQuery({
   args: {
@@ -111,29 +111,26 @@ export const stats = memberQuery({
   args: {
     podId: v.id("pods"),
   },
-  handler: async (ctx, { podId }) => {
+  handler: async (ctx, { podId }): Promise<Stats> => {
     const [memberCount, postCount] = await Promise.all([
       podMembers.count(ctx, { bounds: { prefix: [podId] } }),
       podPosts.count(ctx, { bounds: { prefix: [podId] } }),
     ])
-
-    return { memberCount, postCount } satisfies Stats
+    return { memberCount, postCount }
   },
 })
 
-export const activeMemberCount = memberQuery({
+export const onlineCount = memberQuery({
   args: {
     podId: v.id("pods"),
   },
   handler: async (ctx, { podId }) => {
-    const memberships = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
-    const active = await pfilter(memberships, async ({ userId }) => {
-      const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-      if (!account) {
-        return false
-      }
-      return isConnected(account.status) && isWithinWorkingHours(account)
-    })
-    return active.length
+    const accounts = await pmap(
+      await getManyFrom(ctx.db, "memberships", "by_podId", podId),
+      ({ userId }) => getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+    )
+    return sumBy(accounts, (account) =>
+      account != null && isConnected(account.status) && isWithinWorkingHours(account) ? 1 : 0
+    )
   },
 })

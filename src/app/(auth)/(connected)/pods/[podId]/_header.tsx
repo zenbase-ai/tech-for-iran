@@ -29,17 +29,19 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
 
   return (
     <HStack className={cn("w-full gap-2", className)} items="center">
-      <PageTitle className="mr-auto">{pod.name}</PageTitle>
+      <PageTitle className="mr-auto flex-3">{pod.name}</PageTitle>
 
-      <InviteButton inviteCode={pod.inviteCode} variant="outline" />
+      <HStack className="flex-2 gap-2" items="center" justify="end" wrap>
+        <InviteButton inviteCode={pod.inviteCode} variant="outline" />
 
-      {pod.createdBy === userId && (
-        <PodSettingsDialog pod={pod}>
-          <Button className="rounded-full" size="sm" variant="outline">
-            <LuSettings />
-          </Button>
-        </PodSettingsDialog>
-      )}
+        {pod.createdBy === userId && (
+          <PodSettingsDialog pod={pod}>
+            <Button className="rounded-full" size="sm" variant="outline">
+              <LuSettings />
+            </Button>
+          </PodSettingsDialog>
+        )}
+      </HStack>
     </HStack>
   )
 }

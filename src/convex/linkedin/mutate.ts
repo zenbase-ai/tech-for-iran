@@ -12,27 +12,27 @@ export const connectOwn = authMutation({
   },
   handler: async (ctx, { unipileId }) => {
     const { userId } = ctx
+    const keys = { userId, unipileId }
 
     await Promise.all([
       getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId).then(async (account) => {
         if (account) {
-          await ctx.db.patch(account._id, update({ unipileId, userId }))
+          await ctx.db.patch(account._id, update(keys))
         } else {
           await ctx.db.insert(
             "linkedinAccounts",
-            update({ ...settingsConfig.defaultValues, unipileId, userId, status: "CONNECTING" })
+            update({ ...settingsConfig.defaultValues, ...keys, status: "CONNECTING" })
           )
         }
       }),
       getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId).then(async (profile) => {
         if (profile) {
-          await ctx.db.patch(profile._id, update({ unipileId, userId }))
+          await ctx.db.patch(profile._id, update(keys))
         } else {
           await ctx.db.insert(
             "linkedinProfiles",
             update({
-              userId,
-              unipileId,
+              ...keys,
               url: "",
               picture: "",
               firstName: "New",

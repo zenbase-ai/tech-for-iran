@@ -8,6 +8,7 @@ import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
 import { Stack, VStack } from "@/components/layout/stack"
+import { PageDescription } from "@/components/layout/text"
 import {
   Field,
   FieldError,
@@ -19,9 +20,11 @@ import {
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { TextShimmer } from "@/components/ui/text-shimmer"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
-import { cn } from "@/lib/utils"
+import useAuthQuery from "@/hooks/use-auth-query"
+import { cn, pluralize } from "@/lib/utils"
 import { BoostPost, boostPost } from "@/schemas/boost-post"
 import type { PodPageParams } from "./_types"
 
@@ -32,6 +35,7 @@ export type BoostPostFormProps = {
 
 export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFocus }) => {
   const { podId } = useParams<PodPageParams>()
+  const onlineCount = useAuthQuery(api.pods.query.onlineCount, { podId })
   const form = useForm({
     resolver: zodResolver(BoostPost),
     defaultValues: boostPost.defaultValues,
@@ -48,6 +52,12 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
   return (
     <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
       <VStack className="gap-4">
+        <PageDescription>
+          <TextShimmer>
+            {pluralize(onlineCount ? onlineCount - 1 : 0, "member")} online to engage
+          </TextShimmer>
+        </PageDescription>
+
         {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
         <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">

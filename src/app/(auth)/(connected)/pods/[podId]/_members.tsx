@@ -16,7 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
-import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { cn } from "@/lib/utils"
 import type { PodPageParams } from "./_types"
 
@@ -25,7 +24,7 @@ export type PodMembersProps = {
   pageSize?: number
 }
 
-export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 8 }) => {
+export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24 }) => {
   const { podId } = useParams<PodPageParams>()
   const stats = useAuthQuery(api.pods.query.stats, { podId })
 
@@ -36,7 +35,6 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 8 
   )
   const { isLoading, noResults, canLoadMore } = paginatedState(members)
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(pageSize))
-  const observer = useInfiniteScroll({ loadMore })
 
   return (
     <VStack className={cn("w-full gap-4", className)}>
@@ -74,12 +72,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 8 
             </ItemGroup>
           </Grid>
           {canLoadMore && (
-            <LoadMoreButton
-              isLoading={isLoading}
-              label="members"
-              onClick={loadMore}
-              ref={observer.ref}
-            />
+            <LoadMoreButton isLoading={isLoading} label="members" onClick={loadMore} />
           )}
         </VStack>
       )}

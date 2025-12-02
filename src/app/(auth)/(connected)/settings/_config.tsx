@@ -5,7 +5,7 @@ import { useMutation } from "convex/react"
 import { pick } from "es-toolkit"
 import { Controller, useForm } from "react-hook-form"
 import { LuThumbsUp } from "react-icons/lu"
-import { HStack, VStack } from "@/components/layout/stack"
+import { HStack, Stack, VStack } from "@/components/layout/stack"
 import { AccountTimezone } from "@/components/presenters/account/timezone"
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { HourSelect } from "@/components/ui/hour-select"
@@ -51,7 +51,11 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: autosave!
     <form className={className} onBlur={form.handleSubmit(configure.execute)}>
       <VStack className="gap-4">
-        <HStack className="gap-4 md:gap-6" items="start" justify="around" wrap>
+        <Stack
+          className="flex-col items-center sm:flex-row sm:items-start gap-4 md:gap-6"
+          justify="around"
+          wrap
+        >
           <Controller
             control={form.control}
             name="maxActions"
@@ -129,7 +133,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
               timezone={account.timezone}
             />
           </FieldGroup>
-        </HStack>
+        </Stack>
 
         {formState.errors.root && <FieldError errors={[formState.errors.root]} />}
       </VStack>

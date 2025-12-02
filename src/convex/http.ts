@@ -3,7 +3,7 @@ import { httpRouter } from "convex/server"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
-import { ConnectionStatus, isConnected, needsReconnection, SubscriptionPlan } from "@/lib/linkedin"
+import { ConnectionStatus, isConnected, SubscriptionPlan } from "@/lib/linkedin"
 import { validateWebhook } from "./clerk/webhook"
 import { resend } from "./emails"
 
@@ -63,7 +63,13 @@ http.route({
   }),
 })
 
-const UnipileAccountStatus = z.object({
+const UnipileAccountCreate = z.object({
+  status: z.literal("CREATION_SUCCESS"),
+  account_id: z.string(),
+  name: z.string(),
+})
+
+const UnipileAccountUpdate = z.object({
   AccountStatus: z.object({
     account_id: z.string(),
     account_type: z.literal("LINKEDIN"),
@@ -71,26 +77,37 @@ const UnipileAccountStatus = z.object({
   }),
 })
 
+const ExpectedPayload = z.union([UnipileAccountCreate, UnipileAccountUpdate])
+
 http.route({
   path: "/webhooks/unipile",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     const payload = await request.json()
-
-    const { success, data } = UnipileAccountStatus.safeParse(payload)
+    const { success, data } = ExpectedPayload.safeParse(payload)
     if (!success) {
-      console.warn("Unexpected Unipile webhook payload", payload)
+      console.warn("/webhooks/unipile", "unexpected", payload)
       return new Response(null, { status: 201 })
     }
 
-    const unipileId = data.AccountStatus.account_id
-    const status = data.AccountStatus.message
-
-    await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { unipileId, status })
-    if (isConnected(status)) {
+    if ("name" in data) {
+      const { account_id: unipileId, name: userId, status } = data
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
+        userId,
+        unipileId,
+        status,
+      })
       await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
-    } else if (needsReconnection(status)) {
-      await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })
+    } else {
+      const { account_id: unipileId, message: status } = data.AccountStatus
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
+        unipileId,
+        status,
+      })
+      const action = isConnected(status)
+        ? internal.linkedin.action.sync
+        : internal.emails.reconnectAccount
+      await ctx.scheduler.runAfter(0, action, { unipileId })
     }
 
     return new Response(null, { status: 201 })

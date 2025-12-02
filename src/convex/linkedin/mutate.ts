@@ -94,10 +94,11 @@ export const setDisconnected = internalAction({
 
 export const upsertAccountStatus = internalMutation({
   args: {
+    userId: v.optional(v.string()),
     unipileId: v.string(),
     status: v.string(),
   },
-  handler: async (ctx, { unipileId, status }) => {
+  handler: async (ctx, { userId, unipileId, status }) => {
     const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
 
     if (account) {
@@ -107,7 +108,7 @@ export const upsertAccountStatus = internalMutation({
 
     return await ctx.db.insert(
       "linkedinAccounts",
-      update({ unipileId, status, ...settingsConfig.defaultValues })
+      update({ userId, unipileId, status, ...settingsConfig.defaultValues })
     )
   },
 })
@@ -120,6 +121,19 @@ export const updateAccountTimezone = internalMutation({
   handler: async (ctx, { unipileId, timezone }) => {
     const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
     await ctx.db.patch(account._id, update({ timezone }))
+  },
+})
+
+export const updateWorkingHours = internalMutation({
+  args: {
+    unipileId: v.string(),
+    timezone: v.string(),
+    workingHoursStart: v.number(),
+    workingHoursEnd: v.number(),
+  },
+  handler: async (ctx, { unipileId, ...patch }) => {
+    const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
+    await ctx.db.patch(account._id, update(patch))
   },
 })
 
@@ -168,18 +182,5 @@ export const upsertProfile = internalMutation({
       "linkedinProfiles",
       update({ userId, unipileId, ...patch, scheduledRefresh: undefined })
     )
-  },
-})
-
-export const updateWorkingHours = internalMutation({
-  args: {
-    unipileId: v.string(),
-    timezone: v.string(),
-    workingHoursStart: v.number(),
-    workingHoursEnd: v.number(),
-  },
-  handler: async (ctx, { unipileId, ...patch }) => {
-    const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
-    await ctx.db.patch(account._id, update(patch))
   },
 })

@@ -93,10 +93,10 @@ export const start = internalMutation({
  */
 export const perform = workflow.define({
   args: { ...startArgs, targetCount: v.number() },
-  handler: async (step, { userId, postId, podId, urn, reactionTypes, targetCount, comments }) => {
+  handler: async (step, { postId, podId, urn, reactionTypes, targetCount, comments, ...args }) => {
     const minDelay = 10
     const maxDelay = 30
-    const skipUserIds = [userId]
+    const skipUserIds = [args.userId]
 
     await step.runMutation(internal.engagement.mutate.patchPostStatus, {
       postId,
@@ -105,12 +105,18 @@ export const perform = workflow.define({
 
     const post = await step.runQuery(internal.posts.query.get, { postId })
 
-    for (let i = 0; i < targetCount; i++) {
+    for (let iteration = 0; iteration < targetCount; iteration++) {
       const availableMembers = await step.runQuery(internal.engagement.query.availableMembers, {
         podId,
         skipUserIds,
       })
       if (availableMembers.length === null) {
+        console.warn("engagement/workflow:perform", "!availableMembers", {
+          podId,
+          postId,
+          iteration,
+          targetCount,
+        })
         break // no available profiles, stop trying
       }
 
@@ -118,8 +124,8 @@ export const perform = workflow.define({
         await step.runAction(internal.engagement.generate.sample, { items: availableMembers })
       )
 
-      skipUserIds.push(account.userId)
-      const { unipileId } = account
+      const { unipileId, userId } = account
+      skipUserIds.push(userId)
 
       const [reactDelay, reactionType] = await Promise.all([
         step.runAction(internal.engagement.generate.delay, { minDelay, maxDelay }),
@@ -136,6 +142,12 @@ export const perform = workflow.define({
         postId,
         reactionType,
         error: reactError,
+      })
+      console.info("engagement/workflow:perform", "reacted", {
+        userId,
+        postId,
+        podId,
+        urn,
       })
 
       if (comments) {

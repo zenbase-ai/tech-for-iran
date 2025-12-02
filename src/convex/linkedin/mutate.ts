@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
-import { ConflictError, errorMessage, NotFoundError } from "@/convex/_helpers/errors"
+import { errorMessage, NotFoundError } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
 import { settingsConfig } from "@/schemas/settings-config"
 
@@ -17,10 +17,6 @@ export const connectOwn = authMutation({
       getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId),
       getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
     ])
-
-    if (account.userId) {
-      throw new ConflictError("Account has already been connected.")
-    }
 
     await ctx.db.patch(account._id, update({ unipileId, userId }))
 
@@ -99,10 +95,12 @@ export const upsertAccountStatus = internalMutation({
     status: v.string(),
   },
   handler: async (ctx, { userId, unipileId, status }) => {
-    const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
+    const account = userId
+      ? await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+      : await getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
 
     if (account) {
-      await ctx.db.patch(account._id, update({ status }))
+      await ctx.db.patch(account._id, update({ userId, unipileId, status }))
       return account._id
     }
 
@@ -137,7 +135,7 @@ export const updateWorkingHours = internalMutation({
   },
 })
 
-export const updateAccountSubscription = internalMutation({
+export const upsertAccountSubscription = internalMutation({
   args: {
     userId: v.string(),
     subscription: v.union(
@@ -147,8 +145,16 @@ export const updateAccountSubscription = internalMutation({
     ),
   },
   handler: async (ctx, { userId, subscription }) => {
-    const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_userId", userId)
-    await ctx.db.patch(account._id, update({ subscription }))
+    const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+    if (account) {
+      await ctx.db.patch(account._id, update({ subscription }))
+      return account._id
+    }
+
+    return await ctx.db.insert(
+      "linkedinAccounts",
+      update({ ...settingsConfig.defaultValues, userId, subscription, unipileId: "", status: "" })
+    )
   },
 })
 

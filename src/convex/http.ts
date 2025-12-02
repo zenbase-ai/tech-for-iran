@@ -3,7 +3,7 @@ import { httpRouter } from "convex/server"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { httpAction } from "@/convex/_generated/server"
-import { ConnectionStatus, isConnected, SubscriptionPlan } from "@/lib/linkedin"
+import { ConnectionStatus, isConnected, needsReconnection, SubscriptionPlan } from "@/lib/linkedin"
 import { validateWebhook } from "./clerk/webhook"
 import { resend } from "./emails"
 
@@ -33,7 +33,7 @@ http.route({
 
     const userId = "payer" in event.data ? event.data.payer?.user_id : undefined
     if (!userId) {
-      console.warn("clerk:webhook", "!userId", event)
+      console.warn("/webhooks/clerk", "!userId", event)
       return new Response(null, { status: 201 })
     }
 
@@ -42,7 +42,7 @@ http.route({
     }
 
     if (event.type === "subscription.pastDue") {
-      await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
+      await ctx.scheduler.runAfter(0, internal.linkedin.mutate.upsertAccountSubscription, {
         userId,
         subscription: "member",
       })
@@ -54,7 +54,7 @@ http.route({
         ?.plan?.slug
     )
 
-    await ctx.scheduler.runAfter(0, internal.linkedin.mutate.updateAccountSubscription, {
+    await ctx.scheduler.runAfter(0, internal.linkedin.mutate.upsertAccountSubscription, {
       userId,
       subscription,
     })
@@ -77,14 +77,14 @@ const UnipileAccountUpdate = z.object({
   }),
 })
 
-const ExpectedPayload = z.union([UnipileAccountCreate, UnipileAccountUpdate])
-
 http.route({
   path: "/webhooks/unipile",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     const payload = await request.json()
-    const { success, data } = ExpectedPayload.safeParse(payload)
+    const { success, data } = z
+      .union([UnipileAccountCreate, UnipileAccountUpdate])
+      .safeParse(payload)
     if (!success) {
       console.warn("/webhooks/unipile", "unexpected", payload)
       return new Response(null, { status: 201 })
@@ -104,10 +104,11 @@ http.route({
         unipileId,
         status,
       })
-      const action = isConnected(status)
-        ? internal.linkedin.action.sync
-        : internal.emails.reconnectAccount
-      await ctx.scheduler.runAfter(0, action, { unipileId })
+      if (isConnected(status)) {
+        await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
+      } else if (needsReconnection(status)) {
+        await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })
+      }
     }
 
     return new Response(null, { status: 201 })

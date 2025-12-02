@@ -13,31 +13,39 @@ export const connectOwn = authMutation({
   handler: async (ctx, { unipileId }) => {
     const { userId } = ctx
 
-    const [account, profile] = await Promise.all([
-      getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId),
-      getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
+    await Promise.all([
+      getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId).then(async (account) => {
+        if (account) {
+          await ctx.db.patch(account._id, update({ unipileId, userId }))
+        } else {
+          await ctx.db.insert(
+            "linkedinAccounts",
+            update({ ...settingsConfig.defaultValues, unipileId, userId, status: "CONNECTING" })
+          )
+        }
+      }),
+      getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId).then(async (profile) => {
+        if (profile) {
+          await ctx.db.patch(profile._id, update({ unipileId, userId }))
+        } else {
+          await ctx.db.insert(
+            "linkedinProfiles",
+            update({
+              userId,
+              unipileId,
+              url: "",
+              picture: "",
+              firstName: "New",
+              lastName: "Member",
+              location: "",
+              headline: "",
+            })
+          )
+        }
+      }),
     ])
 
-    await ctx.db.patch(account._id, update({ unipileId, userId }))
-
-    if (profile) {
-      await ctx.db.patch(profile._id, update({ unipileId, userId }))
-      return profile._id
-    }
-
-    return await ctx.db.insert(
-      "linkedinProfiles",
-      update({
-        userId,
-        unipileId,
-        url: "",
-        picture: "",
-        firstName: "Connecting",
-        lastName: "",
-        location: "",
-        headline: "",
-      })
-    )
+    await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
   },
 })
 

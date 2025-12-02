@@ -1,12 +1,13 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
-import { getOneFrom } from "convex-helpers/server/relationships"
+import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import { pick } from "es-toolkit"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
-import { postProfile } from "@/lib/linkedin"
-import { pflatMap } from "@/lib/utils"
+import { isWithinWorkingHours } from "@/convex/engagement/helpers"
+import { isConnected, postProfile } from "@/lib/linkedin"
+import { pfilter, pflatMap } from "@/lib/utils"
 
 export const lookup = authQuery({
   args: {
@@ -117,5 +118,22 @@ export const stats = memberQuery({
     ])
 
     return { memberCount, postCount } satisfies Stats
+  },
+})
+
+export const activeMemberCount = memberQuery({
+  args: {
+    podId: v.id("pods"),
+  },
+  handler: async (ctx, { podId }) => {
+    const memberships = await getManyFrom(ctx.db, "memberships", "by_podId", podId)
+    const active = await pfilter(memberships, async ({ userId }) => {
+      const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+      if (!account) {
+        return false
+      }
+      return isConnected(account.status) && isWithinWorkingHours(account)
+    })
+    return active.length
   },
 })

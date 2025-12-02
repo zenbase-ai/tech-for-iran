@@ -1,8 +1,10 @@
 import { v } from "convex/values"
+import type { Options } from "ky"
 import { DateTime } from "luxon"
 import * as z from "zod"
+import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
-import { unipile } from "@/lib/server/unipile"
+import { isDisconnectedUnipileAccountError, unipile } from "@/lib/server/unipile"
 import { errorMessage } from "@/lib/utils"
 
 const FetchData = z.object({
@@ -37,11 +39,14 @@ export const fetch = internalAction({
     unipileId: v.string(),
     urn: v.string(),
   },
-  handler: async (_ctx, { urn: post_id, unipileId: account_id }): Promise<Fetch> => {
+  handler: async (_ctx, { urn, unipileId }): Promise<Fetch> => {
     try {
-      const data = FetchData.parse(
-        await unipile.get(`api/v1/posts/${post_id}`, { searchParams: { account_id } }).json()
-      )
+      const options: Options = {
+        searchParams: {
+          account_id: unipileId,
+        },
+      }
+      const data = FetchData.parse(await unipile.get(`api/v1/posts/${urn}`, options).json())
       return { data, error: null }
     } catch (error: unknown) {
       return { data: null, error: errorMessage(error) }
@@ -60,16 +65,21 @@ export const react = internalAction({
     urn: v.string(),
     reactionType: v.string(),
   },
-  handler: async (
-    _ctx,
-    { urn: post_id, unipileId: account_id, reactionType: reaction_type }
-  ): Promise<React> => {
+  handler: async (ctx, { urn, unipileId, reactionType }): Promise<React> => {
     try {
-      const data = await unipile
-        .post<ReactData>("api/v1/posts/reaction", { json: { account_id, post_id, reaction_type } })
-        .json()
+      const options: Options = {
+        json: {
+          account_id: unipileId,
+          post_id: urn,
+          reaction_type: reactionType,
+        },
+      }
+      const data = await unipile.post<ReactData>("api/v1/posts/reaction", options).json()
       return { data, error: null }
     } catch (error: unknown) {
+      if (isDisconnectedUnipileAccountError(error)) {
+        await ctx.runAction(internal.linkedin.mutate.setDisconnected, { unipileId })
+      }
       return { data: null, error: errorMessage(error) }
     }
   },
@@ -86,22 +96,24 @@ export const comment = internalAction({
     urn: v.string(),
     commentText: v.string(),
   },
-  handler: async (
-    _ctx,
-    { urn: post_id, unipileId: account_id, commentText: text }
-  ): Promise<Comment> => {
-    if (text.length === 0 || text.length > 1250) {
+  handler: async (ctx, { urn, unipileId, commentText }): Promise<Comment> => {
+    if (commentText.length === 0 || commentText.length > 1250) {
       return { data: null, error: "Text must be between 1 and 1250 characters long." }
     }
 
     try {
-      const data = await unipile
-        .post<CommentData>(`api/v1/posts/${post_id}/comments`, {
-          json: { account_id, text },
-        })
-        .json()
+      const options: Options = {
+        json: {
+          account_id: unipileId,
+          text: commentText,
+        },
+      }
+      const data = await unipile.post<CommentData>(`api/v1/posts/${urn}/comments`, options).json()
       return { data, error: null }
     } catch (error: unknown) {
+      if (isDisconnectedUnipileAccountError(error)) {
+        await ctx.runAction(internal.linkedin.mutate.setDisconnected, { unipileId })
+      }
       return { data: null, error: errorMessage(error) }
     }
   },

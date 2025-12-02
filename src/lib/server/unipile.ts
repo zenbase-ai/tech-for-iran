@@ -22,6 +22,14 @@ export const UnipileErrorResponse = z.object({
 
 export type UnipileErrorResponse = z.infer<typeof UnipileErrorResponse>
 
+export const isDisconnectedUnipileAccountError = (error: unknown): boolean => {
+  if (!(error instanceof UnipileAPIError)) {
+    return false
+  }
+  const { success, data } = UnipileErrorResponse.safeParse(JSON.parse(error.data.body))
+  return success && data.type === "errors/disconnected_account"
+}
+
 export const unipile = ky.create({
   headers: { "X-API-KEY": env.UNIPILE_API_KEY, "Content-Type": "application/json" },
   prefixUrl: env.UNIPILE_API_URL,

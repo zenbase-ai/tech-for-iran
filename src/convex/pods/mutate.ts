@@ -3,8 +3,8 @@ import { getOneFrom } from "convex-helpers/server/relationships"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { NotFoundError, UnauthorizedError } from "@/convex/_helpers/errors"
 import { connectedMutation, memberMutation, update } from "@/convex/_helpers/server"
+import { podMembers } from "@/convex/aggregates"
 import { PodSettings } from "@/schemas/pod-settings"
-import { podMembers } from "../aggregates"
 
 export type Join =
   | {

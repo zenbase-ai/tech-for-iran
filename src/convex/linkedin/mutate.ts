@@ -1,5 +1,7 @@
 import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
+import { internal } from "@/convex/_generated/api"
+import { internalAction } from "@/convex/_generated/server"
 import { ConflictError, errorMessage, NotFoundError } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
 import { settingsConfig } from "@/schemas/settings-config"
@@ -73,6 +75,20 @@ export const deleteAccountAndProfile = internalMutation({
     await Promise.all([ctx.db.delete(account._id), ctx.db.delete(profile._id)])
 
     return { unipileId, account, profile }
+  },
+})
+
+export const setDisconnected = internalAction({
+  args: {
+    unipileId: v.string(),
+  },
+  handler: async (ctx, { unipileId }) => {
+    await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
+      unipileId,
+      status: "STOPPED",
+    })
+    await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })
+    return true
   },
 })
 

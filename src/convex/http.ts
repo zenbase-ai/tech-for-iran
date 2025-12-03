@@ -92,23 +92,22 @@ http.route({
 
     if ("name" in data) {
       const { account_id: unipileId, name: userId, status } = data
-      const args = { userId, unipileId }
+      const keys = { userId, unipileId }
       await Promise.all([
-        ctx.runMutation(internal.linkedin.mutate.connectAccount, args),
-        ctx.runMutation(internal.linkedin.mutate.connectProfile, args),
+        ctx.runMutation(internal.linkedin.mutate.connectAccount, keys),
+        ctx.runMutation(internal.linkedin.mutate.connectProfile, keys),
         ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId }),
         ctx.scheduler.runAfter(0, internal.linkedin.mutate.upsertAccountStatus, {
-          ...args,
+          ...keys,
           status,
         }),
       ])
     } else {
       const { account_id: unipileId, message: status } = data.AccountStatus
-      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
-        unipileId,
-        status,
-      })
-      if (isConnected(status)) {
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { unipileId, status })
+      if (status === "DELETED") {
+        await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId })
+      } else if (isConnected(status)) {
         await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
       } else if (needsReconnection(status)) {
         await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })

@@ -1,7 +1,7 @@
 import { v } from "convex/values"
-import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
+import { getOneFrom } from "convex-helpers/server/relationships"
 import { internalQuery } from "@/convex/_generated/server"
-import { BadRequestError } from "@/convex/_helpers/errors"
+import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery } from "@/convex/_helpers/server"
 
 export const getState = authQuery({
@@ -22,13 +22,13 @@ export const getAccount = internalQuery({
     unipileId: v.optional(v.string()),
   },
   handler: async (ctx, { userId, unipileId }) => {
-    if (userId) {
-      return await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_userId", userId)
+    const account =
+      (userId && (await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId))) ??
+      (unipileId && (await getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)))
+    if (!account) {
+      throw new NotFoundError("ACCOUNT", { cause: { userId, unipileId } })
     }
-    if (unipileId) {
-      return await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
-    }
-    throw new BadRequestError()
+    return account
   },
 })
 
@@ -38,12 +38,12 @@ export const getProfile = internalQuery({
     unipileId: v.optional(v.string()),
   },
   handler: async (ctx, { userId, unipileId }) => {
-    if (userId) {
-      return await getOneFromOrThrow(ctx.db, "linkedinProfiles", "by_userId", userId)
+    const profile =
+      (userId && (await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId))) ??
+      (unipileId && (await getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId)))
+    if (!profile) {
+      throw new NotFoundError("PROFILE", { cause: { userId, unipileId } })
     }
-    if (unipileId) {
-      return await getOneFromOrThrow(ctx.db, "linkedinProfiles", "by_unipileId", unipileId)
-    }
-    throw new BadRequestError()
+    return profile
   },
 })

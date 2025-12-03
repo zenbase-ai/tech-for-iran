@@ -36,9 +36,11 @@ export type BoostPostFormProps = {
 export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFocus }) => {
   const { podId } = useParams<PodPageParams>()
   const onlineCount = useAuthQuery(api.pods.query.onlineCount, { podId })
+
   const form = useForm({
     resolver: zodResolver(BoostPost),
     defaultValues: boostPost.defaultValues,
+    disabled: !onlineCount,
   })
   const { isSubmitting } = form.formState
 

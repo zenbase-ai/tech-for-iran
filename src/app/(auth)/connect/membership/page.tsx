@@ -11,10 +11,12 @@ export const metadata: Metadata = {
   title: "Membership | Crackedbook",
 }
 
+export type ConnectMembershipSearchParams = {
+  inviteCode?: string
+}
+
 export type ConnectMembershipPageProps = {
-  searchParams: Promise<{
-    inviteCode?: string
-  }>
+  searchParams: Promise<ConnectMembershipSearchParams>
 }
 
 export default async function ConnectMembershipPage(props: ConnectMembershipPageProps) {

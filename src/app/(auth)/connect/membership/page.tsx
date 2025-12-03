@@ -3,8 +3,9 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { LuArrowRight } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
-import { PageTitle } from "@/components/layout/text"
+import { PageDescription, PageTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { queryString } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -24,14 +25,19 @@ export default async function ConnectMembershipPage(props: ConnectMembershipPage
 
   return (
     <VStack className="gap-4">
-      <PageTitle className="text-center">Membership</PageTitle>
-      <Button asChild size="sm">
+      <PageTitle className="text-center">Help us breakeven!</PageTitle>
+      <PageDescription>Try for free at the bottom of the page.</PageDescription>
+
+      <PricingTable newSubscriptionRedirectUrl={redirectURL} />
+
+      <Separator />
+
+      <Button asChild size="lg">
         <Link href={redirectURL}>
-          Continue for free
+          Try for free
           <LuArrowRight />
         </Link>
       </Button>
-      <PricingTable newSubscriptionRedirectUrl={redirectURL} />
     </VStack>
   )
 }

@@ -39,7 +39,7 @@ export const sync = internalAction({
         ...data
       } = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
 
-      await ctx.runMutation(internal.linkedin.mutate.upsertProfile, {
+      await ctx.runMutation(internal.linkedin.mutate.updateProfile, {
         unipileId,
         providerId: data.provider_id,
         firstName: data.first_name,

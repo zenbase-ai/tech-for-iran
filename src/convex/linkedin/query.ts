@@ -18,10 +18,18 @@ export const getState = authQuery({
 
 export const getAccount = internalQuery({
   args: {
-    userId: v.string(),
+    userId: v.optional(v.string()),
+    unipileId: v.optional(v.string()),
   },
-  handler: async (ctx, { userId }) =>
-    await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_userId", userId),
+  handler: async (ctx, { userId, unipileId }) => {
+    if (userId) {
+      return await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_userId", userId)
+    }
+    if (unipileId) {
+      return await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
+    }
+    throw new BadRequestError()
+  },
 })
 
 export const getProfile = internalQuery({

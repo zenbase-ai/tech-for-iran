@@ -92,12 +92,16 @@ http.route({
 
     if ("name" in data) {
       const { account_id: unipileId, name: userId, status } = data
-      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
-        userId,
-        unipileId,
-        status,
-      })
-      await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
+      const args = { userId, unipileId }
+      await Promise.all([
+        ctx.runMutation(internal.linkedin.mutate.connectAccount, args),
+        ctx.runMutation(internal.linkedin.mutate.connectProfile, args),
+        ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId }),
+        ctx.scheduler.runAfter(0, internal.linkedin.mutate.upsertAccountStatus, {
+          ...args,
+          status,
+        }),
+      ])
     } else {
       const { account_id: unipileId, message: status } = data.AccountStatus
       await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {

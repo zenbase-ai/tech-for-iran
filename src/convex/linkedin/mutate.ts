@@ -2,51 +2,74 @@ import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
-import { errorMessage, NotFoundError } from "@/convex/_helpers/errors"
+import { errorMessage } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
 import { settingsConfig } from "@/schemas/settings-config"
+import type { Id } from "../_generated/dataModel"
 
 export const connectOwn = authMutation({
   args: {
+    userId: v.string(),
     unipileId: v.string(),
   },
   handler: async (ctx, { unipileId }) => {
     const { userId } = ctx
-    const keys = { userId, unipileId }
 
     await Promise.all([
-      getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId).then(async (account) => {
-        if (account) {
-          await ctx.db.patch(account._id, update(keys))
-        } else {
-          await ctx.db.insert(
-            "linkedinAccounts",
-            update({ ...settingsConfig.defaultValues, ...keys, status: "CONNECTING" })
-          )
-        }
-      }),
-      getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId).then(async (profile) => {
-        if (profile) {
-          await ctx.db.patch(profile._id, update(keys))
-        } else {
-          await ctx.db.insert(
-            "linkedinProfiles",
-            update({
-              ...keys,
-              url: "",
-              picture: "",
-              firstName: "New",
-              lastName: "Member",
-              location: "",
-              headline: "",
-            })
-          )
-        }
-      }),
+      ctx.runMutation(internal.linkedin.mutate.connectAccount, { userId, unipileId }),
+      ctx.runMutation(internal.linkedin.mutate.connectProfile, { userId, unipileId }),
     ])
 
-    await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
+    await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, {
+      unipileId,
+    })
   },
+})
+
+export const connectProfile = internalMutation({
+  args: {
+    userId: v.string(),
+    unipileId: v.string(),
+  },
+  handler: async (ctx, args): Promise<Id<"linkedinProfiles">> =>
+    await ctx.runQuery(internal.linkedin.query.getProfile, args).then(
+      async (profile) => {
+        await ctx.db.patch(profile._id, update(args))
+        return profile._id
+      },
+      async () =>
+        await ctx.db.insert(
+          "linkedinProfiles",
+          update({
+            ...args,
+            url: "",
+            picture: "",
+            firstName: "New",
+            lastName: "Member",
+            location: "",
+            headline: "",
+          })
+        )
+    ),
+})
+
+export const connectAccount = internalMutation({
+  args: {
+    userId: v.string(),
+    unipileId: v.string(),
+  },
+  handler: async (ctx, args): Promise<Id<"linkedinAccounts">> =>
+    await ctx.runQuery(internal.linkedin.query.getAccount, args).then(
+      async (account) => {
+        await ctx.db.patch(account._id, update(args))
+        return account._id
+      },
+      async () =>
+        await ctx.db.insert(
+          "linkedinAccounts",
+          update({ ...settingsConfig.defaultValues, ...args, status: "CONNECTING" })
+        )
+    ),
 })
 
 export const configure = connectedMutation({
@@ -166,7 +189,7 @@ export const upsertAccountSubscription = internalMutation({
   },
 })
 
-export const upsertProfile = internalMutation({
+export const updateProfile = internalMutation({
   args: {
     unipileId: v.string(),
     providerId: v.string(),
@@ -178,23 +201,7 @@ export const upsertProfile = internalMutation({
     headline: v.string(),
   },
   handler: async (ctx, { unipileId, ...patch }) => {
-    const [{ userId }, profile] = await Promise.all([
-      getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId),
-      getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId),
-    ])
-
-    if (!profile) {
-      throw new NotFoundError()
-    }
-
-    if (profile) {
-      await ctx.db.patch(profile._id, update({ ...patch, scheduledRefresh: undefined }))
-      return profile._id
-    }
-
-    return await ctx.db.insert(
-      "linkedinProfiles",
-      update({ userId, unipileId, ...patch, scheduledRefresh: undefined })
-    )
+    const profile = await getOneFromOrThrow(ctx.db, "linkedinProfiles", "by_unipileId", unipileId)
+    await ctx.db.patch(profile._id, update(patch))
   },
 })

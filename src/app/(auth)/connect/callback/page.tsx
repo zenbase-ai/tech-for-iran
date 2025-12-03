@@ -11,12 +11,12 @@ export type ConnectCallbackPageProps = {
 }
 
 export default async function ConnectCallbackPage(props: ConnectCallbackPageProps) {
-  const [{ token }, { account_id: unipileId, inviteCode }] = await Promise.all([
+  const [{ userId, token }, { account_id: unipileId, inviteCode }] = await Promise.all([
     clerkAuth(),
     props.searchParams,
   ])
 
-  await fetchMutation(api.linkedin.mutate.connectOwn, { unipileId }, { token })
+  await fetchMutation(api.linkedin.mutate.connectOwn, { userId, unipileId }, { token })
 
   if (inviteCode) {
     return redirect(`/pods/join/${inviteCode}`, RedirectType.replace)

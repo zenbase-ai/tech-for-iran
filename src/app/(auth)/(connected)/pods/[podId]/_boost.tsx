@@ -8,7 +8,6 @@ import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
 import { Stack, VStack } from "@/components/layout/stack"
-import { PageDescription } from "@/components/layout/text"
 import {
   Field,
   FieldError,
@@ -42,7 +41,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
     defaultValues: boostPost.defaultValues,
     disabled: !onlineCount,
   })
-  const { isSubmitting } = form.formState
+  const { isSubmitting, disabled } = form.formState
 
   const boost = useAsyncFn(useAction(api.pods.action.boost), {
     onSuccess: useEffectEvent(() => form.reset()),
@@ -54,12 +53,6 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
   return (
     <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
       <VStack className="gap-4">
-        <PageDescription>
-          <TextShimmer>
-            {pluralize(onlineCount ? onlineCount - 1 : 0, "member")} online to engage
-          </TextShimmer>
-        </PageDescription>
-
         {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
         <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
@@ -84,7 +77,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
           />
 
           <Box className="max-w-fit">
-            <HoverButton disabled={isSubmitting} type="submit">
+            <HoverButton disabled={disabled || isSubmitting} type="submit">
               Boost
             </HoverButton>
           </Box>
@@ -119,7 +112,15 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
           name="reactionTypes"
           render={({ field, fieldState }) => (
             <FieldSet data-invalid={fieldState.invalid}>
-              <FieldLegend variant="legend">Which reactions do you want?</FieldLegend>
+              <FieldLegend
+                className="w-full flex flex-row flex-wrap items-center justify-between gap-4"
+                variant="legend"
+              >
+                <span className="order-2 md:order-1">Which reactions do you want?</span>
+                <TextShimmer className="order-1 md:order-2">
+                  {pluralize(onlineCount ? onlineCount - 1 : 0, "member")} online
+                </TextShimmer>
+              </FieldLegend>
               <FieldGroup
                 className="grid grid-cols-2 sm:grid-cols-3 gap-2"
                 data-slot="checkbox-group"

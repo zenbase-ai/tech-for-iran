@@ -2,6 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
+import { redirect } from "next/navigation"
+import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight } from "react-icons/lu"
 import * as z from "zod"
@@ -11,26 +13,41 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
+import useAuthQuery from "@/hooks/use-auth-query"
+import { needsReconnection } from "@/lib/linkedin"
+import { queryString } from "@/lib/utils"
 
 export type PodJoinFormProps = {
   autoFocus?: boolean
   className?: string
 }
 
+const PodJoinSchema = z.object({
+  inviteCode: z.string().trim().min(1, "Invite code is required"),
+})
+type PodJoinSchema = z.infer<typeof PodJoinSchema>
+
 export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }) => {
+  const state = useAuthQuery(api.linkedin.query.getState)
   const join = useAsyncFn(useMutation(api.pods.mutate.join))
+
   const form = useForm({
-    resolver: zodResolver(
-      z.object({
-        inviteCode: z.string().trim().min(1, "Invite code is required"),
-      })
-    ),
+    resolver: zodResolver(PodJoinSchema),
     defaultValues: { inviteCode: "" },
+    disabled: state == null,
   })
-  const { isSubmitting } = form.formState
+  const { disabled, isSubmitting } = form.formState
+
+  const onSubmit = useEffectEvent(async (data: PodJoinSchema) => {
+    if (needsReconnection(state?.account?.status)) {
+      return redirect(`/connect/dialog?${queryString(data)}`)
+    }
+
+    return await join.execute(data)
+  })
 
   return (
-    <form className={className} onSubmit={form.handleSubmit(join.execute)}>
+    <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
       <HStack className="gap-3" items="center">
         <Controller
           control={form.control}
@@ -46,7 +63,7 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
             />
           )}
         />
-        <Button disabled={isSubmitting} type="submit" variant="outline">
+        <Button disabled={disabled || isSubmitting} type="submit" variant="outline">
           Join
           {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
         </Button>

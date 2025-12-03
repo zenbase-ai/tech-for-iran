@@ -51,7 +51,7 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
   )
 
   const configure = useAsyncFn(useMutation(api.pods.mutate.configure), {
-    onSuccess: useEffectEvent(() => setShowSettings(false)),
+    onSuccess: () => setShowSettings(false),
   })
 
   const form = useForm({

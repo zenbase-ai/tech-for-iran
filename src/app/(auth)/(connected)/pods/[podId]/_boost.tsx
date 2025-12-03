@@ -44,7 +44,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
   const { isSubmitting, disabled } = form.formState
 
   const boost = useAsyncFn(useAction(api.pods.action.boost), {
-    onSuccess: useEffectEvent(() => form.reset()),
+    onSuccess: () => form.reset(),
   })
   const onSubmit = useEffectEvent(
     async (data: BoostPost) => await boost.execute({ podId, ...data })

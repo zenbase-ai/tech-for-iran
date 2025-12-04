@@ -4,8 +4,8 @@ import type { UsePaginatedQueryReturnType } from "convex/react"
 import Link from "next/link"
 import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
-import { Box } from "@/components/layout/box"
 import { VStack } from "@/components/layout/stack"
+import { PodAvailabilityChart } from "@/components/presenters/pods/availability"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { LoadMoreButton } from "@/components/ui/load-more-button"
@@ -40,7 +40,7 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
     </Empty>
   ) : (
     <VStack className={cn("w-full gap-2", className)}>
-      <Box className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
+      <VStack className="gap-2">
         <ItemGroup className="contents">
           {pods.results.map((pod) => (
             <Item asChild key={pod._id} variant="outline">
@@ -50,15 +50,21 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
                   <ItemDescription>
                     <NumberTicker value={pod.onlineCount} /> / {pod.memberCount} members online
                   </ItemDescription>
+                  <PodAvailabilityChart podId={pod._id} />
                 </ItemContent>
               </Link>
             </Item>
           ))}
         </ItemGroup>
-      </Box>
-      {canLoadMore && (
-        <LoadMoreButton isLoading={isLoading} label="pods" onClick={loadMore} ref={observer.ref} />
-      )}
+        {canLoadMore && (
+          <LoadMoreButton
+            isLoading={isLoading}
+            label="pods"
+            onClick={loadMore}
+            ref={observer.ref}
+          />
+        )}
+      </VStack>
     </VStack>
   )
 }

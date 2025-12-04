@@ -38,7 +38,7 @@ export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) =
     <VStack className={cn("w-full gap-4", className)}>
       <SectionTitle>
         <NumberTicker value={stats?.postCount ?? 0} />
-        &nbsp;Posts
+        &nbsp;posts
       </SectionTitle>
 
       {isLoading ? (

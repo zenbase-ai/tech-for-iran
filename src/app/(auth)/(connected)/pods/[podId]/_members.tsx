@@ -7,6 +7,7 @@ import { useMediaQuery } from "usehooks-ts"
 import { Grid } from "@/components/layout/grid"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
+import { PodAvailabilityChart } from "@/components/presenters/pods/availability"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
@@ -30,6 +31,7 @@ export type PodMembersProps = {
 export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24 }) => {
   const { podId } = useParams<PodPageParams>()
   const stats = useAuthQuery(api.pods.query.stats, { podId })
+  const onlineCount = useAuthQuery(api.pods.query.onlineCount, { podId })
 
   const members = useAuthPaginatedQuery(
     api.pods.query.members,
@@ -44,9 +46,11 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24
   return (
     <VStack className={cn("w-full gap-4 mb-24 sm:mb-0", className)}>
       <SectionTitle>
-        <NumberTicker value={stats?.memberCount ?? 0} />
-        &nbsp;Members
+        <NumberTicker value={onlineCount ?? 0} /> / {stats?.memberCount ?? 0}
+        &nbsp;members online
       </SectionTitle>
+
+      {!noResults && <PodAvailabilityChart podId={podId} />}
 
       {isLoading ? (
         <Repeat count={pageSize}>

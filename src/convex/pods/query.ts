@@ -2,10 +2,11 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import { pick, sumBy } from "es-toolkit"
+import { DateTime } from "luxon"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
-import { isWithinWorkingHours } from "@/convex/engagement/helpers"
+import { getWorkingHours, isWithinWorkingHours } from "@/convex/engagement/helpers"
 import { isConnected, postProfile } from "@/lib/linkedin"
 import { pflatMap, pmap } from "@/lib/utils"
 
@@ -133,5 +134,39 @@ export const onlineCount = memberQuery({
     return sumBy(accounts, (account) =>
       account != null && isConnected(account.status) && isWithinWorkingHours(account) ? 1 : 0
     )
+  },
+})
+
+export const availability = memberQuery({
+  args: {
+    podId: v.id("pods"),
+  },
+  handler: async (ctx, { podId }): Promise<number[]> => {
+    const accounts = await pmap(
+      await getManyFrom(ctx.db, "memberships", "by_podId", podId),
+      ({ userId }) => getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+    )
+
+    // Initialize counts for each UTC hour (0-23)
+    const hourCounts = new Array(24).fill(0)
+
+    for (const account of accounts) {
+      if (account == null || !isConnected(account.status)) {
+        continue
+      }
+
+      const { timezone, workingHoursStart, workingHoursEnd } = getWorkingHours(account)
+
+      // Get the current UTC offset for this timezone (handles DST)
+      const offsetHours = DateTime.now().setZone(timezone).offset / 60
+
+      for (let localHour = workingHoursStart; localHour < workingHoursEnd; localHour += 1) {
+        // Convert local hour to UTC, handling wraparound
+        const utcHour = Math.floor((((localHour - offsetHours) % 24) + 24) % 24)
+        hourCounts[utcHour] += 1
+      }
+    }
+
+    return hourCounts
   },
 })

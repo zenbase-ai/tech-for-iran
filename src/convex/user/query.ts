@@ -4,7 +4,7 @@ import { omit } from "es-toolkit"
 import { api } from "@/convex/_generated/api"
 import { authQuery } from "@/convex/_helpers/server"
 import { podMembers, userEngagements, userPosts } from "@/convex/aggregates"
-import { pflatMap, pmap } from "@/lib/utils"
+import { pflatMap } from "@/lib/utils"
 
 export const pods = authQuery({
   args: { paginationOpts: paginationOptsValidator },
@@ -14,16 +14,15 @@ export const pods = authQuery({
       .withIndex("by_userId", (q) => q.eq("userId", ctx.userId))
       .paginate(paginationOpts)
 
-    const page = await pmap(memberships.page, async ({ podId }) => {
+    const page = await pflatMap(memberships.page, async ({ podId }) => {
       const pod = await ctx.db.get(podId)
+      if (!pod) {
+        return []
+      }
       const memberCount = await podMembers.count(ctx, { bounds: { prefix: [podId] } })
       const onlineCount: number = await ctx.runQuery(api.pods.query.onlineCount, { podId })
 
-      return {
-        ...pod,
-        memberCount,
-        onlineCount,
-      }
+      return [{ ...pod, memberCount, onlineCount }]
     })
 
     return { ...memberships, page }

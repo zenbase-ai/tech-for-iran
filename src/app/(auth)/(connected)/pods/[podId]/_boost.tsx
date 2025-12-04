@@ -8,22 +8,14 @@ import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
 import { Stack, VStack } from "@/components/layout/stack"
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-} from "@/components/ui/field"
+import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { TextShimmer } from "@/components/ui/text-shimmer"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn, pluralize } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { BoostPost, boostPost } from "@/schemas/boost-post"
 import type { PodPageParams } from "./_types"
 
@@ -112,15 +104,6 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
           name="reactionTypes"
           render={({ field, fieldState }) => (
             <FieldSet data-invalid={fieldState.invalid}>
-              <FieldLegend
-                className="w-full flex flex-row flex-wrap items-center justify-between gap-4"
-                variant="legend"
-              >
-                <span className="order-2 md:order-1">Which reactions do you want?</span>
-                <TextShimmer className="order-1 md:order-2">
-                  {pluralize(onlineCount ? onlineCount - 1 : 0, "member")} online
-                </TextShimmer>
-              </FieldLegend>
               <FieldGroup
                 className="grid grid-cols-2 sm:grid-cols-3 gap-2"
                 data-slot="checkbox-group"

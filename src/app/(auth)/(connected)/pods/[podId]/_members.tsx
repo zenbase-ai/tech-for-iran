@@ -8,16 +8,15 @@ import { Grid } from "@/components/layout/grid"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PodAvailabilityChart } from "@/components/presenters/pods/availability"
+import { PodMemberCount } from "@/components/presenters/pods/member-count"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
 import { LoadMoreButton } from "@/components/ui/load-more-button"
-import { NumberTicker } from "@/components/ui/number-ticker"
 import { Repeat } from "@/components/ui/repeat"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
-import useAuthQuery from "@/hooks/use-auth-query"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { screens } from "@/lib/tailwind"
 import { cn } from "@/lib/utils"
@@ -30,9 +29,6 @@ export type PodMembersProps = {
 
 export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20 }) => {
   const { podId } = useParams<PodPageParams>()
-
-  const stats = useAuthQuery(api.pods.query.stats, { podId })
-  const onlineCount = useAuthQuery(api.pods.query.onlineCount, { podId })
 
   const members = useAuthPaginatedQuery(
     api.pods.query.members,
@@ -48,8 +44,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20
   return (
     <VStack className={cn("w-full gap-4", className)}>
       <SectionTitle>
-        <NumberTicker value={onlineCount ?? 0} /> / {stats?.memberCount ?? 0}
-        &nbsp;members online
+        <PodMemberCount podId={podId} />
       </SectionTitle>
 
       {isLoading ? (

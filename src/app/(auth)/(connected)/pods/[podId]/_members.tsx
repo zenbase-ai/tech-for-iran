@@ -28,8 +28,9 @@ export type PodMembersProps = {
   pageSize?: number
 }
 
-export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24 }) => {
+export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20 }) => {
   const { podId } = useParams<PodPageParams>()
+
   const stats = useAuthQuery(api.pods.query.stats, { podId })
   const onlineCount = useAuthQuery(api.pods.query.onlineCount, { podId })
 
@@ -41,10 +42,11 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24
   const { isLoading, noResults, canLoadMore } = paginatedState(members)
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(pageSize))
   const observer = useInfiniteScroll({ loadMore })
+
   const sm = useMediaQuery(`(min-width: ${screens.sm})`)
 
   return (
-    <VStack className={cn("w-full gap-4 mb-24 sm:mb-0", className)}>
+    <VStack className={cn("w-full gap-4", className)}>
       <SectionTitle>
         <NumberTicker value={onlineCount ?? 0} /> / {stats?.memberCount ?? 0}
         &nbsp;members online

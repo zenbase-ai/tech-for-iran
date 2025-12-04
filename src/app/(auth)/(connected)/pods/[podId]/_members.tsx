@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation"
 import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
+import { useMediaQuery } from "usehooks-ts"
 import { Grid } from "@/components/layout/grid"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
@@ -16,6 +17,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useAuthQuery from "@/hooks/use-auth-query"
+import useInfiniteScroll from "@/hooks/use-infinite-scroll"
+import { screens } from "@/lib/tailwind"
 import { cn } from "@/lib/utils"
 import type { PodPageParams } from "./_types"
 
@@ -35,9 +38,11 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24
   )
   const { isLoading, noResults, canLoadMore } = paginatedState(members)
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(pageSize))
+  const observer = useInfiniteScroll({ loadMore })
+  const sm = useMediaQuery(`(min-width: ${screens.sm})`)
 
   return (
-    <VStack className={cn("w-full gap-4", className)}>
+    <VStack className={cn("w-full gap-4 mb-24 sm:mb-0", className)}>
       <SectionTitle>
         <NumberTicker value={stats?.memberCount ?? 0} />
         &nbsp;Members
@@ -72,7 +77,12 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24
             </ItemGroup>
           </Grid>
           {canLoadMore && (
-            <LoadMoreButton isLoading={isLoading} label="members" onClick={loadMore} />
+            <LoadMoreButton
+              isLoading={isLoading}
+              label="members"
+              onClick={loadMore}
+              ref={sm ? undefined : observer.ref}
+            />
           )}
         </VStack>
       )}

@@ -85,7 +85,8 @@ export const members = memberQuery({
 
     const page = await pflatMap(items.page, async ({ userId, _creationTime }) => {
       const profile = await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)
-      if (!profile) {
+      if (!profile?.unipileId) {
+        console.warn("pods/query:members", "!profile", { userId })
         return []
       }
 

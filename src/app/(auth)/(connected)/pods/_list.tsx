@@ -9,6 +9,7 @@ import { VStack } from "@/components/layout/stack"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item"
 import { LoadMoreButton } from "@/components/ui/load-more-button"
+import { NumberTicker } from "@/components/ui/number-ticker"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { api } from "@/convex/_generated/api"
 import { paginatedState } from "@/hooks/use-auth-paginated-query"
@@ -47,7 +48,7 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
                 <ItemContent>
                   <ItemTitle className="font-semibold">{pod.name}</ItemTitle>
                   <ItemDescription>
-                    Joined {new Date(pod.joinedAt).toLocaleDateString()}
+                    <NumberTicker value={pod.onlineCount} /> / {pod.memberCount} members online
                   </ItemDescription>
                 </ItemContent>
               </Link>

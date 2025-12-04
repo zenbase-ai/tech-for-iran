@@ -1,8 +1,9 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
-import { omit, zip } from "es-toolkit"
+import { omit } from "es-toolkit"
+import { api } from "@/convex/_generated/api"
 import { authQuery } from "@/convex/_helpers/server"
-import { userEngagements, userPosts } from "@/convex/aggregates"
+import { podMembers, userEngagements, userPosts } from "@/convex/aggregates"
 import { pflatMap, pmap } from "@/lib/utils"
 
 export const pods = authQuery({
@@ -13,13 +14,17 @@ export const pods = authQuery({
       .withIndex("by_userId", (q) => q.eq("userId", ctx.userId))
       .paginate(paginationOpts)
 
-    const page = zip(
-      memberships.page,
-      await pmap(memberships.page, async ({ podId }) => await ctx.db.get(podId))
-    ).map(([{ _creationTime }, pod]) => ({
-      ...pod,
-      joinedAt: _creationTime,
-    }))
+    const page = await pmap(memberships.page, async ({ podId }) => {
+      const pod = await ctx.db.get(podId)
+      const memberCount = await podMembers.count(ctx, { bounds: { prefix: [podId] } })
+      const onlineCount: number = await ctx.runQuery(api.pods.query.onlineCount, { podId })
+
+      return {
+        ...pod,
+        memberCount,
+        onlineCount,
+      }
+    })
 
     return { ...memberships, page }
   },

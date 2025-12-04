@@ -4,7 +4,20 @@ import { internal } from "@/convex/_generated/api"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { internalMutation } from "@/convex/_helpers/server"
 import { isConnected } from "@/lib/linkedin"
-import { pmap } from "@/lib/utils"
+import { pflatMap, pmap } from "@/lib/utils"
+
+export const deleteOrphanProfiles = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    await pmap(
+      await ctx.db
+        .query("linkedinProfiles")
+        .filter((q) => q.eq(q.field("unipileId"), ""))
+        .collect(),
+      async (profile) => await ctx.db.delete(profile._id)
+    )
+  },
+})
 
 export const repairAccounts = internalMutation({
   args: {},
@@ -24,6 +37,27 @@ export const repairAccounts = internalMutation({
         console.error("linkedin:repairAccounts", errorMessage(error))
       }
     })
+  },
+})
+
+export const deleteOrphanMemberships = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const orphans = await pflatMap(
+      await ctx.db.query("memberships").collect(),
+      async (membership) => {
+        const profile = await ctx.db
+          .query("linkedinProfiles")
+          .withIndex("by_userId", (q) => q.eq("userId", membership.userId))
+          .first()
+        if (profile?.unipileId) {
+          return []
+        }
+
+        return [membership]
+      }
+    )
+    await pmap(orphans, async (orphan) => await ctx.db.delete(orphan._id))
   },
 })
 

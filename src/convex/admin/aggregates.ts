@@ -1,7 +1,13 @@
 import { v } from "convex/values"
 import { getManyFrom } from "convex-helpers/server/relationships"
 import { internalMutation } from "@/convex/_helpers/server"
-import { podMembers, podPosts, userEngagements, userPosts } from "@/convex/aggregates"
+import {
+  podMembers,
+  podPosts,
+  postEngagements,
+  userEngagements,
+  userPosts,
+} from "@/convex/aggregates"
 import { pflatMap, pmap } from "@/lib/utils"
 
 export const repair = internalMutation({
@@ -11,7 +17,8 @@ export const repair = internalMutation({
       v.literal("podMembers"),
       v.literal("podPosts"),
       v.literal("userPosts"),
-      v.literal("userEngagements")
+      v.literal("userEngagements"),
+      v.literal("postEngagements")
     ),
   },
   handler: async (ctx, { name, podId }) => {
@@ -28,6 +35,13 @@ export const repair = internalMutation({
         await pmap(
           await getManyFrom(ctx.db, "posts", "by_podId", podId),
           async (p) => await podPosts.insertIfDoesNotExist(ctx, p)
+        )
+        return true
+      case "postEngagements":
+        await postEngagements.clear(ctx)
+        await pmap(
+          await ctx.db.query("engagements").collect(),
+          async (e) => await postEngagements.insertIfDoesNotExist(ctx, e)
         )
         return true
       case "userPosts":

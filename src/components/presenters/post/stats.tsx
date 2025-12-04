@@ -6,10 +6,11 @@ import { Stack, type StackProps } from "@/components/layout/stack"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { cn } from "@/lib/utils"
+import { cn, pluralize } from "@/lib/utils"
 
 export type PostStatsStackProps = StackProps & {
   podId: Id<"pods">
@@ -23,6 +24,8 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
   ...props
 }) => {
   const stats = useAuthQuery(api.posts.query.stats, { podId, postId })
+  const engagementCount = useAuthQuery(api.posts.query.engagementCount, { podId, postId })
+
   if (stats == null) {
     return <Skeleton className={cn("w-full h-14", className)} />
   }
@@ -34,7 +37,12 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
 
   return (
     <Stack className={cn("gap-1", className)} items="center" wrap {...props}>
-      <PostStatBadge field="reactionCount" first={first} last={last} />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PostStatBadge field="reactionCount" first={first} last={last} />
+        </TooltipTrigger>
+        <TooltipContent>{pluralize(engagementCount ?? 0, "engagement")} Crackedbook</TooltipContent>
+      </Tooltip>
       <PostStatBadge field="commentCount" first={first} last={last} />
       <PostStatBadge field="repostCount" first={first} last={last} />
       <PostStatBadge field="impressionCount" first={first} last={last} />

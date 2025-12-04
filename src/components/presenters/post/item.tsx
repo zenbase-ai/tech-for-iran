@@ -20,7 +20,7 @@ export const PostItem: React.FC<PostItemProps> = ({ post, profile }) => (
         className="p-0"
         description={
           <ProfileHeader profile={profile}>
-            <RelativeTime date={post._creationTime} />
+            <RelativeTime date={post.postedAt} />
           </ProfileHeader>
         }
         profile={profile}

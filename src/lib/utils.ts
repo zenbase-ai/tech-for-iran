@@ -143,3 +143,17 @@ export const pfilter = async <T = unknown>(
     .map(([value]) => value)
   return filteredValues
 }
+
+// =================================================================
+// =========================== Time ===============================
+// =================================================================
+const formatDateTimeOptions: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+  hour: "numeric",
+  minute: "numeric",
+}
+
+export const formatDateTime = (date: Date | number, options: Intl.DateTimeFormatOptions = {}) =>
+  new Intl.DateTimeFormat("en-US", { ...formatDateTimeOptions, ...options }).format(date)

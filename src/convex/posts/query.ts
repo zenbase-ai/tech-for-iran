@@ -4,6 +4,7 @@ import type { Doc } from "@/convex/_generated/dataModel"
 import { internalQuery } from "@/convex/_generated/server"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { memberQuery } from "@/convex/_helpers/server"
+import { postEngagements } from "@/convex/aggregates"
 
 export const get = internalQuery({
   args: {
@@ -29,4 +30,13 @@ export const stats = memberQuery({
       ctx.runQuery(internal.stats.query.first, { postId }),
       ctx.runQuery(internal.stats.query.last, { postId }),
     ]),
+})
+
+export const engagementCount = memberQuery({
+  args: {
+    podId: v.id("pods"),
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, { postId }): Promise<number> =>
+    await postEngagements.count(ctx, { bounds: { prefix: [postId] } }),
 })

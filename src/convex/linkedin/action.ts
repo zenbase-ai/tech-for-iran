@@ -22,6 +22,7 @@ export const syncOwn = connectedAction({
       await ctx.runAction(internal.linkedin.action.sync, { unipileId })
       return { success: "Profile synced!" }
     } catch (error) {
+      console.error("linkedin:action/syncOwn", error)
       return { error: errorMessage(error) }
     }
   },
@@ -31,34 +32,30 @@ export const sync = internalAction({
   args: {
     unipileId: v.string(),
   },
-  handler: async (ctx, { unipileId }) => {
+  handler: async (ctx, args) => {
     try {
-      const {
-        location,
-        headline = "",
-        ...data
-      } = await ctx.runAction(internal.unipile.profile.getOwn, { unipileId })
+      const { location, ...data } = await ctx.runAction(internal.unipile.profile.getOwn, args)
 
       await ctx.runMutation(internal.linkedin.mutate.updateProfile, {
-        unipileId,
+        ...args,
         providerId: data.provider_id,
         firstName: data.first_name,
         lastName: data.last_name,
         picture: data.profile_picture_url,
         url: profileURL(data),
+        headline: data.occupation,
         location,
-        headline,
       })
 
       const timezone = await ctx.runAction(internal.linkedin.action.inferTimezone, { location })
-      await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { unipileId, timezone })
+      await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { ...args, timezone })
 
       const status = "SYNC_SUCCESS"
-      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { unipileId, status })
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { ...args, status })
     } catch (error) {
       if (error instanceof UnipileAPIError) {
         await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
-          unipileId,
+          ...args,
           status: "ERROR",
         })
       }

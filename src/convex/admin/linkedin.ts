@@ -14,14 +14,11 @@ export const repairAccounts = internalMutation({
     )
     await pmap(accounts, async ({ unipileId }) => {
       try {
-        const { userId } = await ctx.runQuery(internal.linkedin.query.getProfile, {
-          unipileId,
-        })
+        const profile = await ctx.runQuery(internal.linkedin.query.getProfile, { unipileId })
+        const { userId } = profile
         if (userId) {
-          await ctx.runMutation(internal.linkedin.mutate.connectAccount, {
-            userId,
-            unipileId,
-          })
+          console.info(profile)
+          await ctx.runMutation(internal.linkedin.mutate.connectAccount, { userId, unipileId })
         }
       } catch (error) {
         console.error("linkedin:repairAccounts", errorMessage(error))

@@ -2,10 +2,9 @@ import { v } from "convex/values"
 import { getOneFrom, getOneFromOrThrow } from "convex-helpers/server/relationships"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
-import { errorMessage } from "@/convex/_helpers/errors"
+import { BadRequestError, errorMessage } from "@/convex/_helpers/errors"
 import { authMutation, connectedMutation, internalMutation, update } from "@/convex/_helpers/server"
 import { settingsConfig } from "@/schemas/settings-config"
-import type { Id } from "../_generated/dataModel"
 
 export const connectOwn = authMutation({
   args: {
@@ -31,26 +30,22 @@ export const connectProfile = internalMutation({
     userId: v.string(),
     unipileId: v.string(),
   },
-  handler: async (ctx, args): Promise<Id<"linkedinProfiles">> =>
+  handler: async (ctx, args) => {
+    const patch = update(args)
+    const doc = {
+      ...patch,
+      url: "",
+      picture: "",
+      firstName: "New",
+      lastName: "Member",
+      location: "",
+      headline: "",
+    }
     await ctx.runQuery(internal.linkedin.query.getProfile, args).then(
-      async (profile) => {
-        await ctx.db.patch(profile._id, update(args))
-        return profile._id
-      },
-      async () =>
-        await ctx.db.insert(
-          "linkedinProfiles",
-          update({
-            ...args,
-            url: "",
-            picture: "",
-            firstName: "New",
-            lastName: "Member",
-            location: "",
-            headline: "",
-          })
-        )
-    ),
+      async (profile) => await ctx.db.patch(profile._id, patch),
+      async () => await ctx.db.insert("linkedinProfiles", doc)
+    )
+  },
 })
 
 export const connectAccount = internalMutation({
@@ -58,18 +53,14 @@ export const connectAccount = internalMutation({
     userId: v.string(),
     unipileId: v.string(),
   },
-  handler: async (ctx, args): Promise<Id<"linkedinAccounts">> =>
+  handler: async (ctx, args) => {
+    const patch = update(args)
+    const doc = { ...settingsConfig.defaultValues, ...patch, status: "CONNECTING" }
     await ctx.runQuery(internal.linkedin.query.getAccount, args).then(
-      async (account) => {
-        await ctx.db.patch(account._id, update(args))
-        return account._id
-      },
-      async () =>
-        await ctx.db.insert(
-          "linkedinAccounts",
-          update({ ...settingsConfig.defaultValues, ...args, status: "CONNECTING" })
-        )
-    ),
+      async (account) => await ctx.db.patch(account._id, patch),
+      async () => await ctx.db.insert("linkedinAccounts", doc)
+    )
+  },
 })
 
 export const configure = connectedMutation({
@@ -122,23 +113,34 @@ export const setDisconnected = internalAction({
 export const upsertAccountStatus = internalMutation({
   args: {
     userId: v.optional(v.string()),
-    unipileId: v.string(),
+    unipileId: v.optional(v.string()),
     status: v.string(),
   },
   handler: async (ctx, { userId, unipileId, status }) => {
-    const account = userId
-      ? await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-      : await getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
+    if (!(userId || unipileId)) {
+      throw new BadRequestError("userId or unipileId is required")
+    }
+
+    const account =
+      (userId && (await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId))) ??
+      (unipileId && (await getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)))
 
     if (account) {
-      await ctx.db.patch(account._id, update({ userId, unipileId, status }))
+      await ctx.db.patch(
+        account._id,
+        update({ status, ...(userId && { userId }), ...(unipileId && { unipileId }) })
+      )
       return account._id
     }
 
-    return await ctx.db.insert(
-      "linkedinAccounts",
-      update({ userId, unipileId, status, ...settingsConfig.defaultValues })
-    )
+    if (unipileId) {
+      return await ctx.db.insert(
+        "linkedinAccounts",
+        update({ ...settingsConfig.defaultValues, userId, unipileId, status })
+      )
+    }
+
+    throw new BadRequestError("account not found")
   },
 })
 

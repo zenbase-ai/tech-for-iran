@@ -20,8 +20,9 @@ const schema = defineSchema({
     workingHoursEnd: v.optional(v.number()),
     updatedAt: v.number(),
   })
-    .index("by_userId", ["userId", "unipileId"])
-    .index("by_unipileId", ["unipileId"]),
+    .index("by_userId", ["userId"])
+    .index("by_unipileId", ["unipileId"])
+    .index("by_status", ["status"]),
 
   linkedinProfiles: defineTable({
     unipileId: v.string(),

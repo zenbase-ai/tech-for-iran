@@ -1,7 +1,9 @@
 import { cronJobs } from "convex/server"
 import { DateTime } from "luxon"
 import { components, internal } from "@/convex/_generated/api"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { internalMutation } from "@/convex/_helpers/server"
+import { CONNECTED_STATUSES } from "@/lib/linkedin"
 import { settingsConfig } from "@/schemas/settings-config"
 
 const crons = cronJobs()
@@ -27,31 +29,41 @@ crons.interval("linkedin/sync", { hours: 24 }, internal.crons.syncLinkedin)
 export const syncLinkedin = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const accounts = await ctx.db.query("linkedinAccounts").collect()
-    for (const {
-      unipileId,
-      timezone = settingsConfig.defaultValues.timezone,
-      workingHoursStart = settingsConfig.defaultValues.workingHoursStart,
-      workingHoursEnd = settingsConfig.defaultValues.workingHoursEnd,
-    } of accounts) {
-      const now = DateTime.now().setZone(timezone)
+    const accountsByStatus = await Promise.all(
+      Array.from(CONNECTED_STATUSES).map(
+        async (status): Promise<[string, Doc<"linkedinAccounts">[]]> => [
+          status,
+          await ctx.db
+            .query("linkedinAccounts")
+            .withIndex("by_status", (q) => q.eq("status", status))
+            .collect(),
+        ]
+      )
+    )
 
-      let runAt = now
-
-      // If current time is before work hours, schedule for today at work start
-      if (now.hour < workingHoursStart) {
-        runAt = now.set({ hour: workingHoursStart, minute: 0, second: 0, millisecond: 0 })
-      }
-      // If current time is after work hours, schedule for tomorrow at work start
-      else if (now.hour >= workingHoursEnd) {
-        runAt = now
-          .plus({ days: 1 })
-          .set({ hour: workingHoursStart, minute: 0, second: 0, millisecond: 0 })
-      }
-
-      await ctx.scheduler.runAt(runAt.toMillis(), internal.linkedin.action.sync, {
+    for (const [_status, accounts] of accountsByStatus) {
+      for (const {
         unipileId,
-      })
+        timezone = settingsConfig.defaultValues.timezone,
+        workingHoursStart = settingsConfig.defaultValues.workingHoursStart,
+        workingHoursEnd = settingsConfig.defaultValues.workingHoursEnd,
+      } of accounts) {
+        let runAt = DateTime.now().setZone(timezone)
+
+        if (runAt.hour < workingHoursStart) {
+          // If current time is before work hours, schedule for today at work start
+          runAt = runAt.set({ hour: workingHoursStart, minute: 0, second: 0, millisecond: 0 })
+        } else if (runAt.hour >= workingHoursEnd) {
+          // If current time is after work hours, schedule for tomorrow at work start
+          runAt = runAt
+            .plus({ days: 1 })
+            .set({ hour: workingHoursStart, minute: 0, second: 0, millisecond: 0 })
+        }
+
+        await ctx.scheduler.runAt(runAt.toMillis(), internal.linkedin.action.sync, {
+          unipileId,
+        })
+      }
     }
   },
 })

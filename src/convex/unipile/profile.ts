@@ -7,7 +7,6 @@ type BaseProfile = {
   public_identifier: string
   first_name: string
   last_name: string
-  headline: string
   summary: string
   location: string
   profile_picture_url: string
@@ -16,6 +15,7 @@ type BaseProfile = {
 type GetOwn = BaseProfile & {
   object: "AccountOwnerProfile"
   public_profile_url: string
+  occupation: string // headline
 }
 
 export const getOwn = internalAction({
@@ -31,6 +31,7 @@ type Get = BaseProfile & {
   provider: "LINKEDIN"
   is_relationship: boolean
   profile_picture_url_large: string
+  headline: string
   invitation?: {
     type: "SENT" | "RECEIVED"
   }

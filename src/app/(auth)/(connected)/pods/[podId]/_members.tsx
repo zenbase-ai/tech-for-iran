@@ -50,12 +50,13 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24
         &nbsp;members online
       </SectionTitle>
 
-      {!noResults && <PodAvailabilityChart podId={podId} />}
-
       {isLoading ? (
-        <Repeat count={pageSize}>
-          <Skeleton className="w-full h-16" />
-        </Repeat>
+        <>
+          <Skeleton className="w-full h-48" />
+          <Repeat count={pageSize}>
+            <Skeleton className="w-full h-16" />
+          </Repeat>
+        </>
       ) : noResults ? (
         <Empty className="text-muted-foreground">
           <EmptyHeader>
@@ -66,29 +67,32 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 24
           </EmptyHeader>
         </Empty>
       ) : (
-        <VStack className="gap-3">
-          <Grid className="sm:grid-cols-2 gap-3">
-            <ItemGroup className="contents">
-              {members.results.map((member) => (
-                <ProfileItem
-                  description={member.profile.headline}
-                  key={member.profile.url}
-                  profile={member.profile}
-                  size="sm"
-                  variant="outline"
-                />
-              ))}
-            </ItemGroup>
-          </Grid>
-          {canLoadMore && (
-            <LoadMoreButton
-              isLoading={isLoading}
-              label="members"
-              onClick={loadMore}
-              ref={sm ? undefined : observer.ref}
-            />
-          )}
-        </VStack>
+        <>
+          <PodAvailabilityChart podId={podId} />
+          <VStack className="gap-3">
+            <Grid className="sm:grid-cols-2 gap-3">
+              <ItemGroup className="contents">
+                {members.results.map((member) => (
+                  <ProfileItem
+                    description={member.profile.headline}
+                    key={member.profile.url}
+                    profile={member.profile}
+                    size="sm"
+                    variant="outline"
+                  />
+                ))}
+              </ItemGroup>
+            </Grid>
+            {canLoadMore && (
+              <LoadMoreButton
+                isLoading={isLoading}
+                label="members"
+                onClick={loadMore}
+                ref={sm ? undefined : observer.ref}
+              />
+            )}
+          </VStack>
+        </>
       )}
     </VStack>
   )

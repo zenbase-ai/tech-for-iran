@@ -1,14 +1,14 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { LuArrowLeft, LuArrowRight, LuNewspaper } from "react-icons/lu"
+import { LuNewspaper } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PostItem } from "@/components/presenters/post/item"
-import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
 import { NumberTicker } from "@/components/ui/number-ticker"
+import { PrevNextPagination } from "@/components/ui/pagination"
 import { Repeat } from "@/components/ui/repeat"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
@@ -23,37 +23,34 @@ export type PodPostsProps = {
 
 export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) => {
   const { podId } = useParams<PodPageParams>()
-  const { postCount } = useAuthQuery(api.pods.query.stats, { podId }) ?? {}
-  const { results, isLoading, noResults, canGoPrev, canGoNext, goPrev, goNext } =
-    useAuthPaginatedQuery(
-      api.pods.query.posts,
-      { podId },
-      { initialNumItems: pageSize, totalCount: postCount }
-    )
+  const stats = useAuthQuery(api.pods.query.stats, { podId })
+  const posts = useAuthPaginatedQuery(
+    api.pods.query.posts,
+    { podId },
+    { initialNumItems: pageSize, totalCount: stats?.postCount }
+  )
 
   return (
     <VStack className={cn("w-full gap-4", className)}>
       <HStack className="gap-4" items="center" justify="between">
         <SectionTitle>
-          <NumberTicker value={postCount ?? 0} />
+          <NumberTicker value={stats?.postCount ?? 0} />
           &nbsp;posts
         </SectionTitle>
 
-        <HStack className="gap-2" items="center" justify="start">
-          <Button disabled={!canGoPrev} onClick={goPrev} size="icon" variant="ghost">
-            <LuArrowLeft />
-          </Button>
-          <Button disabled={!canGoNext} onClick={goNext} size="icon" variant="ghost">
-            <LuArrowRight />
-          </Button>
-        </HStack>
+        <PrevNextPagination
+          goNext={posts.goNext}
+          goPrev={posts.goPrev}
+          hasNext={posts.hasNext}
+          hasPrev={posts.hasPrev}
+        />
       </HStack>
 
-      {isLoading ? (
+      {posts.isLoading ? (
         <Repeat count={pageSize}>
           <Skeleton className="w-full h-20" />
         </Repeat>
-      ) : noResults ? (
+      ) : posts.results.length === 0 ? (
         <Empty className="text-muted-foreground">
           <EmptyHeader>
             <EmptyMedia>
@@ -65,7 +62,7 @@ export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) =
       ) : (
         <VStack className="gap-3">
           <ItemGroup className="contents">
-            {results.map(({ post, profile }) => (
+            {posts.results.map(({ post, profile }) => (
               <PostItem key={post._id} post={post} profile={profile} />
             ))}
           </ItemGroup>

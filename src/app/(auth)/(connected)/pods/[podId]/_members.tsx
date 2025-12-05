@@ -1,16 +1,16 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { LuArrowLeft, LuArrowRight, LuUsers } from "react-icons/lu"
+import { LuUsers } from "react-icons/lu"
 import { Grid } from "@/components/layout/grid"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PodAvailabilityChart } from "@/components/presenters/pods/availability-chart"
 import { PodMemberCount } from "@/components/presenters/pods/member-count"
 import { ProfileItem } from "@/components/presenters/profile/item"
-import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
+import { PrevNextPagination } from "@/components/ui/pagination"
 import { Repeat } from "@/components/ui/repeat"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
@@ -25,13 +25,12 @@ export type PodMembersProps = {
 
 export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20 }) => {
   const { podId } = useParams<PodPageParams>()
-  const { memberCount } = useAuthQuery(api.pods.query.stats, { podId }) ?? {}
-  const { results, isLoading, noResults, canGoPrev, canGoNext, goPrev, goNext } =
-    useAuthPaginatedQuery(
-      api.pods.query.members,
-      { podId },
-      { initialNumItems: pageSize, totalCount: memberCount }
-    )
+  const stats = useAuthQuery(api.pods.query.stats, { podId })
+  const members = useAuthPaginatedQuery(
+    api.pods.query.members,
+    { podId },
+    { initialNumItems: pageSize, totalCount: stats?.memberCount }
+  )
 
   return (
     <VStack className={cn("w-full gap-4", className)}>
@@ -42,25 +41,19 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20
           <PodMemberCount podId={podId} />
         </SectionTitle>
 
-        <HStack
-          className={cn("gap-2", canGoPrev || canGoNext || "hidden")}
-          items="center"
-          justify="start"
-        >
-          <Button disabled={!canGoPrev} onClick={goPrev} size="icon" variant="ghost">
-            <LuArrowLeft />
-          </Button>
-          <Button disabled={!canGoNext} onClick={goNext} size="icon" variant="ghost">
-            <LuArrowRight />
-          </Button>
-        </HStack>
+        <PrevNextPagination
+          goNext={members.goNext}
+          goPrev={members.goPrev}
+          hasNext={members.hasNext}
+          hasPrev={members.hasPrev}
+        />
       </HStack>
 
-      {isLoading ? (
+      {members.isLoading ? (
         <Repeat count={pageSize}>
           <Skeleton className="w-full h-16" />
         </Repeat>
-      ) : noResults ? (
+      ) : members.results.length === 0 ? (
         <Empty className="text-muted-foreground">
           <EmptyHeader>
             <EmptyMedia>
@@ -73,11 +66,11 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20
         <VStack className="gap-3">
           <Grid className="sm:grid-cols-2 gap-3">
             <ItemGroup className="contents">
-              {results.map((member) => (
+              {members.results.map(({ profile }) => (
                 <ProfileItem
-                  description={member.profile.headline}
-                  key={member.profile.url}
-                  profile={member.profile}
+                  description={profile.headline}
+                  key={profile.url}
+                  profile={profile}
                   size="sm"
                   variant="outline"
                 />

@@ -43,7 +43,6 @@ export function paginatedState<T extends FunctionReference<"query">>(
   return {
     canLoadMore,
     isLoading: isLoading && results.length === 0,
-    noResults: results.length === 0,
   }
 }
 
@@ -57,44 +56,42 @@ export function useAuthPaginatedQuery<T extends FunctionReference<"query">>(
   const { initialNumItems: pageSize } = options
 
   const infiniteQuery = useAuthInfiniteQuery(query, args, options)
-  const { results: allResults, loadMore } = infiniteQuery
-  const { canLoadMore, isLoading, noResults } = paginatedState(infiniteQuery, options.totalCount)
+  const state = paginatedState(infiniteQuery, options.totalCount)
 
   const [page, setPage] = useState(0)
 
   const startIndex = page * pageSize
   const endIndex = startIndex + pageSize
-  const results = allResults.slice(startIndex, endIndex)
+  const results = infiniteQuery.results.slice(startIndex, endIndex)
 
-  const hasMoreLoaded = endIndex < allResults.length
+  const hasMoreLoaded = endIndex < infiniteQuery.results.length
 
-  const canGoPrev = page > 0
-  const canGoNext = hasMoreLoaded || canLoadMore
+  const hasPrev = page > 0
+  const hasNext = hasMoreLoaded || state.canLoadMore
 
   const goNext = useEffectEvent(() => {
-    if (!canGoNext) {
+    if (!hasNext) {
       return
     }
-    if (!hasMoreLoaded && canLoadMore) {
-      loadMore(pageSize)
+    if (!hasMoreLoaded && state.canLoadMore) {
+      infiniteQuery.loadMore(pageSize)
     }
     setPage((p) => p + 1)
   })
 
   const goPrev = useEffectEvent(() => {
-    if (!canGoPrev) {
+    if (!hasPrev) {
       return
     }
     setPage((p) => p - 1)
   })
 
   return {
+    ...state,
     results,
-    noResults,
-    isLoading,
     page,
-    canGoPrev,
-    canGoNext,
+    hasPrev,
+    hasNext,
     goPrev,
     goNext,
   }

@@ -22,13 +22,13 @@ export type PodsListProps = {
 }
 
 export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
-  const { isLoading, noResults, canLoadMore } = paginatedState(pods)
+  const state = paginatedState(pods)
   const loadMore = useEffectEvent(() => pods.loadMore(12))
   const observer = useInfiniteScroll({ loadMore })
 
-  return isLoading ? (
+  return state.isLoading ? (
     <Skeleton className={cn("w-full h-19", className)} />
-  ) : noResults ? (
+  ) : pods.results.length === 0 ? (
     <Empty className="text-muted-foreground">
       <EmptyHeader>
         <EmptyMedia>
@@ -56,9 +56,9 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
             </Item>
           ))}
         </ItemGroup>
-        {!!canLoadMore && (
+        {state.canLoadMore && (
           <LoadMoreButton
-            isLoading={isLoading}
+            isLoading={state.isLoading}
             label="pods"
             onClick={loadMore}
             ref={observer.ref}

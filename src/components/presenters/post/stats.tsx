@@ -66,23 +66,25 @@ export const PostStatBadge: React.FC<PostStatBadgeProps> = ({
   className,
   ...props
 }) => {
-  if (last[field] === 0) {
+  const startingValue = first[field]
+  const endingValue = last[field]
+
+  if (endingValue === 0) {
     return null
   }
 
-  const hasHistory = first._id !== last._id
   return (
     <Badge className={cn("text-muted-foreground", className)} size="sm" variant="ghost" {...props}>
       <span className="inline-flex gap-0.5 items-center">
-        {first[field]}
-        {hasHistory && (
+        {startingValue !== endingValue && (
           <>
+            {startingValue}
             <LuArrowRight className="size-3" />
-            <NumberTicker className="text-foreground" value={last[field]} />
           </>
         )}
+        <NumberTicker className="text-foreground" value={endingValue} />
       </span>
-      <PostStatIcon field={field} />
+      <PostStatIcon className="text-foreground" field={field} />
     </Badge>
   )
 }

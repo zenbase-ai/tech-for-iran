@@ -3,7 +3,6 @@ import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import * as z from "zod"
 import { internalQuery } from "@/convex/_generated/server"
 import { NotFoundError } from "@/convex/_helpers/errors"
-import { memberQuery } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { isConnected } from "@/lib/linkedin"
@@ -68,7 +67,7 @@ export const availableMembers = internalQuery({
     ),
 })
 
-export const targetCount = memberQuery({
+export const targetCount = internalQuery({
   args: {
     podId: v.id("pods"),
   },

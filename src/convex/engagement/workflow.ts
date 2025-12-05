@@ -2,7 +2,7 @@ import { vWorkflowId, type WorkflowId, WorkflowManager } from "@convex-dev/workf
 import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
 import { pick } from "es-toolkit"
-import { api, components, internal } from "@/convex/_generated/api"
+import { components, internal } from "@/convex/_generated/api"
 import { internalMutation, update } from "@/convex/_helpers/server"
 import { AvailableMember } from "./query"
 
@@ -17,10 +17,11 @@ export const workflow = new WorkflowManager(components.workflow, {
   },
 })
 
-const startArgs = {
+const workflowArgs = {
   userId: v.string(),
   podId: v.id("pods"),
   postId: v.id("posts"),
+  skipUserIds: v.array(v.string()),
   urn: v.string(),
   reactionTypes: v.array(v.string()),
   comments: v.boolean(),
@@ -28,26 +29,19 @@ const startArgs = {
 
 type Start = {
   workflowId: WorkflowId
-  targetCount: number
 }
 
 export const start = internalMutation({
-  args: startArgs,
+  args: workflowArgs,
   handler: async (ctx, args): Promise<Start> => {
-    const targetCount = await ctx.runQuery(api.engagement.query.targetCount, { podId: args.podId })
-    const workflowId = await workflow.start(
-      ctx,
-      internal.engagement.workflow.perform,
-      { ...args, targetCount },
-      {
-        context: pick(args, ["userId", "postId"]),
-        onComplete: internal.engagement.workflow.onComplete,
-        startAsync: true,
-      }
-    )
+    const workflowId = await workflow.start(ctx, internal.engagement.workflow.perform, args, {
+      context: pick(args, ["userId", "postId"]),
+      onComplete: internal.engagement.workflow.onComplete,
+      startAsync: true,
+    })
 
     await ctx.db.patch(args.postId, update({ workflowId, status: "pending" } as const))
-    return { workflowId, targetCount }
+    return { workflowId }
   },
 })
 
@@ -92,16 +86,18 @@ export const start = internalMutation({
  * - Example: minDelay=1, maxDelay=30 → 1-30 seconds + 0-2.5s jitter per reaction
  */
 export const perform = workflow.define({
-  args: { ...startArgs, targetCount: v.number() },
-  handler: async (step, { postId, podId, urn, reactionTypes, targetCount, comments, ...args }) => {
+  args: workflowArgs,
+  handler: async (step, { podId, postId, skipUserIds, urn, reactionTypes, comments }) => {
     const minDelay = 10
     const maxDelay = 30
-    const skipUserIds = [args.userId]
 
-    await step.runMutation(internal.engagement.mutate.patchPostStatus, {
-      postId,
-      status: "processing",
-    })
+    const [targetCount] = await Promise.all([
+      step.runQuery(internal.engagement.query.targetCount, { podId }),
+      step.runMutation(internal.engagement.mutate.patchPostStatus, {
+        postId,
+        status: "processing",
+      }),
+    ])
 
     const post = await step.runQuery(internal.posts.query.get, { postId })
 
@@ -111,12 +107,6 @@ export const perform = workflow.define({
         skipUserIds,
       })
       if (availableMembers.length === 0) {
-        console.warn("engagement/workflow:perform", "!availableMembers", {
-          podId,
-          postId,
-          iteration,
-          targetCount,
-        })
         break // no available profiles, stop trying
       }
 
@@ -141,15 +131,6 @@ export const perform = workflow.define({
         userId,
         postId,
         reactionType,
-        error: react.error,
-      })
-      console.info("engagement/workflow:perform", "reacted", {
-        userId,
-        postId,
-        podId,
-        urn,
-        reactionType,
-        success: !react.error,
         error: react.error,
       })
 

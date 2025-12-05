@@ -88,6 +88,7 @@ export const boost = connectedMemberAction({
           userId,
           podId,
           postId,
+          skipUserIds: [userId],
           urn,
           reactionTypes,
           comments,

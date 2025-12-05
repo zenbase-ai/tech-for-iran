@@ -11,7 +11,7 @@ import { Nav } from "./_nav"
 export default function ConnectedLayout({ children }: React.PropsWithChildren) {
   const linkedin = useAuthQuery(api.linkedin.query.getState)
 
-  if (linkedin == null) {
+  if (!linkedin) {
     return <Loading />
   }
 

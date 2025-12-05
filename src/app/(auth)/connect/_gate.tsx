@@ -73,7 +73,7 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
                     required
                     type="text"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </FieldContent>
               </Field>
             )}

@@ -104,7 +104,7 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
                         </InputGroupAddon>
                       </InputGroup>
                     </FieldContent>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
@@ -133,7 +133,7 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
                         </InputGroupAddon>
                       </InputGroup>
                     </FieldContent>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
@@ -143,7 +143,9 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
               max reactions = min(members &times; target / 100, cap)
             </FieldDescription>
           </FieldGroup>
-          {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+
+          {!!form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="ghost">
               Cancel

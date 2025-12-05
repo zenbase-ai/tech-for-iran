@@ -44,7 +44,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
 
   return (
     <VStack as="form" className={cn("gap-4", className)} onSubmit={form.handleSubmit(onSubmit)}>
-      {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+      {!!form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
       <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
         <Controller
@@ -62,7 +62,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
                 placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
                 type="url"
               />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
@@ -133,7 +133,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
                 </Field>
               ))}
             </FieldGroup>
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </FieldSet>
         )}
       />

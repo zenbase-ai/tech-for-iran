@@ -27,14 +27,14 @@ export const useCSSVars = (
   })
 
   const schedule = useEffectEvent(() => {
-    if (animationFrame.current != null) {
+    if (animationFrame.current !== null) {
       cancelAnimationFrame(animationFrame.current)
     }
     animationFrame.current = requestAnimationFrame(read)
   })
 
   const cancel = useEffectEvent(() => {
-    if (animationFrame.current != null) {
+    if (animationFrame.current !== null) {
       cancelAnimationFrame(animationFrame.current)
     }
   })

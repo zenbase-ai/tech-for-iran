@@ -45,6 +45,8 @@
         "useDefaultSwitchClause": "off"
       },
       "nursery": {
+        "noEqualsToNull": "off",
+        "noLeakedRender": "off",
         "useExhaustiveSwitchCases": "error",
         "useSortedClasses": {
           "options": {

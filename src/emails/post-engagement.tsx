@@ -81,7 +81,7 @@ export default function PostEngagementEmail({
         </Link>
 
         <Text className="m-0 text-[16px] mt-2 leading-[26px]">{truncatedText}</Text>
-        {isTruncated && (
+        {!!isTruncated && (
           <Link className="m-0 text-base text-muted-foreground" href={post.url}>
             ... more
           </Link>

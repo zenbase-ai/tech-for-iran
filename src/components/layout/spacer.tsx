@@ -17,7 +17,7 @@ export const Spacer: React.FC<SpacerProps> = ({
   ...props
 }) => (
   <Component
-    className={cn(expand && "flex-1", className)}
+    className={cn(!!expand && "flex-1", className)}
     style={{
       width: x,
       height: y,

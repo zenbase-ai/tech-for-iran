@@ -92,7 +92,7 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
     <motion.button
       className={cn(
         buttonVariants({ variant, size }),
-        localIsCopied && "pointer-events-none",
+        !localIsCopied || "pointer-events-none",
         className
       )}
       layout

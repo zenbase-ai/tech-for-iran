@@ -38,10 +38,10 @@ export const RECONNECT_STATUSES = new Set<ConnectionStatus>(["CREDENTIALS", "ERR
 export const DISCONNECTED_STATUSES = new Set<ConnectionStatus>([...RECONNECT_STATUSES, "DELETED"])
 
 export const isConnected = (status?: string | null): boolean =>
-  status != null && !DISCONNECTED_STATUSES.has(status as ConnectionStatus)
+  status !== undefined && status !== null && !DISCONNECTED_STATUSES.has(status as ConnectionStatus)
 
 export const needsReconnection = (status?: string | null): boolean =>
-  status == null || RECONNECT_STATUSES.has(status as ConnectionStatus)
+  status !== undefined && status !== null && RECONNECT_STATUSES.has(status as ConnectionStatus)
 
 export const ReactionType = z.enum(["like", "love", "celebrate", "insightful", "funny", "support"])
 

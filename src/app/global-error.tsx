@@ -58,7 +58,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 </summary>
                 <pre className="mt-2 text-xs text-left bg-muted p-2 rounded overflow-auto">
                   {error.message}
-                  {error.digest && `\nDigest: ${error.digest}`}
+                  {!!error.digest && `\nDigest: ${error.digest}`}
                 </pre>
               </details>
             )}

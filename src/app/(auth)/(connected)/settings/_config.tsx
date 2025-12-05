@@ -80,7 +80,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
                   </InputGroupAddon>
                 </InputGroup>
               </FieldContent>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
@@ -102,7 +102,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
                       max={form.watch("workingHoursEnd")}
                     />
                   </FieldContent>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
             />
@@ -124,7 +124,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
                       min={form.watch("workingHoursStart")}
                     />
                   </FieldContent>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
             />
@@ -134,7 +134,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
         </FieldGroup>
       </Stack>
 
-      {formState.errors.root && <FieldError errors={[formState.errors.root]} />}
+      {!!formState.errors.root && <FieldError errors={[formState.errors.root]} />}
     </VStack>
   )
 }

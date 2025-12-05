@@ -82,7 +82,7 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
             </Tooltip>
           )}
 
-          {description && (
+          {!!description && (
             <ItemDescription className="leading-[1.15] text-xs">{description}</ItemDescription>
           )}
         </ExternalLink>

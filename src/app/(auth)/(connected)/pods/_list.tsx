@@ -56,7 +56,7 @@ export const PodsList: React.FC<PodsListProps> = ({ pods, className }) => {
             </Item>
           ))}
         </ItemGroup>
-        {canLoadMore && (
+        {!!canLoadMore && (
           <LoadMoreButton
             isLoading={isLoading}
             label="pods"

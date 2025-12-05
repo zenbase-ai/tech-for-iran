@@ -22,7 +22,7 @@ export const Loading: React.FC<LoadingProps> = ({ message, delay = 0, className 
     >
       <Logo animate className="text-muted" />
 
-      {message && (
+      {!!message && (
         <TextShimmer as="h2" className="text-lg font-serif italic">
           {message}
         </TextShimmer>

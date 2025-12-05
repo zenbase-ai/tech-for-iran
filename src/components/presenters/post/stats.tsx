@@ -24,8 +24,7 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
   className,
   ...props
 }) => {
-  const stats = useAuthQuery(api.posts.query.stats, { podId, postId })
-  const engagementCount = useAuthQuery(api.posts.query.engagementCount, { podId, postId })
+  const { stats, engagementCount } = useAuthQuery(api.posts.query.stats, { podId, postId }) ?? {}
   const sm = useScreenSize("sm")
 
   if (stats == null) {
@@ -47,7 +46,7 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
           <PostStatBadge field="impressionCount" first={first} last={last} />
         </Stack>
       </TooltipTrigger>
-      <TooltipContent side={sm ? "right" : "bottom"}>
+      <TooltipContent arrow={false} side={sm ? "right" : "bottom"}>
         {pluralize(engagementCount ?? 0, "engagement")} from Crackedbook
       </TooltipContent>
     </Tooltip>

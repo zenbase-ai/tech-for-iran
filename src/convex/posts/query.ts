@@ -20,23 +20,25 @@ export const get = internalQuery({
   },
 })
 
+type Stats = {
+  stats: [Doc<"stats"> | null, Doc<"stats"> | null]
+  engagementCount: number
+}
+
 export const stats = memberQuery({
   args: {
     podId: v.id("pods"),
     postId: v.id("posts"),
   },
-  handler: async (ctx, { postId }): Promise<[Doc<"stats"> | null, Doc<"stats"> | null]> =>
-    await Promise.all([
+  handler: async (ctx, { postId }): Promise<Stats> => {
+    const [first, last, engagementCount] = await Promise.all([
       ctx.runQuery(internal.stats.query.first, { postId }),
       ctx.runQuery(internal.stats.query.last, { postId }),
-    ]),
-})
-
-export const engagementCount = memberQuery({
-  args: {
-    podId: v.id("pods"),
-    postId: v.id("posts"),
+      postEngagements.count(ctx, { bounds: { prefix: [postId] } }),
+    ])
+    return {
+      stats: [first, last],
+      engagementCount,
+    }
   },
-  handler: async (ctx, { postId }): Promise<number> =>
-    await postEngagements.count(ctx, { bounds: { prefix: [postId] } }),
 })

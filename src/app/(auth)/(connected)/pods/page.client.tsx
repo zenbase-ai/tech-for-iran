@@ -6,7 +6,7 @@ import { PodJoinForm } from "./_join"
 import { PodsList } from "./_list"
 
 export default function PodsClientPage() {
-  const pods = useAuthInfiniteQuery(api.user.query.pods, {}, { initialNumItems: 12 })
+  const pods = useAuthInfiniteQuery(api.user.query.pods, {}, { pageSize: 12 })
 
   return (
     <>

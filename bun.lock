@@ -7,7 +7,6 @@
       "dependencies": {
         "@ai-sdk/openai": "^2.0.77",
         "@clerk/backend": "^2.25.0",
-        "@clerk/clerk-react": "5.57.1",
         "@clerk/nextjs": "6.35.6",
         "@clerk/themes": "^2.4.41",
         "@convex-dev/action-cache": "^0.3.0",

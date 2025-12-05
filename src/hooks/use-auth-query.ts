@@ -14,23 +14,33 @@ export function useAuthQuery<T extends FunctionReference<"query">>(
   return useQuery(query, ...(isSignedIn ? [args] : ["skip"]))
 }
 
-export type UsePaginatedQueryArgs<T extends FunctionReference<"query">> = Parameters<
+type UsePaginatedQueryArgs<T extends FunctionReference<"query">> = Parameters<
   typeof usePaginatedQuery<T>
 >[1]
-export type UsePaginatedQueryOptions<T extends FunctionReference<"query">> = Parameters<
+type UsePaginatedQueryOptions<T extends FunctionReference<"query">> = Parameters<
   typeof usePaginatedQuery<T>
 >[2]
-export type UsePaginatedQueryReturn<T extends FunctionReference<"query">> = ReturnType<
+type UsePaginatedQueryReturn<T extends FunctionReference<"query">> = ReturnType<
   typeof usePaginatedQuery<T>
 >
+
+export type UseAuthInfiniteQueryOptions<T extends FunctionReference<"query">> = Omit<
+  UsePaginatedQueryOptions<T>,
+  "initialNumItems"
+> & { pageSize: number }
+export type UseAuthInfiniteQueryReturn<T extends FunctionReference<"query">> =
+  UsePaginatedQueryReturn<T>
 
 export function useAuthInfiniteQuery<T extends FunctionReference<"query">>(
   query: T,
   args: UsePaginatedQueryArgs<T>,
-  options: UsePaginatedQueryOptions<T>
+  options: UseAuthInfiniteQueryOptions<T>
 ): UsePaginatedQueryReturn<T> {
   const { isSignedIn } = useAuth()
-  return usePaginatedQuery(query, isSignedIn ? args : "skip", options)
+  return usePaginatedQuery(query, isSignedIn ? args : "skip", {
+    ...options,
+    initialNumItems: options.pageSize,
+  })
 }
 
 export function paginatedState<T extends FunctionReference<"query">>(
@@ -46,22 +56,26 @@ export function paginatedState<T extends FunctionReference<"query">>(
   }
 }
 
+export type UseAuthPaginatedQueryOptions<T extends FunctionReference<"query">> =
+  UseAuthInfiniteQueryOptions<T> & {
+    totalCount?: number
+  }
+export type UseAuthPaginatedQueryReturn<T extends FunctionReference<"query">> = ReturnType<
+  typeof useAuthPaginatedQuery<T>
+>
+
 export function useAuthPaginatedQuery<T extends FunctionReference<"query">>(
   query: T,
   args: UsePaginatedQueryArgs<T>,
-  options: UsePaginatedQueryOptions<T> & {
-    totalCount?: number
-  }
+  options: UseAuthPaginatedQueryOptions<T>
 ) {
-  const { initialNumItems: pageSize } = options
-
   const infiniteQuery = useAuthInfiniteQuery(query, args, options)
   const state = paginatedState(infiniteQuery, options.totalCount)
 
   const [page, setPage] = useState(0)
 
-  const startIndex = page * pageSize
-  const endIndex = startIndex + pageSize
+  const startIndex = page * options.pageSize
+  const endIndex = startIndex + options.pageSize
   const results = infiniteQuery.results.slice(startIndex, endIndex)
 
   const hasMoreLoaded = endIndex < infiniteQuery.results.length
@@ -74,7 +88,7 @@ export function useAuthPaginatedQuery<T extends FunctionReference<"query">>(
       return
     }
     if (!hasMoreLoaded && state.canLoadMore) {
-      infiniteQuery.loadMore(pageSize)
+      infiniteQuery.loadMore(options.pageSize)
     }
     setPage((p) => p + 1)
   })

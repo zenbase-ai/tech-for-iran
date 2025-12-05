@@ -25,12 +25,8 @@ export type PodMembersProps = {
 
 export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20 }) => {
   const { podId } = useParams<PodPageParams>()
-  const stats = useAuthQuery(api.pods.query.stats, { podId })
-  const members = useAuthPaginatedQuery(
-    api.pods.query.members,
-    { podId },
-    { initialNumItems: pageSize, totalCount: stats?.memberCount }
-  )
+  const totalCount = useAuthQuery(api.pods.query.stats, { podId })?.memberCount
+  const members = useAuthPaginatedQuery(api.pods.query.members, { podId }, { pageSize, totalCount })
 
   return (
     <VStack className={cn("w-full gap-4", className)}>

@@ -23,18 +23,14 @@ export type PodPostsProps = {
 
 export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) => {
   const { podId } = useParams<PodPageParams>()
-  const stats = useAuthQuery(api.pods.query.stats, { podId })
-  const posts = useAuthPaginatedQuery(
-    api.pods.query.posts,
-    { podId },
-    { initialNumItems: pageSize, totalCount: stats?.postCount }
-  )
+  const totalCount = useAuthQuery(api.pods.query.stats, { podId })?.postCount
+  const posts = useAuthPaginatedQuery(api.pods.query.posts, { podId }, { pageSize, totalCount })
 
   return (
     <VStack className={cn("w-full gap-4", className)}>
       <HStack className="gap-4" items="center" justify="between">
         <SectionTitle>
-          <NumberTicker value={stats?.postCount ?? 0} />
+          <NumberTicker value={totalCount ?? 0} />
           &nbsp;posts
         </SectionTitle>
 

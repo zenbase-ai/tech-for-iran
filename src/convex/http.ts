@@ -42,7 +42,7 @@ http.route({
     }
 
     if (event.type === "subscription.pastDue") {
-      await ctx.scheduler.runAfter(0, internal.linkedin.mutate.upsertAccountSubscription, {
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountSubscription, {
         userId,
         subscription: "member",
       })
@@ -54,7 +54,7 @@ http.route({
         ?.plan?.slug
     )
 
-    await ctx.scheduler.runAfter(0, internal.linkedin.mutate.upsertAccountSubscription, {
+    await ctx.runMutation(internal.linkedin.mutate.upsertAccountSubscription, {
       userId,
       subscription,
     })
@@ -102,8 +102,10 @@ http.route({
       const { account_id: unipileId, message: status } = data.AccountStatus
       const key = { unipileId }
       if (isConnected(status)) {
-        await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { ...key, status })
-        await ctx.scheduler.runAfter(1000, internal.linkedin.action.sync, key)
+        await Promise.all([
+          ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { ...key, status }),
+          ctx.scheduler.runAfter(1000, internal.linkedin.action.sync, key),
+        ])
       } else if (needsReconnection(status)) {
         await ctx.scheduler.runAfter(1000, internal.linkedin.mutate.setDisconnected, {
           ...key,

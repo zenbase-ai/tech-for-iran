@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.77",
-    "@clerk/backend": "^2.25.0",
-    "@clerk/nextjs": "6.35.6",
-    "@clerk/themes": "^2.4.41",
+    "@clerk/backend": "^2.25.1",
+    "@clerk/nextjs": "6.36",
+    "@clerk/themes": "^2.4.42",
     "@convex-dev/action-cache": "^0.3.0",
     "@convex-dev/aggregate": "^0.2.0",
     "@convex-dev/auth": "^0.0.90",

@@ -30,10 +30,10 @@ export default function PodPage() {
   const maxwcn = "min-w-[300px] max-w-2xl"
 
   return (
-    <VStack className={cn("gap-4 lg:gap-12", "items-center sm:items-start")}>
+    <VStack className={cn("w-full", "gap-4 lg:gap-12", "items-center sm:items-start")}>
       <PodHeader className="lg:border-b-2" />
 
-      <Stack className={cn("flex-col lg:flex-row", gapcn)} items="start">
+      <Stack className={cn("w-full flex-col lg:flex-row", gapcn)} items="start" justify="between">
         <VStack className={cn(maxwcn, gapcn, "flex-1")}>
           <BoostPostForm autoFocus />
 

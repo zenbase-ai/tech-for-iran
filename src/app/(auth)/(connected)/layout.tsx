@@ -25,7 +25,7 @@ export default function ConnectedLayout({ children }: React.PropsWithChildren) {
         {children}
       </Box>
 
-      <Nav className="z-50 fixed bottom-2 md:bottom-4 left-0 right-0 w-full mx-auto" />
+      <Nav className="z-50 fixed bottom-2 md:bottom-4 left-0 right-0 w-fit mx-auto" />
     </>
   )
 }

@@ -19,7 +19,7 @@ export default function SettingsPage() {
 
   return (
     <VStack as="main" className="gap-8 md:gap-12 pb-16">
-      <ProfileHeader />
+      <ProfileHeader className="max-w-lg mx-auto" />
 
       <VStack className="gap-4" items="start">
         <SectionTitle>Membership</SectionTitle>
@@ -33,7 +33,7 @@ export default function SettingsPage() {
 
       <Separator />
 
-      <HStack className="gap-4" items="center" justify="around">
+      <HStack className="gap-4 max-w-md mx-auto" items="center" justify="around">
         <SignOutButton redirectUrl="/">
           <Button size="sm" variant="ghost">
             <LuLogOut />

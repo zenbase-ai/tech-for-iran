@@ -50,7 +50,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
   return (
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: autosave!
     <form className={className} onBlur={form.handleSubmit(configure.execute)}>
-      <VStack className="gap-4">
+      <VStack className="gap-4 max-w-md mx-auto">
         <Stack
           className="flex-col items-center sm:flex-row sm:items-start gap-4 md:gap-6"
           justify="around"

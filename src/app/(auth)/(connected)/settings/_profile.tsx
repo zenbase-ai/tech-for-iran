@@ -23,10 +23,11 @@ export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) =
 
   return (
     <ProfileItem
-      className={cn("p-0", className)}
+      className={cn("shadow-md", className)}
       description={profile.headline}
       fancy
       profile={profile}
+      variant="outline"
     >
       <ItemActions>
         <Tooltip>

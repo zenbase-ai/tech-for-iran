@@ -61,60 +61,58 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
     <AlertDialog onOpenChange={setOpen} open={isOpen}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <VStack className="gap-4">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription className="text-foreground">
-                Your fellow alumni are counting on you!
-              </AlertDialogDescription>
-              <AlertDialogDescription className="text-sm">
-                This will permanently delete your account and remove your data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
+        <VStack as="form" className="gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground">
+              Your fellow alumni are counting on you!
+            </AlertDialogDescription>
+            <AlertDialogDescription className="text-sm">
+              This will permanently delete your account and remove your data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-            <Controller
-              control={form.control}
-              name="confirmation"
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor={field.name}>
-                    Type <Kbd>sudo delete</Kbd> to confirm.
-                  </FieldLabel>
-                  <FieldContent>
-                    <Input
-                      {...field}
-                      autoComplete="off"
-                      autoFocus
-                      className="font-mono font-bold"
-                      id={field.name}
-                      required
-                    />
-                  </FieldContent>
-                </Field>
+          <Controller
+            control={form.control}
+            name="confirmation"
+            render={({ field }) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>
+                  Type <Kbd>sudo delete</Kbd> to confirm.
+                </FieldLabel>
+                <FieldContent>
+                  <Input
+                    {...field}
+                    autoComplete="off"
+                    autoFocus
+                    className="font-mono font-bold"
+                    id={field.name}
+                    required
+                  />
+                </FieldContent>
+              </Field>
+            )}
+          />
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="default">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={!form.formState.isValid || isSubmitting}
+              size="sm"
+              type="submit"
+            >
+              Delete
+              {isSubmitting ? (
+                <Spinner className="size-3" variant="ellipsis" />
+              ) : (
+                <LuEraser className="size-3" />
               )}
-            />
-
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="default">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={!form.formState.isValid || isSubmitting}
-                size="sm"
-                type="submit"
-              >
-                Delete
-                {isSubmitting ? (
-                  <Spinner className="size-3" variant="ellipsis" />
-                ) : (
-                  <LuEraser className="size-3" />
-                )}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </VStack>
-        </form>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </VStack>
       </AlertDialogContent>
     </AlertDialog>
   )

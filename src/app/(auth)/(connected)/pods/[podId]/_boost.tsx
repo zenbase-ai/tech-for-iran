@@ -43,39 +43,38 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
   )
 
   return (
-    <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
-      <VStack className="gap-4">
-        {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+    <VStack as="form" className={cn("gap-4", className)} onSubmit={form.handleSubmit(onSubmit)}>
+      {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
 
-        <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
-          <Controller
-            control={form.control}
-            name="url"
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <Input
-                  {...field}
-                  aria-invalid={fieldState.invalid}
-                  autoFocus={autoFocus}
-                  className="h-9 sm:h-11"
-                  disabled={isSubmitting}
-                  id={field.name}
-                  placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
-                  type="url"
-                />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
+      <Stack className="gap-4 flex-col md:flex-row" items="start" justify="center">
+        <Controller
+          control={form.control}
+          name="url"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <Input
+                {...field}
+                aria-invalid={fieldState.invalid}
+                autoFocus={autoFocus}
+                className="h-9 sm:h-11"
+                disabled={isSubmitting}
+                id={field.name}
+                placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+                type="url"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
 
-          <Box className="max-w-fit">
-            <HoverButton disabled={disabled || isSubmitting} type="submit">
-              Boost
-            </HoverButton>
-          </Box>
-        </Stack>
+        <Box className="max-w-fit">
+          <HoverButton disabled={disabled || isSubmitting} type="submit">
+            Boost
+          </HoverButton>
+        </Box>
+      </Stack>
 
-        {/* <Controller
+      {/* <Controller
         control={form.control}
         name="comments"
         render={({ field, fieldState }) => (
@@ -99,46 +98,45 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFoc
         )}
       /> */}
 
-        <Controller
-          control={form.control}
-          name="reactionTypes"
-          render={({ field, fieldState }) => (
-            <FieldSet data-invalid={fieldState.invalid}>
-              <FieldGroup
-                className="grid grid-cols-2 sm:grid-cols-3 gap-2"
-                data-slot="checkbox-group"
-              >
-                {boostPost.options.reactionTypes.map((reaction) => (
-                  <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
-                    <Switch
-                      aria-invalid={fieldState.invalid}
-                      checked={field.value.includes(reaction)}
-                      disabled={isSubmitting}
-                      id={`reaction-${reaction}`}
-                      name={field.name}
-                      onCheckedChange={(checked) => {
-                        const newValue = checked
-                          ? [...field.value, reaction]
-                          : field.value.filter((value) => value !== reaction)
-                        field.onChange(newValue)
-                      }}
-                    />
-                    <FieldLabel
-                      className={cn(
-                        !field.value.includes(reaction) && "line-through text-muted-foreground"
-                      )}
-                      htmlFor={`reaction-${reaction}`}
-                    >
-                      {capitalize(reaction)}
-                    </FieldLabel>
-                  </Field>
-                ))}
-              </FieldGroup>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </FieldSet>
-          )}
-        />
-      </VStack>
-    </form>
+      <Controller
+        control={form.control}
+        name="reactionTypes"
+        render={({ field, fieldState }) => (
+          <FieldSet data-invalid={fieldState.invalid}>
+            <FieldGroup
+              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+              data-slot="checkbox-group"
+            >
+              {boostPost.options.reactionTypes.map((reaction) => (
+                <Field data-invalid={fieldState.invalid} key={reaction} orientation="horizontal">
+                  <Switch
+                    aria-invalid={fieldState.invalid}
+                    checked={field.value.includes(reaction)}
+                    disabled={isSubmitting}
+                    id={`reaction-${reaction}`}
+                    name={field.name}
+                    onCheckedChange={(checked) => {
+                      const newValue = checked
+                        ? [...field.value, reaction]
+                        : field.value.filter((value) => value !== reaction)
+                      field.onChange(newValue)
+                    }}
+                  />
+                  <FieldLabel
+                    className={cn(
+                      !field.value.includes(reaction) && "line-through text-muted-foreground"
+                    )}
+                    htmlFor={`reaction-${reaction}`}
+                  >
+                    {capitalize(reaction)}
+                  </FieldLabel>
+                </Field>
+              ))}
+            </FieldGroup>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </FieldSet>
+        )}
+      />
+    </VStack>
   )
 }

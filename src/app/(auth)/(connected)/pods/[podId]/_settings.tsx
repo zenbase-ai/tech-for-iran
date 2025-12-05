@@ -71,97 +71,89 @@ export const PodSettingsDialog: React.FC<PodSettingsDialogProps> = ({ children, 
     <AlertDialog onOpenChange={setShowSettings} open={showSettings}>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent className="max-w-md">
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <VStack className="gap-4">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Pod Settings</AlertDialogTitle>
-              <AlertDialogDescription>
-                Configure engagement targeting for this pod.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <FieldGroup className="gap-4">
-              <HStack className="gap-4" items="start" wrap>
-                <Controller
-                  control={form.control}
-                  name="engagementTargetPercent"
-                  render={({ field, fieldState }) => (
-                    <Field
-                      className="min-w-[140px] max-w-[160px]"
-                      data-invalid={fieldState.invalid}
-                    >
-                      <FieldLabel className="line-clamp-1" htmlFor={field.name}>
-                        Target Participation
-                      </FieldLabel>
-                      <FieldContent>
-                        <InputGroup>
-                          <InputGroupInput
-                            {...field}
-                            aria-invalid={fieldState.invalid}
-                            id={field.name}
-                            max={podSettings.max.engagementTargetPercent}
-                            min={podSettings.min.engagementTargetPercent}
-                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                            type="number"
-                          />
-                          <InputGroupAddon align="inline-end">
-                            <InputGroupText>%</InputGroupText>
-                          </InputGroupAddon>
-                        </InputGroup>
-                      </FieldContent>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+        <VStack as="form" className="gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pod Settings</AlertDialogTitle>
+            <AlertDialogDescription>
+              Configure engagement targeting for this pod.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <FieldGroup className="gap-4">
+            <HStack className="gap-4" items="start" wrap>
+              <Controller
+                control={form.control}
+                name="engagementTargetPercent"
+                render={({ field, fieldState }) => (
+                  <Field className="min-w-[140px] max-w-[160px]" data-invalid={fieldState.invalid}>
+                    <FieldLabel className="line-clamp-1" htmlFor={field.name}>
+                      Target Participation
+                    </FieldLabel>
+                    <FieldContent>
+                      <InputGroup>
+                        <InputGroupInput
+                          {...field}
+                          aria-invalid={fieldState.invalid}
+                          id={field.name}
+                          max={podSettings.max.engagementTargetPercent}
+                          min={podSettings.min.engagementTargetPercent}
+                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          type="number"
+                        />
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupText>%</InputGroupText>
+                        </InputGroupAddon>
+                      </InputGroup>
+                    </FieldContent>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
 
-                <Controller
-                  control={form.control}
-                  name="maxEngagementCap"
-                  render={({ field, fieldState }) => (
-                    <Field
-                      className="min-w-[140px] max-w-[160px]"
-                      data-invalid={fieldState.invalid}
-                    >
-                      <FieldLabel className="line-clamp-1" htmlFor={field.name}>
-                        Cap Engagement
-                      </FieldLabel>
-                      <FieldContent>
-                        <InputGroup>
-                          <InputGroupInput
-                            {...field}
-                            aria-invalid={fieldState.invalid}
-                            id={field.name}
-                            max={podSettings.max.maxEngagementCap}
-                            min={podSettings.min.maxEngagementCap}
-                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                            type="number"
-                          />
-                          <InputGroupAddon align="inline-end">
-                            <LuThumbsUp className="size-3" />
-                          </InputGroupAddon>
-                        </InputGroup>
-                      </FieldContent>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-              </HStack>
+              <Controller
+                control={form.control}
+                name="maxEngagementCap"
+                render={({ field, fieldState }) => (
+                  <Field className="min-w-[140px] max-w-[160px]" data-invalid={fieldState.invalid}>
+                    <FieldLabel className="line-clamp-1" htmlFor={field.name}>
+                      Cap Engagement
+                    </FieldLabel>
+                    <FieldContent>
+                      <InputGroup>
+                        <InputGroupInput
+                          {...field}
+                          aria-invalid={fieldState.invalid}
+                          id={field.name}
+                          max={podSettings.max.maxEngagementCap}
+                          min={podSettings.min.maxEngagementCap}
+                          onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          type="number"
+                        />
+                        <InputGroupAddon align="inline-end">
+                          <LuThumbsUp className="size-3" />
+                        </InputGroupAddon>
+                      </InputGroup>
+                    </FieldContent>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </HStack>
 
-              <FieldDescription className="font-mono">
-                max reactions = min(members &times; target / 100, cap)
-              </FieldDescription>
-            </FieldGroup>
-            {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="ghost">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">
-                Save
-                {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </VStack>
-        </form>
+            <FieldDescription className="font-mono">
+              max reactions = min(members &times; target / 100, cap)
+            </FieldDescription>
+          </FieldGroup>
+          {form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="ghost">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">
+              Save
+              {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </VStack>
       </AlertDialogContent>
     </AlertDialog>
   )

@@ -15,7 +15,7 @@ import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { useAuthQuery } from "@/hooks/use-auth-query"
 import { needsReconnection } from "@/lib/linkedin"
-import { queryString } from "@/lib/utils"
+import { cn, queryString } from "@/lib/utils"
 
 export type PodJoinFormProps = {
   autoFocus?: boolean
@@ -47,27 +47,30 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
   })
 
   return (
-    <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
-      <HStack className="gap-3" items="center">
-        <Controller
-          control={form.control}
-          name="inviteCode"
-          render={({ field, fieldState }) => (
-            <Input
-              {...field}
-              aria-invalid={fieldState.invalid}
-              autoFocus={autoFocus}
-              id={field.name}
-              placeholder="Enter an invite code"
-              type="text"
-            />
-          )}
-        />
-        <Button disabled={disabled || isSubmitting} type="submit" variant="outline">
-          Join
-          {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
-        </Button>
-      </HStack>
-    </form>
+    <HStack
+      as="form"
+      className={cn("gap-3", className)}
+      items="center"
+      onSubmit={form.handleSubmit(onSubmit)}
+    >
+      <Controller
+        control={form.control}
+        name="inviteCode"
+        render={({ field, fieldState }) => (
+          <Input
+            {...field}
+            aria-invalid={fieldState.invalid}
+            autoFocus={autoFocus}
+            id={field.name}
+            placeholder="Enter an invite code"
+            type="text"
+          />
+        )}
+      />
+      <Button disabled={disabled || isSubmitting} type="submit" variant="outline">
+        Join
+        {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
+      </Button>
+    </HStack>
   )
 }

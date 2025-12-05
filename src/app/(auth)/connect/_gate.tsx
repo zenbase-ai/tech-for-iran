@@ -52,51 +52,49 @@ export const ConnectGateDialog: React.FC<ConnectGateSchema> = ({ inviteCode }) =
   return (
     <AlertDialog open>
       <AlertDialogContent className="max-w-md">
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <VStack className="gap-4">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
-              <AlertDialogDescription>Please enter your invite code.</AlertDialogDescription>
-            </AlertDialogHeader>
+        <VStack as="form" className="gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Crackedbook is invite-only.</AlertDialogTitle>
+            <AlertDialogDescription>Please enter your invite code.</AlertDialogDescription>
+          </AlertDialogHeader>
 
-            <Controller
-              control={form.control}
-              name="inviteCode"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldContent>
-                    <Input
-                      {...field}
-                      aria-invalid={fieldState.invalid}
-                      autoFocus
-                      id={field.name}
-                      placeholder="your super secret invite code"
-                      required
-                      type="text"
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </FieldContent>
-                </Field>
+          <Controller
+            control={form.control}
+            name="inviteCode"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldContent>
+                  <Input
+                    {...field}
+                    aria-invalid={fieldState.invalid}
+                    autoFocus
+                    id={field.name}
+                    placeholder="your super secret invite code"
+                    required
+                    type="text"
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </FieldContent>
+              </Field>
+            )}
+          />
+
+          <AlertDialogFooter>
+            <SignOutButton redirectUrl="/">
+              <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="ghost">
+                Sign out
+              </AlertDialogCancel>
+            </SignOutButton>
+            <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">
+              Continue
+              {isSubmitting ? (
+                <Spinner className="size-3" variant="ellipsis" />
+              ) : (
+                <LuArrowRight className="size-3" />
               )}
-            />
-
-            <AlertDialogFooter>
-              <SignOutButton redirectUrl="/">
-                <AlertDialogCancel disabled={isSubmitting} size="sm" type="button" variant="ghost">
-                  Sign out
-                </AlertDialogCancel>
-              </SignOutButton>
-              <AlertDialogAction disabled={isSubmitting} size="sm" type="submit">
-                Continue
-                {isSubmitting ? (
-                  <Spinner className="size-3" variant="ellipsis" />
-                ) : (
-                  <LuArrowRight className="size-3" />
-                )}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </VStack>
-        </form>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </VStack>
       </AlertDialogContent>
     </AlertDialog>
   )

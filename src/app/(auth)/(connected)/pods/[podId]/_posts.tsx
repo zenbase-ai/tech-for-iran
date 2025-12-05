@@ -40,10 +40,10 @@ export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) =
         </SectionTitle>
 
         <HStack className="gap-2" items="center" justify="start">
-          <Button disabled={!canGoPrev} onClick={goPrev} size="icon" variant="outline">
+          <Button disabled={!canGoPrev} onClick={goPrev} size="icon" variant="ghost">
             <LuArrowLeft />
           </Button>
-          <Button disabled={!canGoNext} onClick={goNext} size="icon" variant="outline">
+          <Button disabled={!canGoNext} onClick={goNext} size="icon" variant="ghost">
             <LuArrowRight />
           </Button>
         </HStack>

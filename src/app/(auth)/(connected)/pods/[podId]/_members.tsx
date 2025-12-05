@@ -47,10 +47,10 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20
           items="center"
           justify="start"
         >
-          <Button disabled={!canGoPrev} onClick={goPrev} size="icon" variant="outline">
+          <Button disabled={!canGoPrev} onClick={goPrev} size="icon" variant="ghost">
             <LuArrowLeft />
           </Button>
-          <Button disabled={!canGoNext} onClick={goNext} size="icon" variant="outline">
+          <Button disabled={!canGoNext} onClick={goNext} size="icon" variant="ghost">
             <LuArrowRight />
           </Button>
         </HStack>

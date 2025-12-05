@@ -110,8 +110,10 @@ export const truncate = (text: string, options: TruncateOptions): string => {
 }
 
 // =================================================================
-// =========================== Parallel ============================
+// ============================ Async ==============================
 // =================================================================
+
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export type ParallelOptions = Parameters<typeof pMap>[2]
 

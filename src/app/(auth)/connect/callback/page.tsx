@@ -2,6 +2,7 @@ import { fetchMutation } from "convex/nextjs"
 import { RedirectType, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import { clerkAuth } from "@/lib/server/clerk"
+import { sleep } from "@/lib/utils"
 
 export type ConnectCallbackPageProps = {
   searchParams: Promise<{
@@ -16,6 +17,7 @@ export default async function ConnectCallbackPage(props: ConnectCallbackPageProp
     props.searchParams,
   ])
 
+  await sleep(250)
   await fetchMutation(api.linkedin.mutate.connectOwn, { userId, unipileId }, { token })
 
   if (inviteCode) {

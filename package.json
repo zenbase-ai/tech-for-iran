@@ -50,7 +50,6 @@
     "convex-helpers": "^0.1.106",
     "es-toolkit": "^1.42.0",
     "ky": "^1.14.0",
-    "lucide-react": "^0.555.0",
     "luxon": "^3.7.2",
     "motion": "^12.23.25",
     "next": "16.0.7",
@@ -73,7 +72,6 @@
     "svix": "^1.82.0",
     "tailwind-merge": "^3.4.0",
     "ts-essentials": "^10.1.1",
-    "ts-pattern": "^5.9.0",
     "usehooks-ts": "^3.1.1",
     "zod": "^4.1.13"
   },

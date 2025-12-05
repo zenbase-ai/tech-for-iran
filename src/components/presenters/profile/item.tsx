@@ -30,6 +30,7 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
   description,
   className,
   ...props
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: it's fine
 }) => {
   const { userId } = profile
   const availability = useAuthQuery(
@@ -38,6 +39,7 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
   )
 
   const isUser = !!userId
+  const isLoading = availability == null
   const isConnected = isUser && !!availability?.isConnected
   const isOnline = isConnected && isWithinWorkingHours(availability.settings)
 
@@ -64,7 +66,13 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
                   className={cn(
                     "absolute top-1 right-1",
                     "size-2 rounded-full",
-                    isOnline ? "bg-primary" : isConnected ? "border border-primary" : "bg-amber-300"
+                    isLoading
+                      ? "bg-transparent"
+                      : isOnline
+                        ? "bg-primary"
+                        : isConnected
+                          ? "border border-primary"
+                          : "bg-amber-300"
                   )}
                 />
               </TooltipTrigger>

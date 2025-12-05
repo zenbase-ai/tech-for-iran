@@ -2,7 +2,6 @@
 
 import type { IconBaseProps } from "react-icons/lib"
 import { LuArrowRight, LuEye, LuMessageCircle, LuRepeat, LuThumbsUp } from "react-icons/lu"
-import { useMediaQuery } from "usehooks-ts"
 import { Stack, type StackProps } from "@/components/layout/stack"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { NumberTicker } from "@/components/ui/number-ticker"
@@ -11,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import useAuthQuery from "@/hooks/use-auth-query"
-import { screens } from "@/lib/tailwind"
+import useScreenSize from "@/hooks/use-screen-size"
 import { cn, pluralize } from "@/lib/utils"
 
 export type PostStatsStackProps = StackProps & {
@@ -27,7 +26,7 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
 }) => {
   const stats = useAuthQuery(api.posts.query.stats, { podId, postId })
   const engagementCount = useAuthQuery(api.posts.query.engagementCount, { podId, postId })
-  const sm = useMediaQuery(`(min-width: ${screens.sm})`)
+  const sm = useScreenSize("sm")
 
   if (stats == null) {
     return <Skeleton className={cn("w-full h-14", className)} />

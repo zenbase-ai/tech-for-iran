@@ -3,11 +3,10 @@
 import { useParams } from "next/navigation"
 import { useEffectEvent } from "react"
 import { LuUsers } from "react-icons/lu"
-import { useMediaQuery } from "usehooks-ts"
 import { Grid } from "@/components/layout/grid"
 import { VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
-import { PodAvailabilityChart } from "@/components/presenters/pods/availability"
+import { PodAvailabilityChart } from "@/components/presenters/pods/availability-chart"
 import { PodMemberCount } from "@/components/presenters/pods/member-count"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -18,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
-import { screens } from "@/lib/tailwind"
+import useScreenSize from "@/hooks/use-screen-size"
 import { cn } from "@/lib/utils"
 import type { PodPageParams } from "./_types"
 
@@ -39,7 +38,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20
   const loadMore = useEffectEvent(() => canLoadMore && members.loadMore(pageSize))
   const observer = useInfiniteScroll({ loadMore })
 
-  const sm = useMediaQuery(`(min-width: ${screens.sm})`)
+  const sm = useScreenSize("sm")
 
   return (
     <VStack className={cn("w-full gap-4", className)}>

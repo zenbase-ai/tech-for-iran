@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, Cell, XAxis } from "recharts"
 import {
   type ChartConfig,
   ChartContainer,
@@ -63,8 +63,10 @@ export const PodAvailabilityChart: React.FC<PodAvailabilityChartProps> = ({ podI
     <ChartContainer className={cn("h-48 w-full", className)} config={chartConfig}>
       <BarChart accessibilityLayer data={data}>
         <XAxis axisLine={false} dataKey="hour" interval={2} tickLine={false} tickMargin={8} />
-        <YAxis axisLine={false} hide tickLine={false} />
-        <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
+        <ChartTooltip
+          content={<ChartTooltipContent formatter={(value) => `${value} members online`} />}
+          cursor={false}
+        />
         <Bar
           activeBar={{ fill: "var(--primary)", opacity: 1 }}
           dataKey="count"

@@ -21,7 +21,7 @@ export type PodPostsProps = {
   className?: string
 }
 
-export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 1 }) => {
+export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) => {
   const { podId } = useParams<PodPageParams>()
   const { postCount } = useAuthQuery(api.pods.query.stats, { podId }) ?? {}
   const { results, isLoading, noResults, canGoPrev, canGoNext, goPrev, goNext } =

@@ -7,7 +7,7 @@ import { HStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
 import { ThemeToggler } from "@/components/ui/theme-toggler"
 import { api } from "@/convex/_generated/api"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 import { subscriptionPlan } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 

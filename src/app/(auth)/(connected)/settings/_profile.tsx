@@ -10,7 +10,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
 export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) => {

@@ -1,20 +1,18 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { useEffectEvent } from "react"
-import { LuNewspaper } from "react-icons/lu"
-import { VStack } from "@/components/layout/stack"
+import { LuArrowLeft, LuArrowRight, LuNewspaper } from "react-icons/lu"
+import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PostItem } from "@/components/presenters/post/item"
+import { Button } from "@/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
-import { LoadMoreButton } from "@/components/ui/load-more-button"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { Repeat } from "@/components/ui/repeat"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
-import useAuthPaginatedQuery, { paginatedState } from "@/hooks/use-auth-paginated-query"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthPaginatedQuery, useAuthQuery } from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 import type { PodPageParams } from "./_types"
 
@@ -23,23 +21,33 @@ export type PodPostsProps = {
   className?: string
 }
 
-export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) => {
+export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 1 }) => {
   const { podId } = useParams<PodPageParams>()
-  const stats = useAuthQuery(api.pods.query.stats, { podId })
-  const posts = useAuthPaginatedQuery(
-    api.pods.query.posts,
-    { podId },
-    { initialNumItems: pageSize }
-  )
-  const { isLoading, noResults, canLoadMore } = paginatedState(posts)
-  const loadMore = useEffectEvent(() => canLoadMore && posts.loadMore(pageSize))
+  const { postCount } = useAuthQuery(api.pods.query.stats, { podId }) ?? {}
+  const { results, isLoading, noResults, canGoPrev, canGoNext, goPrev, goNext } =
+    useAuthPaginatedQuery(
+      api.pods.query.posts,
+      { podId },
+      { initialNumItems: pageSize, totalCount: postCount }
+    )
 
   return (
     <VStack className={cn("w-full gap-4", className)}>
-      <SectionTitle>
-        <NumberTicker value={stats?.postCount ?? 0} />
-        &nbsp;posts
-      </SectionTitle>
+      <HStack className="gap-4" items="center" justify="between">
+        <SectionTitle>
+          <NumberTicker value={postCount ?? 0} />
+          &nbsp;posts
+        </SectionTitle>
+
+        <HStack className="gap-2" items="center" justify="start">
+          <Button disabled={!canGoPrev} onClick={goPrev} size="icon" variant="outline">
+            <LuArrowLeft />
+          </Button>
+          <Button disabled={!canGoNext} onClick={goNext} size="icon" variant="outline">
+            <LuArrowRight />
+          </Button>
+        </HStack>
+      </HStack>
 
       {isLoading ? (
         <Repeat count={pageSize}>
@@ -57,11 +65,10 @@ export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) =
       ) : (
         <VStack className="gap-3">
           <ItemGroup className="contents">
-            {posts.results.map(({ post, profile }) => (
+            {results.map(({ post, profile }) => (
               <PostItem key={post._id} post={post} profile={profile} />
             ))}
           </ItemGroup>
-          {canLoadMore && <LoadMoreButton isLoading={isLoading} label="posts" onClick={loadMore} />}
         </VStack>
       )}
     </VStack>

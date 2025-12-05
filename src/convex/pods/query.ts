@@ -6,7 +6,7 @@ import { DateTime } from "luxon"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
-import { getWorkingHours, isWithinWorkingHours } from "@/convex/engagement/helpers"
+import { getWorkingHours, isWithinWorkingHours } from "@/convex/linkedin/helpers"
 import { isConnected, postProfile } from "@/lib/linkedin"
 import { pflatMap, pmap } from "@/lib/utils"
 
@@ -95,7 +95,7 @@ export const members = memberQuery({
         {
           userId,
           joinedAt: _creationTime,
-          profile: pick(profile, ["firstName", "lastName", "picture", "headline", "url"]),
+          profile: pick(profile, ["userId", "firstName", "lastName", "picture", "headline", "url"]),
         },
       ]
     })
@@ -125,14 +125,17 @@ export const stats = memberQuery({
 export const onlineCount = memberQuery({
   args: {
     podId: v.id("pods"),
+    atHour: v.optional(v.number()),
   },
-  handler: async (ctx, { podId }) => {
+  handler: async (ctx, { podId, atHour }) => {
     const accounts = await pmap(
       await getManyFrom(ctx.db, "memberships", "by_podId", podId),
       async ({ userId }) => await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
     )
     return sumBy(accounts, (account) =>
-      account != null && isConnected(account.status) && isWithinWorkingHours(account) ? 1 : 0
+      account != null && isConnected(account.status) && isWithinWorkingHours(account, atHour)
+        ? 1
+        : 0
     )
   },
 })

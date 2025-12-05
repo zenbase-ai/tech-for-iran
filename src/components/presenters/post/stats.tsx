@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 import useScreenSize from "@/hooks/use-screen-size"
 import { cn, pluralize } from "@/lib/utils"
 
@@ -28,10 +28,10 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
   const sm = useScreenSize("sm")
 
   if (stats == null) {
-    return <Skeleton className={cn("w-full h-14", className)} />
+    return <Skeleton className={cn("w-full h-8 bg-transparent", className)} />
   }
 
-  const [first, last] = stats
+  const [first, last] = stats ?? []
   if (first == null || last == null) {
     return null
   }

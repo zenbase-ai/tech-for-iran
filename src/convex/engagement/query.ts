@@ -8,7 +8,7 @@ import { podMembers } from "@/convex/aggregates"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { isConnected } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/utils"
-import { isWithinWorkingHours } from "./helpers"
+import { isWithinWorkingHours } from "../linkedin/helpers"
 
 export const AvailableMember = z.object({
   account: z.object({

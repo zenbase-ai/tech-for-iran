@@ -12,7 +12,7 @@ import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/comp
 import { LoadMoreButton } from "@/components/ui/load-more-button"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { api } from "@/convex/_generated/api"
-import { paginatedState } from "@/hooks/use-auth-paginated-query"
+import { paginatedState } from "@/hooks/use-auth-query"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { cn } from "@/lib/utils"
 

@@ -4,7 +4,7 @@ import { RedirectType, redirect } from "next/navigation"
 import { Box } from "@/components/layout/box"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 import { isConnected } from "@/lib/linkedin"
 import { Nav } from "./_nav"
 
@@ -25,7 +25,7 @@ export default function ConnectedLayout({ children }: React.PropsWithChildren) {
         {children}
       </Box>
 
-      <Nav className="z-50 fixed bottom-2 md:bottom-4 left-0 right-0 max-w-fit mx-auto" />
+      <Nav className="z-50 fixed bottom-2 md:bottom-4 left-0 right-0 w-full mx-auto" />
     </>
   )
 }

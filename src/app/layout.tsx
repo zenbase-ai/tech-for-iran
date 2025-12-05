@@ -42,7 +42,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           </Suspense>
           <Toaster position="top-center" />
 
-          <section className="container min-w-[320px] w-fit mx-auto px-4 py-8 sm:py-12 md:py-16">
+          <section className="container min-w-[320px] w-full mx-auto px-4 py-8 sm:py-12 md:py-16">
             {children}
           </section>
         </Providers>

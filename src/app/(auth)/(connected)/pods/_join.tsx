@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 import { needsReconnection } from "@/lib/linkedin"
 import { queryString } from "@/lib/utils"
 

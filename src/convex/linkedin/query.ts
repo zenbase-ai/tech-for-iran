@@ -3,6 +3,8 @@ import { getOneFrom } from "convex-helpers/server/relationships"
 import { internalQuery } from "@/convex/_generated/server"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery } from "@/convex/_helpers/server"
+import { isConnected } from "@/lib/linkedin"
+import { getWorkingHours as getAvailabilitySettings } from "./helpers"
 
 export const getState = authQuery({
   args: {},
@@ -45,5 +47,22 @@ export const getProfile = internalQuery({
       throw new NotFoundError("PROFILE", { cause: { userId, unipileId } })
     }
     return profile
+  },
+})
+
+export const getAvailability = authQuery({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, { userId }) => {
+    const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+    if (!account) {
+      throw new NotFoundError("ACCOUNT", { cause: { userId } })
+    }
+
+    return {
+      settings: getAvailabilitySettings(account),
+      isConnected: isConnected(account.status),
+    }
   },
 })

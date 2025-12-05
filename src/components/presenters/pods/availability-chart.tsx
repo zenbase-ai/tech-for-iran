@@ -11,7 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
 const chartConfig = {
@@ -56,11 +56,15 @@ export const PodAvailabilityChart: React.FC<PodAvailabilityChartProps> = ({ podI
   }, [availability])
 
   if (!data) {
-    return <Skeleton className={cn("w-full h-48", className)} />
+    return <Skeleton className={cn("w-full h-39", className)} />
+  }
+
+  if (data.length === 0) {
+    return null
   }
 
   return (
-    <ChartContainer className={cn("h-48 w-full", className)} config={chartConfig}>
+    <ChartContainer className={cn("h-39 w-full", className)} config={chartConfig}>
       <BarChart accessibilityLayer data={data}>
         <XAxis axisLine={false} dataKey="hour" interval={2} tickLine={false} tickMargin={8} />
         <ChartTooltip

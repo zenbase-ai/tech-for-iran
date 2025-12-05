@@ -3,7 +3,7 @@
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 
 export type PodMemberCountProps = {
   podId: Id<"pods">

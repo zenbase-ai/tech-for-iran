@@ -3,7 +3,7 @@
 import { RedirectType, redirect, useSearchParams } from "next/navigation"
 import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
-import useAuthQuery from "@/hooks/use-auth-query"
+import { useAuthQuery } from "@/hooks/use-auth-query"
 import { isConnected } from "@/lib/linkedin"
 import { queryString } from "@/lib/utils"
 import { ConnectGateDialog } from "./_gate"

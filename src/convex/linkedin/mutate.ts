@@ -13,13 +13,14 @@ export const connectOwn = authMutation({
   },
   handler: async (ctx, { unipileId }) => {
     const { userId } = ctx
+    const key = { userId, unipileId }
 
     await Promise.all([
-      ctx.runMutation(internal.linkedin.mutate.connectAccount, { userId, unipileId }),
-      ctx.runMutation(internal.linkedin.mutate.connectProfile, { userId, unipileId }),
+      ctx.runMutation(internal.linkedin.mutate.connectAccount, key),
+      ctx.runMutation(internal.linkedin.mutate.connectProfile, key),
     ])
 
-    await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, {
+    await ctx.scheduler.runAfter(1000, internal.linkedin.action.sync, {
       unipileId,
     })
   },
@@ -52,10 +53,11 @@ export const connectAccount = internalMutation({
   args: {
     userId: v.string(),
     unipileId: v.string(),
+    status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const patch = update(args)
-    const doc = { ...settingsConfig.defaultValues, ...patch, status: "CONNECTING" }
+    const doc = { ...settingsConfig.defaultValues, status: "CONNECTING", ...patch }
     await ctx.runQuery(internal.linkedin.query.getAccount, args).then(
       async (account) => await ctx.db.patch(account._id, patch),
       async () => await ctx.db.insert("linkedinAccounts", doc)
@@ -99,13 +101,14 @@ export const deleteAccountAndProfile = internalMutation({
 export const setDisconnected = internalAction({
   args: {
     unipileId: v.string(),
+    status: v.optional(v.string()),
   },
-  handler: async (ctx, { unipileId }) => {
-    await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
-      unipileId,
-      status: "STOPPED",
-    })
-    await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })
+  handler: async (ctx, { unipileId, status = "STOPPED" }) => {
+    const key = { unipileId }
+    await Promise.all([
+      ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { ...key, status }),
+      ctx.scheduler.runAfter(1000, internal.emails.reconnectAccount, key),
+    ])
     return true
   },
 })

@@ -92,25 +92,25 @@ http.route({
 
     if ("name" in data) {
       const { account_id: unipileId, name: userId, status } = data
-      const keys = { userId, unipileId }
+      const key = { userId, unipileId }
       await Promise.all([
-        ctx.runMutation(internal.linkedin.mutate.connectAccount, keys),
-        ctx.runMutation(internal.linkedin.mutate.connectProfile, keys),
-        ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId }),
-        ctx.scheduler.runAfter(0, internal.linkedin.mutate.upsertAccountStatus, {
-          ...keys,
-          status,
-        }),
+        ctx.runMutation(internal.linkedin.mutate.connectAccount, { ...key, status }),
+        ctx.runMutation(internal.linkedin.mutate.connectProfile, key),
+        ctx.scheduler.runAfter(1000, internal.linkedin.action.sync, { unipileId }),
       ])
     } else {
       const { account_id: unipileId, message: status } = data.AccountStatus
-      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { unipileId, status })
-      if (status === "DELETED") {
-        await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId })
-      } else if (isConnected(status)) {
-        await ctx.scheduler.runAfter(0, internal.linkedin.action.sync, { unipileId })
+      const key = { unipileId }
+      if (isConnected(status)) {
+        await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { ...key, status })
+        await ctx.scheduler.runAfter(1000, internal.linkedin.action.sync, key)
       } else if (needsReconnection(status)) {
-        await ctx.scheduler.runAfter(0, internal.emails.reconnectAccount, { unipileId })
+        await ctx.scheduler.runAfter(1000, internal.linkedin.mutate.setDisconnected, {
+          ...key,
+          status,
+        })
+      } else if (status === "DELETED") {
+        await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, key)
       }
     }
 

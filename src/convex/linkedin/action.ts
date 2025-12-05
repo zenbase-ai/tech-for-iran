@@ -47,11 +47,15 @@ export const sync = internalAction({
         location,
       })
 
-      const timezone = await ctx.runAction(internal.linkedin.action.inferTimezone, { location })
-      await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { ...args, timezone })
+      const [timezone] = await Promise.all([
+        ctx.runAction(internal.linkedin.action.inferTimezone, { location }),
+        ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
+          ...args,
+          status: "SYNC_SUCCESS",
+        }),
+      ])
 
-      const status = "SYNC_SUCCESS"
-      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, { ...args, status })
+      await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { ...args, timezone })
     } catch (error) {
       if (error instanceof UnipileAPIError) {
         await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {

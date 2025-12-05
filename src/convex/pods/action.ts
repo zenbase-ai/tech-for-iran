@@ -52,20 +52,23 @@ export const boost = connectedMemberAction({
       return { postId: null, error: "Reposts are not supported." }
     }
 
-    const { postId, error: insertError } = await ctx.runMutation(internal.posts.mutate.insert, {
-      userId,
-      podId,
-      urn,
-      url: data.share_url,
-      socialId: data.social_id,
-      postedAt: data.parsed_datetime,
-      text: data.text,
-      author: {
-        name: data.author.name,
-        headline: data.author.headline ?? "Company",
-        url: profileURL(data.author),
-      },
-    })
+    const [{ postId, error: insertError }, targetCount] = await Promise.all([
+      ctx.runMutation(internal.posts.mutate.insert, {
+        userId,
+        podId,
+        urn,
+        url: data.share_url,
+        socialId: data.social_id,
+        postedAt: data.parsed_datetime,
+        text: data.text,
+        author: {
+          name: data.author.name,
+          headline: data.author.headline ?? "Company",
+          url: profileURL(data.author),
+        },
+      }),
+      ctx.runQuery(internal.engagement.query.targetCount, { podId }),
+    ])
     if (insertError != null) {
       return { postId: null, error: insertError }
     }
@@ -83,7 +86,6 @@ export const boost = connectedMemberAction({
     }
 
     try {
-      const targetCount = await ctx.runQuery(internal.engagement.query.targetCount, { podId })
       const [onlineCount] = await Promise.all([
         ctx.runQuery(api.pods.query.onlineCount, { podId }),
         ctx.runMutation(internal.engagement.workflow.start, {
@@ -95,16 +97,15 @@ export const boost = connectedMemberAction({
           comments,
           targetCount,
         }),
+        ctx.runMutation(internal.stats.mutate.insert, {
+          userId,
+          postId,
+          commentCount: data.comment_counter,
+          impressionCount: data.impressions_counter,
+          reactionCount: data.reaction_counter,
+          repostCount: data.repost_counter,
+        }),
       ])
-
-      await ctx.runMutation(internal.stats.mutate.insert, {
-        userId,
-        postId,
-        commentCount: data.comment_counter,
-        impressionCount: data.impressions_counter,
-        reactionCount: data.reaction_counter,
-        repostCount: data.repost_counter,
-      })
 
       return {
         postId,

@@ -27,10 +27,15 @@ const chartConfig = {
 
 export type PodAvailabilityChartProps = {
   podId: Id<"pods">
+  now?: Date
   className?: string
 }
 
-export const PodAvailabilityChart: React.FC<PodAvailabilityChartProps> = ({ podId, className }) => {
+export const PodAvailabilityChart: React.FC<PodAvailabilityChartProps> = ({
+  podId,
+  now = new Date(),
+  className,
+}) => {
   const availability = useAuthQuery(api.pods.query.availability, { podId })
 
   const data = useMemo(() => {
@@ -38,22 +43,20 @@ export const PodAvailabilityChart: React.FC<PodAvailabilityChartProps> = ({ podI
       return null
     }
 
-    const now = new Date()
     const currentHour = now.getHours()
-    // Get user's timezone offset in hours
-    const offsetHours = now.getTimezoneOffset() / -60
+    const timezoneOffset = now.getTimezoneOffset()
 
     // Convert UTC hours to local hours and build chart data
     return Array.from({ length: 24 }, (_, localHour) => {
       // Convert local hour back to UTC to get the correct count
-      const utcHour = (((localHour - offsetHours) % 24) + 24) % 24
+      const utcHour = (((localHour + timezoneOffset / 60) % 24) + 24) % 24
       return {
         hour: formatHour(localHour),
         count: availability[Math.floor(utcHour)],
         isCurrent: localHour === currentHour,
       }
     })
-  }, [availability])
+  }, [now, availability])
 
   if (!data) {
     return <Skeleton className={cn("w-full h-39", className)} />

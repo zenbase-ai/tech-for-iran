@@ -10,6 +10,7 @@ export const insert = internalMutation({
     userId: v.string(),
     url: v.string(),
     urn: v.string(),
+    socialId: v.string(),
     text: v.string(),
     author: v.object({
       name: v.string(),

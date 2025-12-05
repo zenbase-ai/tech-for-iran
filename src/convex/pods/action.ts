@@ -57,6 +57,7 @@ export const boost = connectedMemberAction({
       podId,
       urn,
       url: data.share_url,
+      socialId: data.social_id,
       postedAt: data.parsed_datetime,
       text: data.text,
       author: {
@@ -82,6 +83,7 @@ export const boost = connectedMemberAction({
     }
 
     try {
+      const targetCount = await ctx.runQuery(internal.engagement.query.targetCount, { podId })
       const [onlineCount] = await Promise.all([
         ctx.runQuery(api.pods.query.onlineCount, { podId }),
         ctx.runMutation(internal.engagement.workflow.start, {
@@ -89,9 +91,9 @@ export const boost = connectedMemberAction({
           podId,
           postId,
           skipUserIds: [userId],
-          urn,
           reactionTypes,
           comments,
+          targetCount,
         }),
       ])
 
@@ -104,7 +106,10 @@ export const boost = connectedMemberAction({
         repostCount: data.repost_counter,
       })
 
-      return { postId, success: `Stay tuned for up to ${pluralize(onlineCount, "engagement")}!` }
+      return {
+        postId,
+        success: `Stay tuned for up to ${pluralize(Math.min(onlineCount, targetCount), "engagement")}!`,
+      }
     } catch (error) {
       console.error("posts:action/submit", "start", error)
       await ctx.runMutation(internal.posts.mutate.remove, { postId })

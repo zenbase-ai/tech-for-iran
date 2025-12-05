@@ -3,6 +3,7 @@ import { vResultValidator } from "@convex-dev/workpool"
 import { v } from "convex/values"
 import { pick } from "es-toolkit"
 import { components, internal } from "@/convex/_generated/api"
+import { ConflictError } from "@/convex/_helpers/errors"
 import { internalMutation, update } from "@/convex/_helpers/server"
 import { AvailableMember } from "./query"
 
@@ -22,9 +23,9 @@ const workflowArgs = {
   podId: v.id("pods"),
   postId: v.id("posts"),
   skipUserIds: v.array(v.string()),
-  urn: v.string(),
   reactionTypes: v.array(v.string()),
   comments: v.boolean(),
+  targetCount: v.number(),
 }
 
 type Start = {
@@ -87,19 +88,20 @@ export const start = internalMutation({
  */
 export const perform = workflow.define({
   args: workflowArgs,
-  handler: async (step, { podId, postId, skipUserIds, urn, reactionTypes, comments }) => {
+  handler: async (step, { podId, postId, skipUserIds, reactionTypes, comments, targetCount }) => {
     const minDelay = 10
     const maxDelay = 30
 
-    const [targetCount] = await Promise.all([
-      step.runQuery(internal.engagement.query.targetCount, { podId }),
-      step.runMutation(internal.engagement.mutate.patchPostStatus, {
-        postId,
-        status: "processing",
-      }),
-    ])
+    await step.runMutation(internal.engagement.mutate.patchPostStatus, {
+      postId,
+      status: "processing",
+    })
 
     const post = await step.runQuery(internal.posts.query.get, { postId })
+    const { socialId } = post
+    if (!socialId) {
+      throw new ConflictError("!post.socialId")
+    }
 
     for (let iteration = 0; iteration < targetCount; iteration++) {
       const availableMembers = await step.runQuery(internal.engagement.query.availableMembers, {
@@ -124,7 +126,7 @@ export const perform = workflow.define({
 
       const react = await step.runAction(
         internal.unipile.post.react,
-        { unipileId, urn, reactionType },
+        { unipileId, socialId, reactionType },
         { runAfter: reactDelay }
       )
       await step.runMutation(internal.engagement.mutate.upsertEngagement, {
@@ -148,7 +150,7 @@ export const perform = workflow.define({
         if (commentText) {
           const comment = await step.runAction(
             internal.unipile.post.comment,
-            { unipileId, urn, commentText },
+            { unipileId, socialId, commentText },
             { runAfter: commentDelay }
           )
           await step.runMutation(internal.engagement.mutate.upsertEngagement, {

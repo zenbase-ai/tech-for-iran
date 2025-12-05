@@ -13,7 +13,7 @@ export const get = internalQuery({
   handler: async (ctx, { postId }) => {
     const post = await ctx.db.get(postId)
     if (!post) {
-      throw new NotFoundError()
+      throw new NotFoundError("posts/query:get")
     }
 
     return post

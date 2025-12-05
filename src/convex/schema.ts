@@ -65,6 +65,7 @@ const schema = defineSchema({
     podId: v.id("pods"),
     url: v.string(),
     urn: v.string(),
+    socialId: v.optional(v.string()),
     workflowId: v.optional(v.string()),
     // Workflow status tracking
     status: v.optional(

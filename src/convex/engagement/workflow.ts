@@ -110,7 +110,7 @@ export const perform = workflow.define({
         podId,
         skipUserIds,
       })
-      if (availableMembers.length === null) {
+      if (availableMembers.length === 0) {
         console.warn("engagement/workflow:perform", "!availableMembers", {
           podId,
           postId,
@@ -132,7 +132,7 @@ export const perform = workflow.define({
         step.runAction(internal.engagement.generate.reaction, { reactionTypes }),
       ])
 
-      const { error: reactError } = await step.runAction(
+      const react = await step.runAction(
         internal.unipile.post.react,
         { unipileId, urn, reactionType },
         { runAfter: reactDelay }
@@ -141,13 +141,16 @@ export const perform = workflow.define({
         userId,
         postId,
         reactionType,
-        error: reactError,
+        error: react.error,
       })
       console.info("engagement/workflow:perform", "reacted", {
         userId,
         postId,
         podId,
         urn,
+        reactionType,
+        success: !react.error,
+        error: react.error,
       })
 
       if (comments) {
@@ -162,7 +165,7 @@ export const perform = workflow.define({
         ])
 
         if (commentText) {
-          const { error: commentError } = await step.runAction(
+          const comment = await step.runAction(
             internal.unipile.post.comment,
             { unipileId, urn, commentText },
             { runAfter: commentDelay }
@@ -171,7 +174,7 @@ export const perform = workflow.define({
             userId,
             postId,
             reactionType: "comment",
-            error: commentError,
+            error: comment.error,
           })
         }
       }

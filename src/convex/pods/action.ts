@@ -82,7 +82,8 @@ export const boost = connectedMemberAction({
     }
 
     try {
-      const [{ targetCount }, onlineCount] = await Promise.all([
+      const [onlineCount] = await Promise.all([
+        ctx.runQuery(api.pods.query.onlineCount, { podId }),
         ctx.runMutation(internal.engagement.workflow.start, {
           userId,
           podId,
@@ -91,7 +92,6 @@ export const boost = connectedMemberAction({
           reactionTypes,
           comments,
         }),
-        ctx.runQuery(api.pods.query.onlineCount, { podId }),
       ])
 
       await ctx.runMutation(internal.stats.mutate.insert, {
@@ -103,9 +103,7 @@ export const boost = connectedMemberAction({
         repostCount: data.repost_counter,
       })
 
-      const probableCount = Math.floor((onlineCount + targetCount) / 2)
-
-      return { postId, success: `Stay tuned for up to ${pluralize(probableCount, "engagement")}!` }
+      return { postId, success: `Stay tuned for up to ${pluralize(onlineCount, "engagement")}!` }
     } catch (error) {
       console.error("posts:action/submit", "start", error)
       await ctx.runMutation(internal.posts.mutate.remove, { postId })

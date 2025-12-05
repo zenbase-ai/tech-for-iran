@@ -31,3 +31,6 @@ fmt:
 
 lint:
   bun --bun ultracite check
+
+deploy:
+  pnpx convex deploy -y

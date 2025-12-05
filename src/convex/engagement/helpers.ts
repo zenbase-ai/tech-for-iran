@@ -16,8 +16,8 @@ export const getWorkingHours = (settings: WorkingHoursSettings): Required<Workin
   return { timezone, workingHoursStart, workingHoursEnd }
 }
 
-export const isWithinWorkingHours = (settings: WorkingHoursSettings) => {
+export const isWithinWorkingHours = (settings: WorkingHoursSettings, atHour?: number) => {
   const { timezone, workingHoursStart, workingHoursEnd } = getWorkingHours(settings)
-  const currentHour = DateTime.now().setZone(timezone).hour
+  const currentHour = atHour ?? DateTime.now().setZone(timezone).hour
   return workingHoursStart <= currentHour && currentHour < workingHoursEnd
 }

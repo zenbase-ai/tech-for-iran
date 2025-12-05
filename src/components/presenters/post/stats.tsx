@@ -41,7 +41,9 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
         <TooltipTrigger asChild>
           <PostStatBadge field="reactionCount" first={first} last={last} />
         </TooltipTrigger>
-        <TooltipContent>{pluralize(engagementCount ?? 0, "engagement")} Crackedbook</TooltipContent>
+        <TooltipContent>
+          {pluralize(engagementCount ?? 0, "engagement")} from Crackedbook
+        </TooltipContent>
       </Tooltip>
       <PostStatBadge field="commentCount" first={first} last={last} />
       <PostStatBadge field="repostCount" first={first} last={last} />

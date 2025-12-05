@@ -129,7 +129,7 @@ export const onlineCount = memberQuery({
   handler: async (ctx, { podId }) => {
     const accounts = await pmap(
       await getManyFrom(ctx.db, "memberships", "by_podId", podId),
-      ({ userId }) => getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+      async ({ userId }) => await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
     )
     return sumBy(accounts, (account) =>
       account != null && isConnected(account.status) && isWithinWorkingHours(account) ? 1 : 0

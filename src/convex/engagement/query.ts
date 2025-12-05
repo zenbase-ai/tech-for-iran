@@ -14,7 +14,7 @@ export const AvailableMember = z.object({
   account: z.object({
     unipileId: z.string(),
     userId: z.string(),
-    commentPrompt: z.optional(z.string()),
+    commentPrompt: z.optional(z.string()).default(""),
   }),
   profile: z.object({
     firstName: z.string(),

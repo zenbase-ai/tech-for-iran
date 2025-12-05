@@ -160,7 +160,7 @@ export const perform = workflow.define({
             profile,
             reactionType,
             post: pick(post, ["text", "author"]),
-            prompt: account.commentPrompt ?? "",
+            prompt: account.commentPrompt,
           }),
         ])
 

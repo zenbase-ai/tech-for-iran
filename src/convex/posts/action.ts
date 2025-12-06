@@ -31,7 +31,7 @@ export const sync = internalAction({
       },
     })
 
-    const stats = await ctx.runMutation(internal.stats.mutate.insert, {
+    return await ctx.runMutation(internal.stats.mutate.insert, {
       userId,
       postId,
       commentCount: data.comment_counter,
@@ -39,6 +39,5 @@ export const sync = internalAction({
       reactionCount: data.reaction_counter,
       repostCount: data.repost_counter,
     })
-    return stats
   },
 })

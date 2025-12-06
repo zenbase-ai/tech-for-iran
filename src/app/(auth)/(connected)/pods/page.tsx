@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PodsPage() {
   return (
-    <VStack className="max-w-lg">
+    <VStack className="max-w-lg mx-auto">
       <PageTitle>Engagement Pods</PageTitle>
 
       <PageDescription>

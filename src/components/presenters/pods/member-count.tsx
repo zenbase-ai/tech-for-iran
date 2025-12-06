@@ -16,7 +16,7 @@ export const PodMemberCount: React.FC<PodMemberCountProps> = ({ podId }) => {
   return (
     <>
       <NumberTicker value={onlineCount ?? 0} /> / {stats?.memberCount ?? 0}
-      &nbsp;members&nbsp;online
+      &nbsp;online
     </>
   )
 }

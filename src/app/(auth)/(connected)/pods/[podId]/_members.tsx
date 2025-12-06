@@ -73,7 +73,7 @@ export const PodMembers: React.FC<PodMembersProps> = ({ podId, pageSize, classNa
           </Empty>
         </Delay>
       ) : (
-        <Grid className="gap-3" cols={2}>
+        <Grid className="grid-cols-1 sm:grid-cols-2 gap-3">
           <ItemGroup className="contents">
             {members.results.map(({ profile }) => (
               <ProfileItem

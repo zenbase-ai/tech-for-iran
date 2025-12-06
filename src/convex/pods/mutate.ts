@@ -7,15 +7,13 @@ import { podMembers } from "@/convex/aggregates"
 import { PodSettings } from "@/schemas/pod-settings"
 
 export type Join =
+  | { data: null; error: string }
   | {
-      pod: Doc<"pods">
-      memberCount: number
+      data: {
+        pod: Doc<"pods">
+        memberCount: number
+      }
       success: string
-    }
-  | {
-      pod: null
-      memberCount: null
-      error: string
     }
 
 export const join = connectedMutation({
@@ -25,7 +23,7 @@ export const join = connectedMutation({
   handler: async (ctx, { inviteCode }): Promise<Join> => {
     const pod = await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)
     if (!pod) {
-      return { pod: null, memberCount: null, error: "Invalid invite code." }
+      return { data: null, error: "Invalid invite code." }
     }
 
     const membership = await ctx.db
@@ -38,7 +36,7 @@ export const join = connectedMutation({
     }
 
     const memberCount = await podMembers.count(ctx, { bounds: { prefix: [pod._id] } })
-    return { pod, memberCount, success: `Welcome to ${pod.name}!` }
+    return { data: { pod, memberCount }, success: `Welcome to ${pod.name}!` }
   },
 })
 

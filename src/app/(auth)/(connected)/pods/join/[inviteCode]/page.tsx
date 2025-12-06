@@ -13,14 +13,10 @@ export type JoinPageProps = {
 export default async function JoinPage(props: JoinPageProps) {
   const [{ token }, { inviteCode }] = await Promise.all([clerkAuth(), props.params])
 
-  const { pod, memberCount, ...toast } = await fetchMutation(
-    api.pods.mutate.join,
-    { inviteCode },
-    { token }
-  )
-  if (!pod) {
+  const { data, ...toast } = await fetchMutation(api.pods.mutate.join, { inviteCode }, { token })
+  if (!data) {
     return redirect(`/pods?${queryString(toast)}`)
   }
 
-  return <JoinDialog memberCount={memberCount} pod={pod} />
+  return <JoinDialog {...data} />
 }

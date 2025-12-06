@@ -21,7 +21,6 @@ import type * as clerk_webhook from "../clerk/webhook.js";
 import type * as crons from "../crons.js";
 import type * as emails from "../emails.js";
 import type * as engagement_generate from "../engagement/generate.js";
-import type * as engagement_mutate from "../engagement/mutate.js";
 import type * as engagement_query from "../engagement/query.js";
 import type * as engagement_workflow from "../engagement/workflow.js";
 import type * as http from "../http.js";
@@ -66,7 +65,6 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   emails: typeof emails;
   "engagement/generate": typeof engagement_generate;
-  "engagement/mutate": typeof engagement_mutate;
   "engagement/query": typeof engagement_query;
   "engagement/workflow": typeof engagement_workflow;
   http: typeof http;

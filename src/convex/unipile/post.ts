@@ -54,10 +54,9 @@ export const fetch = internalAction({
   },
 })
 
-type ReactData = {
+type React = {
   object: "ReactionAdded"
 }
-type React = { data: ReactData; error: null } | { data: null; error: string }
 
 export const react = internalAction({
   args: {
@@ -65,7 +64,7 @@ export const react = internalAction({
     socialId: v.string(),
     reactionType: v.string(),
   },
-  handler: async (ctx, { socialId, unipileId, reactionType }): Promise<React> => {
+  handler: async (ctx, { socialId, unipileId, reactionType }) => {
     try {
       const options: Options = {
         json: {
@@ -74,7 +73,7 @@ export const react = internalAction({
           reaction_type: reactionType,
         },
       }
-      const data = await unipile.post<ReactData>("api/v1/posts/reaction", options).json()
+      const data = await unipile.post<React>("api/v1/posts/reaction", options).json()
       return { data, error: null }
     } catch (error: unknown) {
       if (isDisconnectedUnipileAccountError(error)) {
@@ -85,10 +84,9 @@ export const react = internalAction({
   },
 })
 
-type CommentData = {
+type Comment = {
   object: "CommentSent"
 }
-type Comment = { data: CommentData; error: null } | { data: null; error: string }
 
 export const comment = internalAction({
   args: {
@@ -96,9 +94,9 @@ export const comment = internalAction({
     socialId: v.string(),
     commentText: v.string(),
   },
-  handler: async (ctx, { socialId, unipileId, commentText }): Promise<Comment> => {
+  handler: async (ctx, { socialId, unipileId, commentText }) => {
     if (commentText.length === 0 || commentText.length > 1250) {
-      return { data: null, error: "Text must be between 1 and 1250 characters long." }
+      return { error: "commentText.length === 0 || commentText.length > 1250" }
     }
 
     try {
@@ -108,9 +106,7 @@ export const comment = internalAction({
           text: commentText,
         },
       }
-      const data = await unipile
-        .post<CommentData>(`api/v1/posts/${socialId}/comments`, options)
-        .json()
+      const data = await unipile.post<Comment>(`api/v1/posts/${socialId}/comments`, options).json()
       return { data, error: null }
     } catch (error: unknown) {
       if (isDisconnectedUnipileAccountError(error)) {

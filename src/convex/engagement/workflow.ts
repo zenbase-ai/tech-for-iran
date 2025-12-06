@@ -41,7 +41,7 @@ export const start = internalMutation({
       startAsync: true,
     })
 
-    await ctx.db.patch(args.postId, update({ workflowId, status: "pending" } as const))
+    await ctx.db.patch(args.postId, update({ workflowId, status: "processing" } as const))
     return { workflowId }
   },
 })
@@ -92,11 +92,6 @@ export const perform = workflow.define({
     const minDelay = 10
     const maxDelay = 30
 
-    await step.runMutation(internal.engagement.mutate.patchPostStatus, {
-      postId,
-      status: "processing",
-    })
-
     const post = await step.runQuery(internal.posts.query.get, { postId })
     const { socialId } = post
     if (!socialId) {
@@ -129,7 +124,7 @@ export const perform = workflow.define({
         { unipileId, socialId, reactionType },
         { runAfter: reactDelay }
       )
-      await step.runMutation(internal.engagement.mutate.upsertEngagement, {
+      await step.runMutation(internal.posts.mutate.insertEngagement, {
         userId,
         postId,
         reactionType,
@@ -153,7 +148,8 @@ export const perform = workflow.define({
             { unipileId, socialId, commentText },
             { runAfter: commentDelay }
           )
-          await step.runMutation(internal.engagement.mutate.upsertEngagement, {
+
+          await step.runMutation(internal.posts.mutate.insertEngagement, {
             userId,
             postId,
             reactionType: "comment",
@@ -186,10 +182,11 @@ export const onComplete = internalMutation({
     const oneDay = 24 * oneHour
 
     for (const syncDelay of [
+      5 * oneMinute,
       15 * oneMinute,
       30 * oneMinute,
       60 * oneMinute,
-      4 * oneHour,
+      6 * oneHour,
       12 * oneHour,
     ]) {
       await ctx.scheduler.runAfter(syncDelay, internal.posts.action.sync, { postId })

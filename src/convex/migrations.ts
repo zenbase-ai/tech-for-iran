@@ -1,7 +1,7 @@
 import { Migrations } from "@convex-dev/migrations"
 import { components } from "@/convex/_generated/api"
 import type { DataModel } from "@/convex/_generated/dataModel"
-import { internalMutation } from "./_helpers/server"
+import { internalMutation } from "@/convex/_helpers/server"
 import { podMembers, podPosts, postEngagements, userEngagements, userPosts } from "./aggregates"
 
 export const migrations = new Migrations<DataModel>(components.migrations)

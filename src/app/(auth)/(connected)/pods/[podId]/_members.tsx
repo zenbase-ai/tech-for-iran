@@ -8,6 +8,7 @@ import { SectionTitle } from "@/components/layout/text"
 import { PodAvailabilityChart } from "@/components/presenters/pods/availability-chart"
 import { PodMemberCount } from "@/components/presenters/pods/member-count"
 import { ProfileItem } from "@/components/presenters/profile/item"
+import { Delay } from "@/components/ui/delay"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
 import { PrevNextPagination } from "@/components/ui/pagination"
@@ -50,14 +51,16 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20
           <Skeleton className="w-full h-16" />
         </Repeat>
       ) : members.results.length === 0 ? (
-        <Empty className="text-muted-foreground">
-          <EmptyHeader>
-            <EmptyMedia>
-              <LuUsers className="size-8" />
-            </EmptyMedia>
-            <EmptyTitle>No members&hellip; yet.</EmptyTitle>
-          </EmptyHeader>
-        </Empty>
+        <Delay timeout={1000}>
+          <Empty className="text-muted-foreground">
+            <EmptyHeader>
+              <EmptyMedia>
+                <LuUsers className="size-8" />
+              </EmptyMedia>
+              <EmptyTitle>No members&hellip; yet.</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        </Delay>
       ) : (
         <VStack className="gap-3">
           <Grid className="sm:grid-cols-2 gap-3">

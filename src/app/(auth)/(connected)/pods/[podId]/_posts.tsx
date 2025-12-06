@@ -5,6 +5,7 @@ import { LuNewspaper } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PostItem } from "@/components/presenters/post/item"
+import { Delay } from "@/components/ui/delay"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ItemGroup } from "@/components/ui/item"
 import { NumberTicker } from "@/components/ui/number-ticker"
@@ -47,14 +48,16 @@ export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) =
           <Skeleton className="w-full h-20" />
         </Repeat>
       ) : posts.results.length === 0 ? (
-        <Empty className="text-muted-foreground">
-          <EmptyHeader>
-            <EmptyMedia>
-              <LuNewspaper className="size-8" />
-            </EmptyMedia>
-            <EmptyTitle>No posts&hellip; yet.</EmptyTitle>
-          </EmptyHeader>
-        </Empty>
+        <Delay timeout={1000}>
+          <Empty className="text-muted-foreground">
+            <EmptyHeader>
+              <EmptyMedia>
+                <LuNewspaper className="size-8" />
+              </EmptyMedia>
+              <EmptyTitle>No posts&hellip; yet.</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
+        </Delay>
       ) : (
         <VStack className="gap-3">
           <ItemGroup className="contents">

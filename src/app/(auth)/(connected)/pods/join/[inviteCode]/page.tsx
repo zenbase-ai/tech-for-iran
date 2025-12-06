@@ -11,7 +11,7 @@ export type JoinPageProps = {
 }
 
 export default async function JoinPage(props: JoinPageProps) {
-  const [{ token }, { inviteCode }] = await Promise.all([clerkAuth(), props.params])
+  const [{ inviteCode }, { token }] = await Promise.all([props.params, clerkAuth()])
 
   const { data, ...toast } = await fetchMutation(api.pods.mutate.join, { inviteCode }, { token })
   if (!data) {

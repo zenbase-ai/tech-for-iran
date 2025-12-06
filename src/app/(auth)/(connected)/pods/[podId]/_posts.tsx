@@ -18,11 +18,11 @@ import { cn } from "@/lib/utils"
 
 export type PodPostsProps = {
   podId: Id<"pods">
-  pageSize?: number
+  pageSize: number
   className?: string
 }
 
-export const PodPosts: React.FC<PodPostsProps> = ({ podId, className, pageSize = 5 }) => {
+export const PodPosts: React.FC<PodPostsProps> = ({ podId, pageSize, className }) => {
   const totalCount = useAuthQuery(api.pods.query.stats, { podId })?.postCount
   const posts = useAuthPaginatedQuery(api.pods.query.posts, { podId }, { pageSize, totalCount })
 

@@ -1,11 +1,14 @@
 "use client"
 
 import { useAuth } from "@clerk/nextjs"
+import Link from "next/link"
 import { useParams } from "next/navigation"
 import { LuSettings } from "react-icons/lu"
+import { Logo } from "@/components/assets/logo"
 import { HStack } from "@/components/layout/stack"
 import { PageTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import { useAuthQuery } from "@/hooks/use-auth-query"
@@ -29,7 +32,13 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
 
   return (
     <HStack className={cn("w-full gap-2", className)} items="center">
-      <PageTitle className="mr-auto flex-3">{pod.name}</PageTitle>
+      <Link href="/pods">
+        <Logo size="size-7" stroke="stroke-2" />
+      </Link>
+
+      <Separator className="h-7!" orientation="vertical" />
+
+      <PageTitle className="mr-auto">{pod.name}</PageTitle>
 
       <HStack className="flex-2 gap-2" items="center" justify="end" wrap>
         <InviteButton inviteCode={pod.inviteCode} variant="outline" />

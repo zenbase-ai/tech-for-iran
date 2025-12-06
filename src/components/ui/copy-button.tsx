@@ -25,6 +25,7 @@ export const buttonVariants = cva(
         default: "h-9 gap-2 px-4 py-2 has-[>svg]:px-3 [&_svg]:size-4",
         sm: "h-8 gap-1.5 px-3 [&_svg]:size-3 text-sm",
         lg: "h-[47px] gap-3 p-3 [&_svg]:size-6",
+        icon: "size-9 rounded-full",
       },
     },
     defaultVariants: {
@@ -108,7 +109,7 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
           key={localIsCopied ? "check" : "copy"}
           transition={{ duration: 0.15 }}
         >
-          <Icon className="inline" />
+          <Icon className="inline size-3" />
         </motion.span>
       </AnimatePresence>
     </motion.button>

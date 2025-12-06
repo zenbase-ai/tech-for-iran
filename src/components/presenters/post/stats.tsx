@@ -2,16 +2,15 @@
 
 import type { IconBaseProps } from "react-icons/lib"
 import { LuArrowRight, LuEye, LuMessageCircle, LuRepeat, LuThumbsUp } from "react-icons/lu"
+import { Logo } from "@/components/assets/logo"
 import { Stack, type StackProps } from "@/components/layout/stack"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import { useAuthQuery } from "@/hooks/use-auth-query"
-import useScreenSize from "@/hooks/use-screen-size"
-import { cn, pluralize } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 export type PostStatsStackProps = StackProps & {
   podId: Id<"pods">
@@ -25,7 +24,6 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
   ...props
 }) => {
   const { stats, engagementCount } = useAuthQuery(api.posts.query.stats, { podId, postId }) ?? {}
-  const sm = useScreenSize("sm")
 
   if (stats == null) {
     return <Skeleton className={cn("w-full h-8 bg-transparent", className)} />
@@ -37,19 +35,14 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Stack className={cn("w-fit gap-1", className)} items="center" wrap {...props}>
-          <PostStatBadge field="reactionCount" first={first} last={last} />
-          <PostStatBadge field="commentCount" first={first} last={last} />
-          <PostStatBadge field="repostCount" first={first} last={last} />
-          <PostStatBadge field="impressionCount" first={first} last={last} />
-        </Stack>
-      </TooltipTrigger>
-      <TooltipContent arrow={false} side={sm ? "right" : "bottom"}>
-        {pluralize(engagementCount ?? 0, "engagement")} from Crackedbook
-      </TooltipContent>
-    </Tooltip>
+    <Stack className={cn("w-full gap-6", className)} items="center" wrap {...props}>
+      <PostStatBadge field="reactionCount" first={first} last={last}>
+        {engagementCount} from <Logo className="gap-1" size="size-3" stroke="stroke-1.5" />
+      </PostStatBadge>
+      <PostStatBadge field="commentCount" first={first} last={last} />
+      <PostStatBadge field="repostCount" first={first} last={last} />
+      <PostStatBadge field="impressionCount" first={first} last={last} />
+    </Stack>
   )
 }
 
@@ -64,6 +57,8 @@ export const PostStatBadge: React.FC<PostStatBadgeProps> = ({
   first,
   last,
   className,
+  children,
+  variant = "ghost",
   ...props
 }) => {
   const startingValue = first[field]
@@ -74,7 +69,12 @@ export const PostStatBadge: React.FC<PostStatBadgeProps> = ({
   }
 
   return (
-    <Badge className={cn("text-muted-foreground", className)} size="sm" variant="ghost" {...props}>
+    <Badge
+      className={cn("text-muted-foreground", className, variant === "ghost" && "px-0")}
+      size="sm"
+      variant={variant}
+      {...props}
+    >
       <span className="inline-flex gap-0.5 items-center">
         {startingValue !== endingValue && (
           <>
@@ -85,6 +85,7 @@ export const PostStatBadge: React.FC<PostStatBadgeProps> = ({
         <NumberTicker className="text-foreground" value={endingValue} />
       </span>
       <PostStatIcon className="text-foreground" field={field} />
+      {children}
     </Badge>
   )
 }

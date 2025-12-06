@@ -45,10 +45,32 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
 
   return (
     <Item className={cn("items-start", className)} {...props}>
-      <ItemMedia>
+      <ItemMedia className="relative">
         <ProfileAvatar className={cn(fancy && "size-12")} profile={profile} />
+        {isUser && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Box
+                className={cn(
+                  "absolute top-0 right-0",
+                  "size-2.5 rounded-full",
+                  isLoading
+                    ? "bg-transparent"
+                    : isOnline
+                      ? "bg-primary"
+                      : isConnected
+                        ? "border border-primary"
+                        : "bg-amber-300"
+                )}
+              />
+            </TooltipTrigger>
+            <TooltipContent arrow={false} side="left">
+              {isOnline ? "Online" : isConnected ? "Offline" : "Disconnected"}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </ItemMedia>
-      <ItemContent className="relative">
+      <ItemContent>
         <ExternalLink href={profile.url}>
           <ItemTitle
             className={cn(
@@ -58,29 +80,6 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
           >
             {fullName(profile)}
           </ItemTitle>
-
-          {isUser && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Box
-                  className={cn(
-                    "absolute top-1 right-1",
-                    "size-2 rounded-full",
-                    isLoading
-                      ? "bg-transparent"
-                      : isOnline
-                        ? "bg-primary"
-                        : isConnected
-                          ? "border border-primary"
-                          : "bg-amber-300"
-                  )}
-                />
-              </TooltipTrigger>
-              <TooltipContent arrow={false} side="left">
-                {isOnline ? "Online" : isConnected ? "Offline" : "Disconnected"}
-              </TooltipContent>
-            </Tooltip>
-          )}
 
           {!!description && (
             <ItemDescription className="leading-[1.15] text-xs">{description}</ItemDescription>

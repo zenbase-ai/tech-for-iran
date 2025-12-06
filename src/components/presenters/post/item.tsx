@@ -3,18 +3,24 @@ import { ProfileHeader } from "@/components/presenters/profile/header"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
 import { ExternalLink } from "@/components/ui/external-link"
-import { Item, ItemActions, ItemContent, ItemDescription } from "@/components/ui/item"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  type ItemProps,
+} from "@/components/ui/item"
 import { RelativeTime } from "@/components/ui/relative-time"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { PostStatsStack } from "./stats"
 
-export type PostItemProps = {
+export type PostItemProps = ItemProps & {
   post: Omit<Doc<"posts">, "author">
   profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "headline" | "url">
 }
 
-export const PostItem: React.FC<PostItemProps> = ({ post, profile }) => (
-  <Item variant="outline">
+export const PostItem: React.FC<PostItemProps> = ({ post, profile, ...props }) => (
+  <Item {...props}>
     <ItemContent className="gap-2">
       <ProfileItem
         className="p-0"

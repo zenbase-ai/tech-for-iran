@@ -1,6 +1,5 @@
 "use client"
 
-import { useParams } from "next/navigation"
 import { LuNewspaper } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
@@ -13,17 +12,17 @@ import { PrevNextPagination } from "@/components/ui/pagination"
 import { Repeat } from "@/components/ui/repeat"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { useAuthPaginatedQuery, useAuthQuery } from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import type { PodPageParams } from "./_types"
 
 export type PodPostsProps = {
+  podId: Id<"pods">
   pageSize?: number
   className?: string
 }
 
-export const PodPosts: React.FC<PodPostsProps> = ({ className, pageSize = 5 }) => {
-  const { podId } = useParams<PodPageParams>()
+export const PodPosts: React.FC<PodPostsProps> = ({ podId, className, pageSize = 5 }) => {
   const totalCount = useAuthQuery(api.pods.query.stats, { podId })?.postCount
   const posts = useAuthPaginatedQuery(api.pods.query.posts, { podId }, { pageSize, totalCount })
 

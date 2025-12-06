@@ -1,11 +1,9 @@
 "use client"
 
-import { useParams } from "next/navigation"
 import { LuUsers } from "react-icons/lu"
 import { Grid } from "@/components/layout/grid"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
-import { PodAvailabilityChart } from "@/components/presenters/pods/availability-chart"
 import { PodMemberCount } from "@/components/presenters/pods/member-count"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Delay } from "@/components/ui/delay"
@@ -15,24 +13,22 @@ import { PrevNextPagination } from "@/components/ui/pagination"
 import { Repeat } from "@/components/ui/repeat"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import { useAuthPaginatedQuery, useAuthQuery } from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
-import type { PodPageParams } from "./_types"
 
 export type PodMembersProps = {
+  podId: Id<"pods">
   className?: string
   pageSize?: number
 }
 
-export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20 }) => {
-  const { podId } = useParams<PodPageParams>()
+export const PodMembers: React.FC<PodMembersProps> = ({ podId, className, pageSize = 20 }) => {
   const totalCount = useAuthQuery(api.pods.query.stats, { podId })?.memberCount
   const members = useAuthPaginatedQuery(api.pods.query.members, { podId }, { pageSize, totalCount })
 
   return (
     <VStack className={cn("w-full gap-4", className)}>
-      <PodAvailabilityChart podId={podId} />
-
       <HStack className="gap-4" items="center" justify="between">
         <SectionTitle>
           <PodMemberCount podId={podId} />
@@ -71,7 +67,6 @@ export const PodMembers: React.FC<PodMembersProps> = ({ className, pageSize = 20
                   key={profile.url}
                   profile={profile}
                   size="sm"
-                  variant="outline"
                 />
               ))}
             </ItemGroup>

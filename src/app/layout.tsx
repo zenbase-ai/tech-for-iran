@@ -1,6 +1,6 @@
 import type { Viewport } from "next"
-import { Suspense } from "react"
 import "./globals.css"
+import { Suspense } from "react"
 import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
 import { Providers } from "@/components/providers"
 import { Flash } from "@/components/ui/flash"
@@ -37,10 +37,10 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
         )}
       >
         <Providers>
+          <Toaster position="top-center" />
           <Suspense fallback={null}>
             <Flash />
           </Suspense>
-          <Toaster position="top-center" />
 
           <section className="container min-w-[320px] w-full mx-auto px-4 py-8 sm:py-12 md:py-16">
             {children}

@@ -8,33 +8,32 @@ export const Flash: React.FC = () => {
   const params = useSearchParams()
 
   const error = params.get("error")
-  const warn = params.get("warn")
-  const info = params.get("info")
-  const success = params.get("success")
-
   useEffect(() => {
     if (error) {
       toast.error(error)
     }
   }, [error])
 
+  const warn = params.get("warn")
   useEffect(() => {
     if (warn) {
       toast.warning(warn)
     }
   }, [warn])
 
-  useEffect(() => {
-    if (success) {
-      toast.success(success)
-    }
-  }, [success])
-
+  const info = params.get("info")
   useEffect(() => {
     if (info) {
       toast.info(info)
     }
   }, [info])
+
+  const success = params.get("success")
+  useEffect(() => {
+    if (success) {
+      toast.success(success)
+    }
+  }, [success])
 
   return null
 }

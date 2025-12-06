@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAction } from "convex/react"
 import { capitalize } from "es-toolkit/string"
-import { useParams } from "next/navigation"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { Box } from "@/components/layout/box"
@@ -13,19 +12,19 @@ import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 import useAsyncFn from "@/hooks/use-async-fn"
 import { useAuthQuery } from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 import { BoostPost, boostPost } from "@/schemas/boost-post"
-import type { PodPageParams } from "./_types"
 
 export type BoostPostFormProps = {
+  podId: Id<"pods">
   className?: string
   autoFocus?: boolean
 }
 
-export const BoostPostForm: React.FC<BoostPostFormProps> = ({ className, autoFocus }) => {
-  const { podId } = useParams<PodPageParams>()
+export const BoostPostForm: React.FC<BoostPostFormProps> = ({ podId, className, autoFocus }) => {
   const onlineCount = useAuthQuery(api.pods.query.onlineCount, { podId })
 
   const form = useForm({

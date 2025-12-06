@@ -11,7 +11,7 @@ export const run = migrations.runner()
 export const resetPostEngagements = internalMutation({
   handler: async (ctx) => await postEngagements.clear(ctx),
 })
-export const repairPostEngagements = migrations.define({
+export const repairPostEngagements20251205 = migrations.define({
   table: "engagements",
   migrateOne: async (ctx, doc) => {
     await postEngagements.insertIfDoesNotExist(ctx, doc)

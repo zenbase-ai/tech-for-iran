@@ -8,6 +8,7 @@ export const Flash: React.FC = () => {
   const params = useSearchParams()
 
   const error = params.get("error")
+  const warn = params.get("warn")
   const info = params.get("info")
   const success = params.get("success")
 
@@ -16,6 +17,12 @@ export const Flash: React.FC = () => {
       toast.error(error)
     }
   }, [error])
+
+  useEffect(() => {
+    if (warn) {
+      toast.warning(warn)
+    }
+  }, [warn])
 
   useEffect(() => {
     if (success) {

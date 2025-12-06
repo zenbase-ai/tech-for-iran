@@ -6,6 +6,7 @@ import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import { useAuthQuery } from "@/hooks/use-auth-query"
 import { isConnected } from "@/lib/linkedin"
+import { queryString } from "@/lib/utils"
 import { Nav } from "./_nav"
 
 export default function ConnectedLayout({ children }: React.PropsWithChildren) {
@@ -16,7 +17,8 @@ export default function ConnectedLayout({ children }: React.PropsWithChildren) {
   }
 
   if (!isConnected(linkedin.account?.status)) {
-    return redirect("/connect", RedirectType.replace)
+    const warn = "Your LinkedIn account is not connected."
+    return redirect(`/connect?${queryString({ warn })}`, RedirectType.replace)
   }
 
   return (

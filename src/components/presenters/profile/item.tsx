@@ -59,7 +59,7 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
                     : isOnline
                       ? "bg-primary"
                       : isConnected
-                        ? "bg-muted-foreground"
+                        ? "bg-slate-300"
                         : "bg-amber-300"
                 )}
               />

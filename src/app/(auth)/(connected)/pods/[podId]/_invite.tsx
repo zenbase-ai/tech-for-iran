@@ -14,7 +14,7 @@ export type InviteButtonProps = Omit<CopyButtonProps, "content" | "onCopy"> & {
 export const InviteButton: React.FC<InviteButtonProps> = ({ inviteCode, ...props }) => {
   const inviteURL = url("/sign-up", { searchParams: { inviteCode } })
   const onCopy = useEffectEvent(() => toast.success("Invite link copied to clipboard"))
-  const sm = useScreenSize("sm")
+  const { sm } = useScreenSize()
 
   if (sm) {
     return (

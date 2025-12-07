@@ -10,6 +10,12 @@ export const SCREEN_SIZES = {
 
 export type ScreenSize = keyof typeof SCREEN_SIZES
 
-export default function useScreenSize(size: ScreenSize): boolean {
-  return useMediaQuery(`(min-width: ${SCREEN_SIZES[size]})`)
+export default function useScreenSize() {
+  return {
+    sm: useMediaQuery(`(min-width: ${SCREEN_SIZES.sm})`),
+    md: useMediaQuery(`(min-width: ${SCREEN_SIZES.md})`),
+    lg: useMediaQuery(`(min-width: ${SCREEN_SIZES.lg})`),
+    xl: useMediaQuery(`(min-width: ${SCREEN_SIZES.xl})`),
+    "2xl": useMediaQuery(`(min-width: ${SCREEN_SIZES["2xl"]})`),
+  }
 }

@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation"
 import { Stack, VStack } from "@/components/layout/stack"
+import useScreenSize from "@/hooks/use-screen-size"
 import { cn } from "@/lib/utils"
 import { BoostPostForm } from "./_boost"
 import { PodMembers } from "./_members"
@@ -10,6 +11,7 @@ import type { PodPageParams } from "./_types"
 
 export default function PodPageClient() {
   const { podId } = useParams<PodPageParams>()
+  const { sm, md, lg } = useScreenSize()
   const gapcn = cn("gap-8 sm:gap-10 md:gap-12 lg:gap-16")
 
   return (
@@ -19,7 +21,7 @@ export default function PodPageClient() {
       <VStack className={cn("flex-1", gapcn)} items="stretch">
         <BoostPostForm autoFocus podId={podId} />
 
-        <PodMembers pageSize={16} podId={podId} />
+        <PodMembers pageSize={lg ? 18 : md ? 12 : sm ? 8 : 4} podId={podId} />
       </VStack>
 
       <PodPosts className="flex-1" pageSize={5} podId={podId} />

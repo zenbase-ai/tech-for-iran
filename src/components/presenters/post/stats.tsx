@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
 import { useAuthQuery } from "@/hooks/use-auth-query"
-import { cn } from "@/lib/utils"
+import { cn, formatDateTime } from "@/lib/utils"
 
 export type PostStatsStackProps = StackProps & {
   podId: Id<"pods">
@@ -35,13 +35,14 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
   }
 
   return (
-    <Stack className={cn("w-full gap-6", className)} items="center" wrap {...props}>
+    <Stack className={className} items="center" wrap {...props}>
       <PostStatBadge field="reactionCount" first={first} last={last}>
         {engagementCount} from <Logo className="gap-0.5" size="size-3" stroke="stroke-px" />
       </PostStatBadge>
       <PostStatBadge field="commentCount" first={first} last={last} />
       <PostStatBadge field="repostCount" first={first} last={last} />
       <PostStatBadge field="impressionCount" first={first} last={last} />
+      <span className="text-muted-foreground font-light">{formatDateTime(last._creationTime)}</span>
     </Stack>
   )
 }
@@ -70,7 +71,7 @@ export const PostStatBadge: React.FC<PostStatBadgeProps> = ({
 
   return (
     <Badge
-      className={cn("text-muted-foreground", className, variant === "ghost" && "px-0")}
+      className={cn("text-muted-foreground mr-4", className, variant === "ghost" && "p-0")}
       size="sm"
       variant={variant}
       {...props}

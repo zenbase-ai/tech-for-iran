@@ -1,3 +1,5 @@
+"use client"
+
 import { ClerkProvider } from "@clerk/nextjs"
 import { shadcn } from "@clerk/themes"
 import { env } from "@/lib/env.mjs"

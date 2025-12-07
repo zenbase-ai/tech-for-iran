@@ -3,12 +3,14 @@ import { v } from "convex/values"
 import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import { pick, sumBy } from "es-toolkit"
 import { DateTime } from "luxon"
+import type { Doc } from "@/convex/_generated/dataModel"
 import { NotFoundError } from "@/convex/_helpers/errors"
 import { authQuery, memberQuery } from "@/convex/_helpers/server"
 import { podMembers, podPosts } from "@/convex/aggregates"
 import { getWorkingHours, isWithinWorkingHours } from "@/convex/linkedin/helpers"
 import { isConnected, postProfile } from "@/lib/linkedin"
 import { pflatMap, pmap } from "@/lib/utils"
+import { api } from "../_generated/api"
 
 export const lookup = authQuery({
   args: {
@@ -29,7 +31,7 @@ export const get = memberQuery({
   args: {
     podId: v.id("pods"),
   },
-  handler: async (ctx, { podId }) => {
+  handler: async (ctx, { podId }): Promise<Doc<"pods">> => {
     const pod = await ctx.db.get(podId)
     if (!pod) {
       throw new NotFoundError()
@@ -127,15 +129,37 @@ export const onlineCount = memberQuery({
     podId: v.id("pods"),
     atHour: v.optional(v.number()),
   },
-  handler: async (ctx, { podId, atHour }) => {
-    const accounts = await pmap(
-      await getManyFrom(ctx.db, "memberships", "by_podId", podId),
-      async ({ userId }) => await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
-    )
-    return sumBy(accounts, (account) =>
-      account != null && isConnected(account.status) && isWithinWorkingHours(account, atHour)
-        ? 1
-        : 0
+  handler: async (ctx, { podId, atHour }): Promise<number> =>
+    sumBy(
+      await pmap(
+        await getManyFrom(ctx.db, "memberships", "by_podId", podId),
+        async ({ userId }) => await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
+      ),
+      (account) =>
+        Number(
+          account != null && isConnected(account.status) && isWithinWorkingHours(account, atHour)
+        )
+    ),
+})
+
+export const targetCount = memberQuery({
+  args: {
+    podId: v.id("pods"),
+    atHour: v.optional(v.number()),
+  },
+  handler: async (ctx, { podId, atHour }): Promise<number> => {
+    const [total, online, pod] = await Promise.all([
+      podMembers.count(ctx, { bounds: { prefix: [podId] } }),
+      ctx.runQuery(api.pods.query.onlineCount, { podId, atHour }),
+      ctx.runQuery(api.pods.query.get, { podId }),
+    ])
+
+    return Math.min(
+      Math.min(
+        pod.maxEngagementCap ?? 50,
+        Math.ceil((total - 1) * ((pod.engagementTargetPercent ?? 50) / 100))
+      ),
+      online
     )
   },
 })

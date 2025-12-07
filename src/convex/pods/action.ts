@@ -41,53 +41,53 @@ export const boost = connectedMemberAction({
       }
     }
 
-    const { data, error: fetchError } = await ctx.runAction(internal.unipile.post.fetch, {
+    const fetch = await ctx.runAction(internal.unipile.post.fetch, {
       unipileId,
       urn,
     })
-    if (fetchError != null) {
-      return { postId: null, error: fetchError }
+    if (fetch.error != null) {
+      return { postId: null, error: fetch.error }
     }
+    const { data } = fetch
     if (data.is_repost) {
       return { postId: null, error: "Reposts are not supported." }
     }
 
-    const [{ postId, error: insertError }, targetCount] = await Promise.all([
-      ctx.runMutation(internal.posts.mutate.insert, {
-        userId,
-        podId,
-        urn,
-        url: data.share_url,
-        socialId: data.social_id,
-        postedAt: data.parsed_datetime,
-        text: data.text,
-        author: {
-          name: data.author.name,
-          headline: data.author.headline ?? "Company",
-          url: profileURL(data.author),
-        },
-      }),
-      ctx.runQuery(internal.engagement.query.targetCount, { podId }),
-    ])
-    if (insertError != null) {
-      return { postId: null, error: insertError }
+    const insert = await ctx.runMutation(internal.posts.mutate.insert, {
+      userId,
+      podId,
+      urn,
+      url: data.share_url,
+      socialId: data.social_id,
+      postedAt: data.parsed_datetime,
+      text: data.text,
+      author: {
+        name: data.author.name,
+        headline: data.author.headline ?? "Company",
+        url: profileURL(data.author),
+      },
+    })
+    if (insert.error != null) {
+      return { postId: null, error: insert.error }
     }
+    const { postId } = insert
 
     {
-      const { ok, retryAfter } = await ratelimits.limit(ctx, ...boostPostRateLimit(ctx.account))
-      if (!ok) {
+      const limit = await ratelimits.limit(ctx, ...boostPostRateLimit(ctx.account))
+      if (!limit.ok) {
         await ctx.runMutation(internal.posts.mutate.remove, { postId })
         return {
           postId: null,
-          error: rateLimitError({ retryAfter }),
+          error: rateLimitError(limit),
           info: subscription !== "gold_member" ? "Maybe upgrade your membership?" : undefined,
         }
       }
     }
 
     try {
-      const [onlineCount] = await Promise.all([
-        ctx.runQuery(api.pods.query.onlineCount, { podId }),
+      const targetCount = await ctx.runQuery(api.pods.query.targetCount, { podId })
+
+      await Promise.all([
         ctx.runMutation(internal.engagement.workflow.start, {
           userId,
           podId,
@@ -109,7 +109,7 @@ export const boost = connectedMemberAction({
 
       return {
         postId,
-        success: `Stay tuned for up to ${pluralize(Math.min(onlineCount, targetCount), "engagement")}!`,
+        success: `Stay tuned for up to ${pluralize(targetCount, "engagement")}!`,
       }
     } catch (error) {
       console.error("posts:action/submit", "start", error)

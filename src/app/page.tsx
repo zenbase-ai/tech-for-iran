@@ -15,7 +15,7 @@ export default function HomePage() {
 
   return (
     <VStack as="section" className="gap-4" items="center" justify="center">
-      <Logo />
+      <Logo animate />
 
       <PageTitle>Crackedbook</PageTitle>
 

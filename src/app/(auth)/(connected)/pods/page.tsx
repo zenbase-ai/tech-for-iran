@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
+import { PageHeader } from "@/components/layout/header"
 import { VStack } from "@/components/layout/stack"
-import { PageDescription, PageTitle } from "@/components/layout/text"
 import PodsClientPage from "./page.client"
 
 export const metadata: Metadata = {
@@ -10,11 +10,7 @@ export const metadata: Metadata = {
 export default function PodsPage() {
   return (
     <VStack className="max-w-lg mx-auto">
-      <PageTitle>Engagement Pods</PageTitle>
-
-      <PageDescription>
-        Pods are groups that engage with each other&apos;s LinkedIn posts.
-      </PageDescription>
+      <PageHeader description="Groups that engage with each other's LinkedIn posts." title="Pods" />
 
       <PodsClientPage />
     </VStack>

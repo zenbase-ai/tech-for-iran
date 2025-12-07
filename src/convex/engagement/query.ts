@@ -2,8 +2,6 @@ import { v } from "convex/values"
 import { getManyFrom, getOneFrom } from "convex-helpers/server/relationships"
 import * as z from "zod"
 import { internalQuery } from "@/convex/_generated/server"
-import { NotFoundError } from "@/convex/_helpers/errors"
-import { podMembers } from "@/convex/aggregates"
 import { accountActionsRateLimit, ratelimits } from "@/convex/ratelimits"
 import { isConnected } from "@/lib/linkedin"
 import { pflatMap } from "@/lib/utils"
@@ -65,24 +63,4 @@ export const availableMembers = internalQuery({
         return [data]
       }
     ),
-})
-
-export const targetCount = internalQuery({
-  args: {
-    podId: v.id("pods"),
-  },
-  handler: async (ctx, { podId }) => {
-    const [pod, memberCount] = await Promise.all([
-      ctx.db.get(podId),
-      podMembers.count(ctx, { bounds: { prefix: [podId] } }),
-    ])
-    if (!pod) {
-      throw new NotFoundError()
-    }
-
-    return Math.min(
-      pod.maxEngagementCap ?? 50,
-      Math.ceil((memberCount - 1) * ((pod.engagementTargetPercent ?? 50) / 100))
-    )
-  },
 })

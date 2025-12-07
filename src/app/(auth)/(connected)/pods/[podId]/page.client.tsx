@@ -16,12 +16,15 @@ export default function PodPageClient() {
 
   return (
     <Stack
-      className={cn("flex-col items-stretch lg:flex-row lg:items-start lg:justify-between", gapcn)}
+      className={cn(
+        "w-full flex-col items-stretch lg:flex-row lg:items-start lg:justify-between",
+        gapcn
+      )}
     >
       <VStack className={cn("flex-1", gapcn)} items="stretch">
         <BoostPostForm autoFocus podId={podId} />
 
-        <PodMembers pageSize={lg ? 18 : md ? 12 : sm ? 8 : 4} podId={podId} />
+        <PodMembers pageSize={lg ? 18 : md ? 12 : sm ? 8 : 5} podId={podId} />
       </VStack>
 
       <PodPosts className="flex-1" pageSize={5} podId={podId} />

@@ -3,12 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAction } from "convex/react"
 import { capitalize } from "es-toolkit/string"
+import posthog from "posthog-js"
 import { useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
-import { HStack, VStack } from "@/components/layout/stack"
+import { LuThumbsUp } from "react-icons/lu"
+import { HStack, Stack, VStack } from "@/components/layout/stack"
 import { Field, FieldError, FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field"
 import { HoverButton } from "@/components/ui/hover-button"
 import { Input } from "@/components/ui/input"
+import { NumberTicker } from "@/components/ui/number-ticker"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
@@ -24,21 +27,23 @@ export type BoostPostFormProps = {
 }
 
 export const BoostPostForm: React.FC<BoostPostFormProps> = ({ podId, className, autoFocus }) => {
-  const onlineCount = useAuthQuery(api.pods.query.onlineCount, { podId })
+  const targetCount = useAuthQuery(api.pods.query.targetCount, { podId })
 
   const form = useForm({
     resolver: zodResolver(BoostPost),
     defaultValues: boostPost.defaultValues,
-    disabled: !onlineCount,
+    disabled: !targetCount,
   })
   const { isSubmitting, disabled } = form.formState
 
-  const boost = useAsyncFn(useAction(api.pods.action.boost), {
-    onSuccess: () => form.reset(),
+  const { execute } = useAsyncFn(useAction(api.pods.action.boost))
+  const onSubmit = useEffectEvent(async (data: BoostPost) => {
+    const { postId } = await execute({ podId, ...data })
+    if (postId) {
+      posthog.capture("post:boost", { podId })
+      form.reset()
+    }
   })
-  const onSubmit = useEffectEvent(
-    async (data: BoostPost) => await boost.execute({ podId, ...data })
-  )
 
   return (
     <VStack as="form" className={cn("gap-4", className)} onSubmit={form.handleSubmit(onSubmit)}>
@@ -137,13 +142,20 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ podId, className, 
           )}
         />
 
-        <HoverButton
-          className="flex-1 self-stretch max-w-36"
-          disabled={disabled || isSubmitting}
-          type="submit"
-        >
-          Boost
-        </HoverButton>
+        <Stack className="flex-col gap-2 md:flex-row md:gap-4" items="center">
+          <HStack className="text-muted-foreground gap-1" items="center">
+            &asymp;
+            <NumberTicker value={targetCount ?? 0} />
+            <LuThumbsUp className="size-3" />
+          </HStack>
+          <HoverButton
+            className="flex-1 max-w-36"
+            disabled={disabled || isSubmitting}
+            type="submit"
+          >
+            Boost
+          </HoverButton>
+        </Stack>
       </HStack>
     </VStack>
   )

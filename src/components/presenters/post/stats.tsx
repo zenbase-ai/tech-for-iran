@@ -37,7 +37,7 @@ export const PostStatsStack: React.FC<PostStatsStackProps> = ({
   return (
     <Stack className={cn("w-full gap-6", className)} items="center" wrap {...props}>
       <PostStatBadge field="reactionCount" first={first} last={last}>
-        {engagementCount} from <Logo className="gap-1" size="size-3" stroke="stroke-1.5" />
+        {engagementCount} from <Logo className="gap-0.5" size="size-3" stroke="stroke-px" />
       </PostStatBadge>
       <PostStatBadge field="commentCount" first={first} last={last} />
       <PostStatBadge field="repostCount" first={first} last={last} />

@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation"
 import { useEffect } from "react"
 import { toast } from "sonner"
 
-export const Flash: React.FC = () => {
+export const FlashToasts: React.FC = () => {
   const params = useSearchParams()
 
   const error = params.get("error")

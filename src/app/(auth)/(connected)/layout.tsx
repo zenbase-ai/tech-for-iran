@@ -6,7 +6,7 @@ import { Loading } from "@/components/ui/loading"
 import { api } from "@/convex/_generated/api"
 import { useAuthQuery } from "@/hooks/use-auth-query"
 import { isConnected } from "@/lib/linkedin"
-import { queryString } from "@/lib/utils"
+import { cn, queryString } from "@/lib/utils"
 import { Nav } from "./_nav"
 
 export default function ConnectedLayout({ children }: React.PropsWithChildren) {
@@ -22,12 +22,16 @@ export default function ConnectedLayout({ children }: React.PropsWithChildren) {
   }
 
   return (
-    <>
-      <Box as="main" className="mb-24">
-        {children}
-      </Box>
+    <Box as="main" className="mb-24 w-fit mx-auto relative">
+      <Nav
+        className={cn(
+          "z-50 w-fit",
+          "mx-auto lg:ml-0",
+          "fixed left-0 right-0 bottom-2 md:bottom-4 lg:sticky lg:top-4 lg:bottom-auto lg:right-auto"
+        )}
+      />
 
-      <Nav className="z-50 fixed bottom-2 md:bottom-4 left-0 right-0 w-fit mx-auto" />
-    </>
+      {children}
+    </Box>
   )
 }

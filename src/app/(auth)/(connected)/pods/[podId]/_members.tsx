@@ -5,7 +5,6 @@ import { Grid } from "@/components/layout/grid"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PodAvailabilityChart } from "@/components/presenters/pods/availability-chart"
-import { PodMemberCount } from "@/components/presenters/pods/member-count"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
 import { Delay } from "@/components/ui/delay"
@@ -18,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { useAuthPaginatedQuery, useAuthQuery } from "@/hooks/use-auth-query"
-import { cn } from "@/lib/utils"
+import { cn, pluralize } from "@/lib/utils"
 
 export type PodMembersProps = {
   podId: Id<"pods">
@@ -33,13 +32,11 @@ export const PodMembers: React.FC<PodMembersProps> = ({ podId, pageSize, classNa
   return (
     <VStack className={cn("w-full gap-4", className)}>
       <HStack className="gap-4" items="center">
-        <SectionTitle>
-          <PodMemberCount podId={podId} />
-        </SectionTitle>
+        <SectionTitle>{pluralize(totalCount ?? 0, "member")}</SectionTitle>
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button className="mr-auto" size="sm" variant="outline">
+            <Button className="mr-auto" size="xs" variant="outline">
               <LuClock />
               Availability
             </Button>

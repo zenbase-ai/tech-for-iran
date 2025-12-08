@@ -25,7 +25,10 @@ export default function PodPage() {
   "use memo"
 
   return (
-    <VStack as="main" className={cn("w-full", "gap-4 lg:gap-12", "items-center sm:items-start")}>
+    <VStack
+      as="main"
+      className={cn("w-full", "gap-4 md:gap-6 lg:gap-8", "items-center sm:items-start")}
+    >
       <PodHeader />
 
       <PodPageClient />

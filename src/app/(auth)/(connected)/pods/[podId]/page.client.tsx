@@ -27,7 +27,7 @@ export default function PodPageClient() {
         <PodMembers pageSize={lg ? 18 : md ? 12 : sm ? 8 : 4} podId={podId} />
       </VStack>
 
-      <PodPosts className="flex-1" pageSize={md ? 6 : 4} podId={podId} />
+      <PodPosts className="flex-1" pageSize={md ? 5 : 4} podId={podId} />
     </Stack>
   )
 }

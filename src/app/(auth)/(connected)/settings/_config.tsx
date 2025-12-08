@@ -4,13 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import { pick } from "es-toolkit"
 import { Controller, useForm } from "react-hook-form"
-import { LuThumbsUp } from "react-icons/lu"
-import { HStack, Stack, VStack } from "@/components/layout/stack"
-import { AccountTimezone } from "@/components/presenters/account/timezone"
+import { HStack, VStack } from "@/components/layout/stack"
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { HourSelect } from "@/components/ui/hour-select"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TimezoneSelect } from "@/components/ui/timezone-select"
 import { api } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import useAsyncFn from "@/hooks/use-async-fn"
@@ -50,20 +54,20 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
   return (
     <VStack
       as="form"
-      className={cn("gap-4 max-w-md mx-auto", className)}
+      className={cn("gap-4", className)}
       onBlur={form.handleSubmit(configure.execute)}
     >
-      <Stack
-        className="flex-col items-center sm:flex-row sm:items-start gap-4 md:gap-6"
-        justify="around"
+      <HStack
+        className={cn("px-4 justify-start gap-4", "sm:justify-center", "md:gap-6")}
+        items="center"
         wrap
       >
         <Controller
           control={form.control}
           name="maxActions"
           render={({ field, fieldState }) => (
-            <Field className="w-[160px]" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Send up to N reactions</FieldLabel>
+            <Field className="w-[112px]" data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>react up to</FieldLabel>
               <FieldContent>
                 <InputGroup>
                   <InputGroupInput
@@ -76,7 +80,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
                     type="number"
                   />
                   <InputGroupAddon align="inline-end">
-                    <LuThumbsUp />
+                    <InputGroupText>times</InputGroupText>
                   </InputGroupAddon>
                 </InputGroup>
               </FieldContent>
@@ -86,7 +90,7 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
         />
 
         <FieldGroup className="gap-3 w-[192px]">
-          <FieldLabel htmlFor="workingHoursStart">Between the hours of</FieldLabel>
+          <FieldLabel htmlFor="workingHoursStart">between the hours of</FieldLabel>
 
           <HStack className="gap-3" items="center" wrap>
             <Controller
@@ -129,10 +133,22 @@ const ActualConfigForm: React.FC<ActualConfigFormProps> = ({ account, className 
               )}
             />
           </HStack>
-
-          <AccountTimezone className="text-muted-foreground text-sm" timezone={account.timezone} />
         </FieldGroup>
-      </Stack>
+
+        <Controller
+          control={form.control}
+          name="timezone"
+          render={({ field, fieldState }) => (
+            <Field className="w-[192px]" data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>in the timezone</FieldLabel>
+              <FieldContent>
+                <TimezoneSelect {...field} />
+              </FieldContent>
+              {!!fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+      </HStack>
 
       {!!formState.errors.root && <FieldError errors={[formState.errors.root]} />}
     </VStack>

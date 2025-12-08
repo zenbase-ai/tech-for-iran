@@ -71,6 +71,7 @@ export const configure = connectedMutation({
     commentPrompt: v.optional(v.string()),
     workingHoursStart: v.number(),
     workingHoursEnd: v.number(),
+    timezone: v.string(),
   },
   handler: async (ctx, args) => {
     try {

@@ -7,7 +7,7 @@ export const settingsConfig = {
     workingHoursEnd: 1,
   },
   max: {
-    maxActions: 25,
+    maxActions: 20,
     workingHoursStart: 23,
     workingHoursEnd: 24,
   },
@@ -36,6 +36,7 @@ export const SettingsConfig = z
       .int()
       .min(settingsConfig.min.workingHoursEnd, { message: "Invalid hour" })
       .max(settingsConfig.max.workingHoursEnd, { message: "Invalid hour" }),
+    timezone: z.enum(Intl.supportedValuesOf("timeZone")),
   })
   .refine((data) => data.workingHoursStart < data.workingHoursEnd, {
     message: "Working hours start must be before working hours end",

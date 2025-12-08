@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "motion/react"
+import { motion, type TargetAndTransition } from "motion/react"
 import Link from "next/link"
 import { LuHouse, LuSettings } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
@@ -12,10 +12,11 @@ import { subscriptionPlan } from "@/lib/linkedin"
 import { cn } from "@/lib/utils"
 
 export type NavProps = {
+  initial: TargetAndTransition
   className?: string
 }
 
-export const Nav: React.FC<NavProps> = ({ className }) => {
+export const Nav: React.FC<NavProps> = ({ initial, className }) => {
   const linkedin = useAuthQuery(api.linkedin.query.getState)
   const subscription = subscriptionPlan(linkedin?.account?.subscription)
 
@@ -35,9 +36,9 @@ export const Nav: React.FC<NavProps> = ({ className }) => {
 
   return (
     <motion.nav
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0, x: 0 }}
       className={cn("flex flex-row gap-3 items-center justify-between", className)}
-      initial={{ opacity: 0, y: 24 }}
+      initial={initial}
     >
       <HStack className={cn(navcn, "p-2")} items="center">
         <Button asChild size="icon" variant="ghost">

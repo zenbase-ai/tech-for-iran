@@ -5,6 +5,7 @@ import { LuRefreshCcw } from "react-icons/lu"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
 import { ItemActions } from "@/components/ui/item"
+import { RelativeTime } from "@/components/ui/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -13,7 +14,11 @@ import useAsyncFn from "@/hooks/use-async-fn"
 import { useAuthQuery } from "@/hooks/use-auth-query"
 import { cn } from "@/lib/utils"
 
-export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) => {
+export type SettingsProfileProps = {
+  className?: string
+}
+
+export const SettingsProfile: React.FC<SettingsProfileProps> = ({ className }) => {
   const { profile } = useAuthQuery(api.linkedin.query.getState) ?? {}
   const sync = useAsyncFn(useAction(api.linkedin.action.syncOwn))
 
@@ -23,11 +28,15 @@ export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) =
 
   return (
     <ProfileItem
-      className={cn("shadow-md", className)}
-      description={profile.headline}
-      fancy
+      className={className}
+      description={
+        <>
+          <span className="line-clamp-2">{profile.headline}</span>
+          Last updated <RelativeTime date={profile.updatedAt} />
+        </>
+      }
       profile={profile}
-      variant="outline"
+      variant="default"
     >
       <ItemActions>
         <Tooltip>
@@ -37,7 +46,7 @@ export const ProfileHeader: React.FC<{ className?: string }> = ({ className }) =
               onClick={() => sync.execute()}
               size="icon"
               type="button"
-              variant="outline"
+              variant="ghost"
             >
               {sync.pending ? (
                 <Spinner className="size-3" variant="ellipsis" />

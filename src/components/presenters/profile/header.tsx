@@ -6,8 +6,7 @@ export type ProfileHeaderProps = React.PropsWithChildren<{
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, children }) => (
   <>
-    {profile.headline}
-    {!!profile.headline && <br />}
+    <span className="line-clamp-1">{profile.headline}</span>
     {children}
   </>
 )

@@ -44,7 +44,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
             <InitPosthog />
           </Suspense>
 
-          <section className="container min-w-[320px] w-full mx-auto px-4 py-8 sm:py-12 md:py-16">
+          <section className="min-w-[320px] w-full md:max-w-4xl lg:max-w-7xl mx-auto px-4 py-8 sm:py-12 md:py-16">
             {children}
           </section>
         </Providers>

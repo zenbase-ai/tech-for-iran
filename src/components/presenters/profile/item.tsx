@@ -53,7 +53,8 @@ export const ProfileItem: React.FC<React.PropsWithChildren<ProfileItemProps>> = 
               <Box
                 className={cn(
                   "absolute top-0 right-0",
-                  "size-2.5 rounded-full",
+                  "size-3 rounded-full",
+                  "border border-background",
                   isLoading
                     ? "bg-transparent"
                     : isOnline

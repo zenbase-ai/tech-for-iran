@@ -32,12 +32,14 @@ export const sync = internalAction({
   args: {
     unipileId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { unipileId }) => {
     try {
-      const { location, ...data } = await ctx.runAction(internal.unipile.profile.getOwn, args)
+      const { location, ...data } = await ctx.runAction(internal.unipile.profile.getOwn, {
+        unipileId,
+      })
 
       await ctx.runMutation(internal.linkedin.mutate.updateProfile, {
-        ...args,
+        unipileId,
         providerId: data.provider_id,
         firstName: data.first_name,
         lastName: data.last_name,
@@ -47,19 +49,19 @@ export const sync = internalAction({
         location,
       })
 
-      const [timezone] = await Promise.all([
-        ctx.runAction(internal.linkedin.action.inferTimezone, { location }),
-        ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
-          ...args,
-          status: "SYNC_SUCCESS",
-        }),
-      ])
+      await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
+        unipileId,
+        status: "SYNC_SUCCESS",
+      })
 
-      await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { ...args, timezone })
+      await ctx.scheduler.runAfter(1000, internal.linkedin.action.inferTimezone, {
+        unipileId,
+        location,
+      })
     } catch (error) {
       if (error instanceof UnipileAPIError) {
         await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
-          ...args,
+          unipileId,
           status: "ERROR",
         })
       }
@@ -110,15 +112,23 @@ const TimezoneSchema = z.object({
 
 export const inferTimezone = internalAction({
   args: {
+    unipileId: v.string(),
     location: v.string(),
   },
-  handler: async (_ctx, { location }): Promise<string> => {
-    // Empty/invalid location → default
+  handler: async (ctx, { unipileId, location }) => {
+    const account = await ctx.runQuery(internal.linkedin.query.getAccount, { unipileId })
+    if (account.timezone) {
+      return
+    }
+
     if (!location || location.trim() === "") {
+      // Empty/invalid location → default
       return settingsConfig.defaultValues.timezone
     }
 
-    const { object } = await generateObject({
+    const {
+      object: { timezone },
+    } = await generateObject({
       model: openai("gpt-5-mini-2025-08-07"),
       schema: TimezoneSchema,
       prompt: `Infer the IANA timezone identifier from this LinkedIn location: "${location}"
@@ -133,6 +143,6 @@ Examples:
 Return the most likely IANA timezone. If uncertain, default to America/New_York.`,
     })
 
-    return object.timezone
+    await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { unipileId, timezone })
   },
 })

@@ -24,10 +24,10 @@ export default function PodPageClient() {
       <VStack className={cn("flex-1", gapcn)} items="stretch">
         <BoostPostForm autoFocus podId={podId} />
 
-        <PodMembers pageSize={lg ? 18 : md ? 12 : sm ? 8 : 5} podId={podId} />
+        <PodMembers pageSize={lg ? 18 : md ? 12 : sm ? 8 : 4} podId={podId} />
       </VStack>
 
-      <PodPosts className="flex-1" pageSize={5} podId={podId} />
+      <PodPosts className="flex-1" pageSize={md ? 6 : 4} podId={podId} />
     </Stack>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { LuNewspaper } from "react-icons/lu"
+import { Grid } from "@/components/layout/grid"
 import { HStack, VStack } from "@/components/layout/stack"
 import { SectionTitle } from "@/components/layout/text"
 import { PostItem } from "@/components/presenters/post/item"
@@ -58,13 +59,13 @@ export const PodPosts: React.FC<PodPostsProps> = ({ podId, pageSize, className }
           </Empty>
         </Delay>
       ) : (
-        <VStack className="gap-3">
+        <Grid className="gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-1">
           <ItemGroup className="contents">
             {posts.results.map(({ post, profile }) => (
               <PostItem key={post._id} post={post} profile={profile} />
             ))}
           </ItemGroup>
-        </VStack>
+        </Grid>
       )}
     </VStack>
   )

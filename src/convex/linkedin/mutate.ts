@@ -31,20 +31,29 @@ export const connectProfile = internalMutation({
     userId: v.string(),
     unipileId: v.string(),
   },
-  handler: async (ctx, args) => {
-    const patch = update(args)
-    const doc = {
-      ...patch,
-      url: "",
-      picture: "",
-      firstName: "New",
-      lastName: "Member",
-      location: "",
-      headline: "",
+  handler: async (ctx, { userId, unipileId }) => {
+    // Atomic upsert: check by userId OR unipileId in same transaction
+    const existing =
+      (await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)) ??
+      (await getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId))
+
+    if (existing) {
+      await ctx.db.patch(existing._id, update({ userId, unipileId }))
+      return existing._id
     }
-    await ctx.runQuery(internal.linkedin.query.getProfile, args).then(
-      async (profile) => await ctx.db.patch(profile._id, patch),
-      async () => await ctx.db.insert("linkedinProfiles", doc)
+
+    return await ctx.db.insert(
+      "linkedinProfiles",
+      update({
+        userId,
+        unipileId,
+        url: "",
+        picture: "",
+        firstName: "New",
+        lastName: "Member",
+        location: "",
+        headline: "",
+      })
     )
   },
 })
@@ -55,12 +64,25 @@ export const connectAccount = internalMutation({
     unipileId: v.string(),
     status: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const patch = update(args)
-    const doc = { ...settingsConfig.defaultValues, status: "CONNECTING", ...patch }
-    await ctx.runQuery(internal.linkedin.query.getAccount, args).then(
-      async (account) => await ctx.db.patch(account._id, patch),
-      async () => await ctx.db.insert("linkedinAccounts", doc)
+  handler: async (ctx, { userId, unipileId, status }) => {
+    // Atomic upsert: check by userId OR unipileId in same transaction
+    const existing =
+      (await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)) ??
+      (await getOneFrom(ctx.db, "linkedinAccounts", "by_unipileId", unipileId))
+
+    if (existing) {
+      await ctx.db.patch(existing._id, update({ userId, unipileId, status }))
+      return existing._id
+    }
+
+    return await ctx.db.insert(
+      "linkedinAccounts",
+      update({
+        ...settingsConfig.defaultValues,
+        userId,
+        unipileId,
+        status: status ?? "CONNECTING",
+      })
     )
   },
 })

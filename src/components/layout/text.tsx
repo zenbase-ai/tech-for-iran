@@ -15,5 +15,5 @@ export const PageDescription: React.FC<React.ComponentProps<"p">> = ({ className
 )
 
 export const SectionTitle: React.FC<React.ComponentProps<"h2">> = ({ className, ...props }) => (
-  <h2 className={cn("text-lg font-semibold", className)} {...props} />
+  <h2 className={cn("text-base sm:text-lg font-semibold", className)} {...props} />
 )

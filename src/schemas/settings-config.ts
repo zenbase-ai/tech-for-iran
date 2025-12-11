@@ -12,7 +12,7 @@ export const settingsConfig = {
     workingHoursEnd: 24,
   },
   defaultValues: {
-    maxActions: 10,
+    maxActions: 5,
     timezone: "America/New_York",
     workingHoursStart: 9,
     workingHoursEnd: 17,

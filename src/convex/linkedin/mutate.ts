@@ -13,16 +13,13 @@ export const connectOwn = authMutation({
   },
   handler: async (ctx, { unipileId }) => {
     const { userId } = ctx
-    const key = { userId, unipileId }
 
     await Promise.all([
-      ctx.runMutation(internal.linkedin.mutate.connectAccount, key),
-      ctx.runMutation(internal.linkedin.mutate.connectProfile, key),
+      ctx.runMutation(internal.linkedin.mutate.connectAccount, { userId, unipileId }),
+      ctx.runMutation(internal.linkedin.mutate.connectProfile, { userId, unipileId }),
     ])
 
-    await ctx.scheduler.runAfter(1000, internal.linkedin.action.sync, {
-      unipileId,
-    })
+    await ctx.scheduler.runAfter(2500, internal.linkedin.action.sync, { unipileId })
   },
 })
 
@@ -32,7 +29,6 @@ export const connectProfile = internalMutation({
     unipileId: v.string(),
   },
   handler: async (ctx, { userId, unipileId }) => {
-    // Atomic upsert: check by userId OR unipileId in same transaction
     const existing =
       (await getOneFrom(ctx.db, "linkedinProfiles", "by_userId", userId)) ??
       (await getOneFrom(ctx.db, "linkedinProfiles", "by_unipileId", unipileId))
@@ -64,7 +60,7 @@ export const connectAccount = internalMutation({
     unipileId: v.string(),
     status: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, unipileId, status }) => {
+  handler: async (ctx, { userId, unipileId, status = "CONNECTING" }) => {
     // Atomic upsert: check by userId OR unipileId in same transaction
     const existing =
       (await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)) ??
@@ -81,7 +77,7 @@ export const connectAccount = internalMutation({
         ...settingsConfig.defaultValues,
         userId,
         unipileId,
-        status: status ?? "CONNECTING",
+        status,
       })
     )
   },
@@ -154,7 +150,7 @@ export const upsertAccountStatus = internalMutation({
     if (account) {
       await ctx.db.patch(
         account._id,
-        update({ status, ...(userId && { userId }), ...(unipileId && { unipileId }) })
+        update({ ...(userId && { userId }), ...(unipileId && { unipileId }), status })
       )
       return account._id
     }
@@ -178,19 +174,6 @@ export const updateAccountTimezone = internalMutation({
   handler: async (ctx, { unipileId, timezone }) => {
     const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
     await ctx.db.patch(account._id, update({ timezone }))
-  },
-})
-
-export const updateWorkingHours = internalMutation({
-  args: {
-    unipileId: v.string(),
-    timezone: v.string(),
-    workingHoursStart: v.number(),
-    workingHoursEnd: v.number(),
-  },
-  handler: async (ctx, { unipileId, ...patch }) => {
-    const account = await getOneFromOrThrow(ctx.db, "linkedinAccounts", "by_unipileId", unipileId)
-    await ctx.db.patch(account._id, update(patch))
   },
 })
 

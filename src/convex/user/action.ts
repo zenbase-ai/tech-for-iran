@@ -10,7 +10,6 @@ export const deleteAccount = authAction({
       const { unipileId } = await ctx.runQuery(internal.linkedin.query.getAccount, { userId })
 
       await ctx.runAction(internal.unipile.account.disconnect, { unipileId })
-      await ctx.runMutation(internal.linkedin.mutate.deleteAccountAndProfile, { unipileId })
       await ctx.runAction(internal.clerk.mutate.deleteUser, { userId })
 
       return { success: "Bon voyage!" }

@@ -1,11 +1,10 @@
 import { v } from "convex/values"
-import type { Options } from "ky"
-import { DateTime } from "luxon"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
 import { isDisconnectedUnipileAccountError, unipile } from "@/lib/server/unipile"
 import { errorMessage } from "@/lib/utils"
+import { Attachment, Author, ParsedDatetime } from "./schemas"
 
 const FetchData = z.object({
   object: z.literal("Post"),
@@ -14,18 +13,17 @@ const FetchData = z.object({
   social_id: z.string(),
   share_url: z.string(),
   text: z.string(),
-  parsed_datetime: z.iso
-    .datetime()
-    .refine((s) => DateTime.fromISO(s).isValid, "Invalid datetime")
-    .transform((s) => DateTime.fromISO(s).toMillis()),
+  parsed_datetime: ParsedDatetime,
   is_repost: z.boolean(),
-  author: z.object({
-    public_identifier: z.string(),
-    id: z.string(),
-    name: z.string(),
-    is_company: z.boolean(),
-    headline: z.string().optional(),
-  }),
+  repost_content: z
+    .object({
+      id: z.string(),
+      parsed_datetime: ParsedDatetime,
+      author: Author,
+    })
+    .optional(),
+  attachments: z.array(Attachment).optional(),
+  author: Author,
   comment_counter: z.number().int(),
   impressions_counter: z.number().int(),
   reaction_counter: z.number().int(),
@@ -39,14 +37,11 @@ export const fetch = internalAction({
     unipileId: v.string(),
     urn: v.string(),
   },
-  handler: async (_ctx, { urn, unipileId }): Promise<Fetch> => {
+  handler: async (_ctx, { urn, unipileId: account_id }): Promise<Fetch> => {
     try {
-      const options: Options = {
-        searchParams: {
-          account_id: unipileId,
-        },
-      }
-      const data = FetchData.parse(await unipile.get(`api/v1/posts/${urn}`, options).json())
+      const data = FetchData.parse(
+        await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json()
+      )
       return { data, error: null }
     } catch (error: unknown) {
       return { data: null, error: errorMessage(error) }
@@ -54,9 +49,9 @@ export const fetch = internalAction({
   },
 })
 
-type React = {
-  object: "ReactionAdded"
-}
+const ReactData = z.object({
+  object: z.literal("ReactionAdded"),
+})
 
 export const react = internalAction({
   args: {
@@ -66,14 +61,17 @@ export const react = internalAction({
   },
   handler: async (ctx, { socialId, unipileId, reactionType }) => {
     try {
-      const options: Options = {
-        json: {
-          account_id: unipileId,
-          post_id: socialId,
-          reaction_type: reactionType,
-        },
-      }
-      const data = await unipile.post<React>("api/v1/posts/reaction", options).json()
+      const data = ReactData.parse(
+        await unipile
+          .post("api/v1/posts/reaction", {
+            json: {
+              account_id: unipileId,
+              post_id: socialId,
+              reaction_type: reactionType,
+            },
+          })
+          .json()
+      )
       return { data, error: null }
     } catch (error: unknown) {
       if (isDisconnectedUnipileAccountError(error)) {
@@ -84,9 +82,9 @@ export const react = internalAction({
   },
 })
 
-type Comment = {
-  object: "CommentSent"
-}
+const CommentData = z.object({
+  object: z.literal("CommentSent"),
+})
 
 export const comment = internalAction({
   args: {
@@ -100,13 +98,16 @@ export const comment = internalAction({
     }
 
     try {
-      const options: Options = {
-        json: {
-          account_id: unipileId,
-          text: commentText,
-        },
-      }
-      const data = await unipile.post<Comment>(`api/v1/posts/${socialId}/comments`, options).json()
+      const data = CommentData.parse(
+        await unipile
+          .post(`api/v1/posts/${socialId}/comments`, {
+            json: {
+              account_id: unipileId,
+              text: commentText,
+            },
+          })
+          .json()
+      )
       return { data, error: null }
     } catch (error: unknown) {
       if (isDisconnectedUnipileAccountError(error)) {

@@ -1,41 +1,37 @@
 import { v } from "convex/values"
+import * as z from "zod"
 import { internalAction } from "@/convex/_generated/server"
 import { unipile } from "@/lib/server/unipile"
+import { ProfilePrototype } from "./schemas"
 
-type BaseProfile = {
-  provider_id: string
-  public_identifier: string
-  first_name: string
-  last_name: string
-  summary: string
-  location: string
-  profile_picture_url: string
-}
-
-type GetOwn = BaseProfile & {
-  object: "AccountOwnerProfile"
-  public_profile_url: string
-  occupation: string // headline
-}
+const OwnProfile = ProfilePrototype.extend({
+  object: z.literal("AccountOwnerProfile"),
+  public_profile_url: z.string(),
+  occupation: z.string(),
+})
+type OwnProfile = z.infer<typeof OwnProfile>
 
 export const getOwn = internalAction({
   args: {
     unipileId: v.string(),
   },
   handler: async (_ctx, { unipileId: account_id }) =>
-    await unipile.get<GetOwn>("api/v1/users/me", { searchParams: { account_id } }).json(),
+    await unipile.get<OwnProfile>("api/v1/users/me", { searchParams: { account_id } }).json(),
 })
 
-type Get = BaseProfile & {
-  object: "UserProfile"
-  provider: "LINKEDIN"
-  is_relationship: boolean
-  profile_picture_url_large: string
-  headline: string
-  invitation?: {
-    type: "SENT" | "RECEIVED"
-  }
-}
+const Profile = ProfilePrototype.extend({
+  object: z.literal("UserProfile"),
+  provider: z.literal("LINKEDIN"),
+  is_relationship: z.boolean(),
+  profile_picture_url_large: z.string(),
+  headline: z.string(),
+  invitation: z
+    .object({
+      type: z.enum(["SENT", "RECEIVED"]),
+    })
+    .optional(),
+})
+type Profile = z.infer<typeof Profile>
 
 export const get = internalAction({
   args: {
@@ -43,7 +39,7 @@ export const get = internalAction({
     id: v.string(),
   },
   handler: async (_ctx, { id, unipileId: account_id }) =>
-    await unipile.get<Get>(`api/v1/users/${id}`, { searchParams: { account_id } }).json(),
+    await unipile.get<Profile>(`api/v1/users/${id}`, { searchParams: { account_id } }).json(),
 })
 
 type SendConnectionRequest = {

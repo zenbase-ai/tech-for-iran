@@ -3,7 +3,6 @@
 import { useClerk } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAction } from "convex/react"
-import { RedirectType, redirect } from "next/navigation"
 import { useEffect, useEffectEvent, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuEraser } from "react-icons/lu"
@@ -36,7 +35,7 @@ const DeleteAccountSchema = z.object({
 
 type DeleteAccountSchema = z.infer<typeof DeleteAccountSchema>
 
-export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const DeleteAccountDialog: React.FC<Required<React.PropsWithChildren>> = ({ children }) => {
   const [isOpen, setOpen] = useState(false)
   const { signOut } = useClerk()
 
@@ -44,18 +43,18 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
     resolver: zodResolver(DeleteAccountSchema),
     defaultValues: { confirmation: "" },
   })
-  const { isSubmitting } = form.formState
-
-  const deleteAccount = useAsyncFn(useAction(api.user.action.deleteAccount), {
-    onSuccess: useEffectEvent(async () => await signOut(() => redirect("/", RedirectType.replace))),
-  })
-  const onSubmit = useEffectEvent(async (_: DeleteAccountSchema) => await deleteAccount.execute())
+  const { isValid, isSubmitting } = form.formState
 
   useEffect(() => {
     if (!isOpen) {
       form.reset()
     }
   }, [form.reset, isOpen])
+
+  const deleteAccount = useAsyncFn(useAction(api.user.action.deleteAccount), {
+    onSuccess: useEffectEvent(() => signOut({ redirectUrl: "/" })),
+  })
+  const onSubmit = useEffectEvent(async (_: DeleteAccountSchema) => await deleteAccount.execute())
 
   return (
     <AlertDialog onOpenChange={setOpen} open={isOpen}>
@@ -64,10 +63,7 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
         <VStack as="form" className="gap-4" onSubmit={form.handleSubmit(onSubmit)}>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-foreground">
-              Your fellow alumni are counting on you!
-            </AlertDialogDescription>
-            <AlertDialogDescription className="text-sm">
+            <AlertDialogDescription>
               This will permanently delete your account and remove your data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -100,7 +96,7 @@ export const DeleteAccountDialog: React.FC<React.PropsWithChildren> = ({ childre
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={!form.formState.isValid || isSubmitting}
+              disabled={!isValid || isSubmitting}
               size="sm"
               type="submit"
             >

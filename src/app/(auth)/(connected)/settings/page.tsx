@@ -35,8 +35,6 @@ export default function SettingsPage() {
         <ConfigForm />
       </Stack>
 
-      <Separator />
-
       <VStack className="gap-4" items="start">
         <SectionTitle>Membership</SectionTitle>
 

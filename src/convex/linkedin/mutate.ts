@@ -78,6 +78,7 @@ export const connectAccount = internalMutation({
         userId,
         unipileId,
         status,
+        timezone: undefined, // so that inferTimezone works
       })
     )
   },
@@ -158,7 +159,13 @@ export const upsertAccountStatus = internalMutation({
     if (unipileId) {
       return await ctx.db.insert(
         "linkedinAccounts",
-        update({ ...settingsConfig.defaultValues, userId, unipileId, status })
+        update({
+          ...settingsConfig.defaultValues,
+          userId,
+          unipileId,
+          status,
+          timezone: undefined, // so that inferTimezone works
+        })
       )
     }
 
@@ -195,7 +202,14 @@ export const upsertAccountSubscription = internalMutation({
 
     return await ctx.db.insert(
       "linkedinAccounts",
-      update({ ...settingsConfig.defaultValues, userId, subscription, unipileId: "", status: "" })
+      update({
+        ...settingsConfig.defaultValues,
+        userId,
+        subscription,
+        unipileId: "",
+        status: "",
+        timezone: undefined, // so that inferTimezone works
+      })
     )
   },
 })

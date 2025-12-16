@@ -1,5 +1,6 @@
 import { LuExternalLink } from "react-icons/lu"
 import { Box } from "@/components/layout/box"
+import { HStack } from "@/components/layout/stack"
 import { ProfileHeader } from "@/components/presenters/profile/header"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
@@ -42,11 +43,13 @@ export const PostItem: React.FC<PostItemProps> = ({ post, profile, ...props }) =
         </ItemActions>
       </ProfileItem>
       <ItemDescription>{post.text}</ItemDescription>
-      {post.attachments?.map((attachment) => (
-        <Box className="rounded-md overflow-hidden max-w-xs" key={attachment.id}>
-          <PostAttachment attachment={attachment} />
-        </Box>
-      ))}
+      <HStack className="gap-2" items="center" wrap>
+        {post.attachments?.map((attachment) => (
+          <Box className="rounded-md overflow-hidden max-w-xs" key={attachment.id}>
+            <PostAttachment attachment={attachment} />
+          </Box>
+        ))}
+      </HStack>
       <PostStatsStack direction="horizontal" podId={post.podId} postId={post._id} />
     </ItemContent>
   </Item>

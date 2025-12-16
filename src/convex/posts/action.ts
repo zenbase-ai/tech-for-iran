@@ -18,26 +18,29 @@ export const sync = internalAction({
       return null
     }
 
-    await ctx.runMutation(internal.posts.mutate.upsert, {
-      postId,
-      data: {
-        text: data.text,
-        postedAt: data.parsed_datetime,
-        author: {
-          name: data.author.name,
-          headline: data.author.headline ?? "Company",
-          url: profileURL(data.author),
+    const [statId] = await Promise.all([
+      ctx.runMutation(internal.stats.mutate.insert, {
+        userId,
+        postId,
+        commentCount: data.comment_counter,
+        impressionCount: data.impressions_counter,
+        reactionCount: data.reaction_counter,
+        repostCount: data.repost_counter,
+      }),
+      ctx.runMutation(internal.posts.mutate.upsert, {
+        postId,
+        data: {
+          text: data.text,
+          postedAt: data.parsed_datetime,
+          author: {
+            name: data.author.name,
+            headline: data.author.headline ?? "Company",
+            url: profileURL(data.author),
+          },
         },
-      },
-    })
+      }),
+    ])
 
-    return await ctx.runMutation(internal.stats.mutate.insert, {
-      userId,
-      postId,
-      commentCount: data.comment_counter,
-      impressionCount: data.impressions_counter,
-      reactionCount: data.reaction_counter,
-      repostCount: data.repost_counter,
-    })
+    return statId
   },
 })

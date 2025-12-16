@@ -46,6 +46,7 @@ export const Attachment = z.union([
     time_range: z.number(),
   }),
 ])
+export type Attachment = z.infer<typeof Attachment>
 
 export const Author = z.object({
   public_identifier: z.string(),

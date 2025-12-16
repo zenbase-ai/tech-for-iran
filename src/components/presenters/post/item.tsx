@@ -1,4 +1,5 @@
 import { LuExternalLink } from "react-icons/lu"
+import { Box } from "@/components/layout/box"
 import { ProfileHeader } from "@/components/presenters/profile/header"
 import { ProfileItem } from "@/components/presenters/profile/item"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/item"
 import { RelativeTime } from "@/components/ui/relative-time"
 import type { Doc } from "@/convex/_generated/dataModel"
+import { PostAttachment } from "./attachment"
 import { PostStatsStack } from "./stats"
 
 export type PostItemProps = ItemProps & {
@@ -40,6 +42,11 @@ export const PostItem: React.FC<PostItemProps> = ({ post, profile, ...props }) =
         </ItemActions>
       </ProfileItem>
       <ItemDescription>{post.text}</ItemDescription>
+      {post.attachments?.map((attachment) => (
+        <Box className="rounded-md overflow-hidden max-w-xs" key={attachment.id}>
+          <PostAttachment attachment={attachment} />
+        </Box>
+      ))}
       <PostStatsStack direction="horizontal" podId={post.podId} postId={post._id} />
     </ItemContent>
   </Item>

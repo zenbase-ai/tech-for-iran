@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import * as z from "zod"
 import { internalAction } from "@/convex/_generated/server"
 import { unipile } from "@/lib/server/unipile"
-import { ProfilePrototype } from "./schemas"
+import { ProfilePrototype } from "@/schemas/unipile"
 
 const OwnProfile = ProfilePrototype.extend({
   object: z.literal("AccountOwnerProfile"),

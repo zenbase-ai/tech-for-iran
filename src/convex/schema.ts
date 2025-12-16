@@ -83,6 +83,7 @@ const schema = defineSchema({
       headline: v.string(),
       url: v.optional(v.string()),
     }),
+    attachments: v.optional(v.array(v.any())),
     postedAt: v.number(),
     updatedAt: v.number(),
   })

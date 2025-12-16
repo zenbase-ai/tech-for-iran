@@ -4,7 +4,7 @@ import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
 import { isDisconnectedUnipileAccountError, unipile } from "@/lib/server/unipile"
 import { errorMessage } from "@/lib/utils"
-import { Attachment, Author, ParsedDatetime } from "./schemas"
+import { Attachment, Author, ParsedDatetime } from "@/schemas/unipile"
 
 const FetchData = z.object({
   object: z.literal("Post"),

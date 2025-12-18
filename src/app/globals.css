@@ -186,10 +186,8 @@ html {
   }
 }
 
-/* biome-ignore lint/correctness/noUnknownTypeSelector: view-transition pseudo-elements are valid CSS */
 ::view-transition-old(root),
-/* biome-ignore lint/correctness/noUnknownTypeSelector: view-transition pseudo-elements are valid CSS */
-  ::view-transition-new(root) {
+::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }

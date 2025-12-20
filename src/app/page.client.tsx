@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { LuArrowRight } from "react-icons/lu"
 import { Logo } from "@/components/assets/logo"
-import { BreakevenProgress } from "@/components/breakeven-progress"
 import { VStack } from "@/components/layout/stack"
 import { PageTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
@@ -24,8 +23,6 @@ export function HomePageClient() {
 
         <p className="font-medium">So I joined Crackedbook, to do it automatically.</p>
       </VStack>
-
-      <BreakevenProgress className="w-full max-w-md mt-4" />
 
       <Button asChild className="mt-6">
         <Link href="/pods">

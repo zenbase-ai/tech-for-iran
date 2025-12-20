@@ -48,6 +48,7 @@
         "noLeakedRender": "off",
         "useExhaustiveSwitchCases": "error",
         "useSortedClasses": {
+          "level": "off",
           "options": {
             "attributes": ["className"],
             "functions": ["cn"]

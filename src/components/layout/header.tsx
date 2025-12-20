@@ -6,7 +6,6 @@ import { Logo } from "@/components/assets/logo"
 import { Separator } from "@/components/ui/separator"
 import useScreenSize from "@/hooks/use-screen-size"
 import { cn } from "@/lib/utils"
-import { Box } from "./box"
 import { HStack, type StackProps } from "./stack"
 import { PageTitle } from "./text"
 
@@ -39,7 +38,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       <PageTitle className="-mt-1">{title}</PageTitle>
 
-      {!!children && <Box className="ml-auto md:ml-4">{children}</Box>}
+      {!!children && (
+        <HStack className="gap-2 sm:gap-3 lg:gap-4 ml-auto md:ml-4" items={items}>
+          {children}
+        </HStack>
+      )}
 
       <Nav
         className={cn(

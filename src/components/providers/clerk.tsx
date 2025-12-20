@@ -11,6 +11,11 @@ export const ClerkClientProvider: React.FC<React.PropsWithChildren> = ({ childre
       variables: {
         colorShadow: "#fff",
       },
+      elements: {
+        button: {
+          borderRadius: "calc(infinity * 1px)",
+        },
+      },
     }}
     publishableKey={env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
   >

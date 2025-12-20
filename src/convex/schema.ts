@@ -12,6 +12,7 @@ const schema = defineSchema({
     subscription: v.optional(
       v.union(v.literal("member"), v.literal("silver_member"), v.literal("gold_member"))
     ),
+    subscriptionAmount: v.optional(v.number()),
     role: v.optional(v.union(v.literal("sudo"))),
     maxActions: v.number(),
     commentPrompt: v.optional(v.string()),

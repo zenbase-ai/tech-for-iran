@@ -146,7 +146,7 @@ This section documents the common coding patterns used throughout the codebase. 
   ```
 
 **Parallel Operations:**
-- Use custom `pmap()`, `pflatMap()`, `pfilter()` from `src/lib/parallel.ts`
+- Use custom `pmap()`, `pflatMap()`, `pfilter()` from `src/lib/utils.ts`
 - For concurrent operations that would otherwise be sequential:
   ```typescript
   const profiles = await pmap(posts, async ({ userId }) =>
@@ -702,7 +702,7 @@ src/
     - Note: randomInt uses exclusive upper bounds, so actual range is [minDelay, maxDelay] seconds + [0, 2500]ms jitter
     - Example: minDelay=1, maxDelay=30 → 1-30 seconds + 0-2.5s jitter
   - Deduplication: `engagements` table has composite index `by_postId` (postId + userId) preventing duplicate reactions
-  - Parallel utilities from `src/lib/parallel.ts` (`pmap`, `pflatMap`, `pfilter`) used for concurrent database operations
+  - Parallel utilities from `src/lib/utils.ts` (`pmap`, `pflatMap`, `pfilter`) used for concurrent database operations
 
 **Next.js Configuration:**
 - Typed routes enabled (`typedRoutes: true`) - use `route("/path")` helper
@@ -746,7 +746,6 @@ src/
 **Libraries & Utilities:**
 - `src/lib/server/unipile.ts`: Unipile API client with error handling
 - `src/lib/linkedin.ts`: LinkedIn-specific logic (reaction types, URL parsing)
-- `src/lib/parallel.ts`: Parallel utilities (pmap, pflatMap, pfilter)
 - `src/lib/utils.ts`: Shared utilities (cn, css, errorMessage, appURL)
 - `src/lib/env.mjs`: Environment variable validation with Zod
 

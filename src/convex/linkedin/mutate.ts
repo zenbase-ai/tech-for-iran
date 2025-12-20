@@ -192,11 +192,12 @@ export const upsertAccountSubscription = internalMutation({
       v.literal("silver_member"),
       v.literal("gold_member")
     ),
+    subscriptionAmount: v.optional(v.number()),
   },
-  handler: async (ctx, { userId, subscription }) => {
+  handler: async (ctx, { userId, subscription, subscriptionAmount = 0 }) => {
     const account = await getOneFrom(ctx.db, "linkedinAccounts", "by_userId", userId)
     if (account) {
-      await ctx.db.patch(account._id, update({ subscription }))
+      await ctx.db.patch(account._id, update({ subscription, subscriptionAmount }))
       return account._id
     }
 
@@ -205,7 +206,7 @@ export const upsertAccountSubscription = internalMutation({
       update({
         ...settingsConfig.defaultValues,
         userId,
-        subscription,
+        subscriptionAmount,
         unipileId: "",
         status: "",
         timezone: undefined, // so that inferTimezone works

@@ -49,14 +49,14 @@ http.route({
       return new Response(null, { status: 201 })
     }
 
-    const subscription = SubscriptionPlan.parse(
-      (event as SubscriptionEventPayload).data.items.findLast(({ status }) => status === "active")
-        ?.plan?.slug
-    )
+    const currentPlan = (event as SubscriptionEventPayload).data.items.findLast(
+      ({ status }) => status === "active"
+    )?.plan
 
     await ctx.runMutation(internal.linkedin.mutate.upsertAccountSubscription, {
       userId,
-      subscription,
+      subscription: SubscriptionPlan.parse(currentPlan?.slug),
+      subscriptionAmount: currentPlan?.amount,
     })
 
     return new Response(null, { status: 201 })

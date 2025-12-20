@@ -1,9 +1,10 @@
 import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
-import { omit } from "es-toolkit"
+import { omit, sumBy } from "es-toolkit"
 import { authQuery } from "@/convex/_helpers/server"
 import { userEngagements, userPosts } from "@/convex/aggregates"
 import { pflatMap } from "@/lib/utils"
+import { internalQuery } from "../_generated/server"
 
 export const pods = authQuery({
   args: { paginationOpts: paginationOptsValidator },
@@ -92,4 +93,11 @@ export const posts = authQuery({
 
     return { ...result, page }
   },
+})
+export const mrr = internalQuery({
+  handler: async (ctx): Promise<number> =>
+    sumBy(
+      await ctx.db.query("linkedinAccounts").collect(),
+      ({ subscriptionAmount }) => subscriptionAmount ?? 0
+    ),
 })

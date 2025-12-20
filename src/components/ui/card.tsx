@@ -1,20 +1,24 @@
+import { Grid, type GridProps } from "@/components/layout/grid"
+import { Stack, type StackProps } from "@/components/layout/stack"
 import { cn } from "@/lib/utils"
 
-export const Card: React.FC<React.ComponentProps<"div">> = ({ className, ...props }) => (
-  <div
-    className={cn(
-      "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-      className
-    )}
+export type CardProps = StackProps
+
+export const Card: React.FC<CardProps> = ({ className, direction = "vertical", ...props }) => (
+  <Stack
+    className={cn("bg-card text-card-foreground gap-6 rounded-xl border py-6 shadow-sm", className)}
     data-slot="card"
+    direction={direction}
     {...props}
   />
 )
 
-export const CardHeader: React.FC<React.ComponentProps<"div">> = ({ className, ...props }) => (
-  <div
+export type CardHeaderProps = GridProps
+
+export const CardHeader: React.FC<CardHeaderProps> = ({ className, ...props }) => (
+  <Grid
     className={cn(
-      "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+      "@container/card-header auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
       className
     )}
     data-slot="card-header"

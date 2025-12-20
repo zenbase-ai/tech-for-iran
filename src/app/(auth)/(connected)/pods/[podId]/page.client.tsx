@@ -1,7 +1,6 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import { BreakevenProgress } from "@/components/breakeven-progress"
 import { Stack, VStack } from "@/components/layout/stack"
 import useScreenSize from "@/hooks/use-screen-size"
 import { cn } from "@/lib/utils"
@@ -23,8 +22,6 @@ export default function PodPageClient() {
       )}
     >
       <VStack className={cn("flex-1", gapcn)} items="stretch">
-        <BreakevenProgress className="w-full" />
-
         <BoostPostForm autoFocus podId={podId} />
 
         <PodMembers pageSize={lg ? 18 : md ? 12 : sm ? 8 : 4} podId={podId} />

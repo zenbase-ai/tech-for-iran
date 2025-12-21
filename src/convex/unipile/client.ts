@@ -1,16 +1,7 @@
-import { ConvexError } from "convex/values"
 import ky from "ky"
 import * as z from "zod"
+import { FetchError } from "@/convex/_helpers/errors"
 import { env } from "@/lib/env.mjs"
-
-export type UnipileAPIErrorData = {
-  method: string
-  path: string
-  status: number
-  body: string
-}
-
-export class UnipileAPIError extends ConvexError<UnipileAPIErrorData> {}
 
 export const UnipileErrorResponse = z.object({
   title: z.string(),
@@ -23,7 +14,7 @@ export const UnipileErrorResponse = z.object({
 export type UnipileErrorResponse = z.infer<typeof UnipileErrorResponse>
 
 export const isDisconnectedUnipileAccountError = (error: unknown): boolean => {
-  if (!(error instanceof UnipileAPIError)) {
+  if (!(error instanceof FetchError)) {
     return false
   }
   const { success, data } = UnipileErrorResponse.safeParse(JSON.parse(error.data.body))
@@ -32,12 +23,12 @@ export const isDisconnectedUnipileAccountError = (error: unknown): boolean => {
 
 export const unipile = ky.create({
   headers: { "X-API-KEY": env.UNIPILE_API_KEY, "Content-Type": "application/json" },
-  prefixUrl: env.UNIPILE_API_URL,
+  prefixUrl: `${env.UNIPILE_API_URL}/api/v1`,
   hooks: {
     afterResponse: [
       async (request, _options, response) => {
         if (!response.ok) {
-          throw new UnipileAPIError({
+          throw new FetchError({
             method: request.method,
             path: request.url,
             status: response.status,
@@ -47,7 +38,7 @@ export const unipile = ky.create({
 
         const { data, error } = UnipileErrorResponse.safeParse(await response.clone().json())
         if (!error) {
-          throw new UnipileAPIError({
+          throw new FetchError({
             method: request.method,
             path: request.url,
             status: response.status,

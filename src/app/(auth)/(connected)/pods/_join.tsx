@@ -67,7 +67,12 @@ export const PodJoinForm: React.FC<PodJoinFormProps> = ({ autoFocus, className }
           />
         )}
       />
-      <Button disabled={disabled || isSubmitting} type="submit" variant="outline">
+      <Button
+        className="rounded-lg"
+        disabled={disabled || isSubmitting}
+        type="submit"
+        variant="outline"
+      >
         Join
         {isSubmitting ? <Spinner variant="ellipsis" /> : <LuArrowRight />}
       </Button>

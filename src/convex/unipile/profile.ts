@@ -1,7 +1,7 @@
 import { v } from "convex/values"
 import * as z from "zod"
 import { internalAction } from "@/convex/_generated/server"
-import { unipile } from "@/lib/server/unipile"
+import { unipile } from "@/convex/unipile/client"
 import { ProfilePrototype } from "@/schemas/unipile"
 
 const OwnProfile = ProfilePrototype.extend({
@@ -16,7 +16,7 @@ export const getOwn = internalAction({
     unipileId: v.string(),
   },
   handler: async (_ctx, { unipileId: account_id }) =>
-    await unipile.get<OwnProfile>("api/v1/users/me", { searchParams: { account_id } }).json(),
+    await unipile.get<OwnProfile>("users/me", { searchParams: { account_id } }).json(),
 })
 
 const Profile = ProfilePrototype.extend({
@@ -39,7 +39,7 @@ export const get = internalAction({
     id: v.string(),
   },
   handler: async (_ctx, { id, unipileId: account_id }) =>
-    await unipile.get<Profile>(`api/v1/users/${id}`, { searchParams: { account_id } }).json(),
+    await unipile.get<Profile>(`users/${id}`, { searchParams: { account_id } }).json(),
 })
 
 type SendConnectionRequest = {
@@ -56,7 +56,7 @@ export const sendConnectionRequest = internalAction({
   },
   handler: async (_ctx, args) =>
     await unipile
-      .post<SendConnectionRequest>("api/v1/users/invite", {
+      .post<SendConnectionRequest>("users/invite", {
         json: {
           account_id: args.fromUnipileId,
           provider_id: args.toProviderId,

@@ -38,6 +38,15 @@ export class BadRequestError extends ConvexError<ErrorData> {
   }
 }
 
+type FetchErrorData = {
+  method: string
+  path: string
+  status: number
+  body: string
+}
+
+export class FetchError extends ConvexError<FetchErrorData> {}
+
 export const errorMessage = (error: unknown): string => {
   if (error instanceof z.ZodError) {
     return z.prettifyError(error)

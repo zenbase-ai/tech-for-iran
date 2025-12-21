@@ -19,6 +19,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   items = "center",
   justify = "start",
+  wrap = true,
   ...props
 }) => {
   const { md } = useScreenSize()
@@ -28,6 +29,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       className={cn("w-full gap-2 sm:gap-3 lg:gap-4", className)}
       items={items}
       justify={justify}
+      wrap={wrap}
       {...props}
     >
       <Link href="/pods">
@@ -39,7 +41,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       <PageTitle className="-mt-1">{title}</PageTitle>
 
       {!!children && (
-        <HStack className="gap-2 sm:gap-3 lg:gap-4 ml-auto md:ml-4" items={items}>
+        <HStack className="gap-2 sm:gap-3 lg:gap-4 ml-auto md:ml-4" items={items} wrap={wrap}>
           {children}
         </HStack>
       )}

@@ -1,11 +1,11 @@
-import { PricingTable, SignOutButton } from "@clerk/nextjs"
 import type { Metadata } from "next"
-import { LuEraser, LuLogOut } from "react-icons/lu"
+import { LuEraser } from "react-icons/lu"
 import { PageHeader } from "@/components/layout/header"
 import { HStack, Stack, VStack } from "@/components/layout/stack"
-import { SectionTitle } from "@/components/layout/text"
+import { Membership } from "@/components/presenters/membership"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { SignOutButton } from "@/components/ui/sign-out-button"
 import { route } from "@/lib/utils"
 import { ConfigForm } from "./_config"
 import { DeleteAccountDialog } from "./_delete"
@@ -21,12 +21,7 @@ export default function SettingsPage() {
   return (
     <VStack as="main" className="max-w-5xl mx-auto gap-8 md:gap-12 pb-16">
       <PageHeader title="Settings">
-        <SignOutButton redirectUrl="/">
-          <Button size="sm" variant="outline">
-            Sign out
-            <LuLogOut />
-          </Button>
-        </SignOutButton>
+        <SignOutButton redirectURL="/" />
       </PageHeader>
 
       <Stack className="gap-4 flex-col lg:flex-row lg:gap-8" items="center" justify="between">
@@ -35,11 +30,7 @@ export default function SettingsPage() {
         <ConfigForm />
       </Stack>
 
-      <VStack className="gap-4" items="start">
-        <SectionTitle>Membership</SectionTitle>
-
-        <PricingTable collapseFeatures={false} newSubscriptionRedirectUrl={route("/pods")} />
-      </VStack>
+      <Membership redirectURL={route("/pods")} />
 
       <Separator />
 

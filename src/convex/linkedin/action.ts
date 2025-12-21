@@ -4,13 +4,13 @@ import { DateTime } from "luxon"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
-import { errorMessage } from "@/convex/_helpers/errors"
+import { errorMessage, FetchError } from "@/convex/_helpers/errors"
 import { authAction, connectedAction } from "@/convex/_helpers/server"
+import { unipile } from "@/convex/unipile/client"
 import { env } from "@/lib/env.mjs"
 import { profileURL } from "@/lib/linkedin"
 import { CONVEX_SITE_URL } from "@/lib/server/convex"
 import { openai } from "@/lib/server/openai"
-import { UnipileAPIError, unipile } from "@/lib/server/unipile"
 import { url } from "@/lib/utils"
 import { settingsConfig } from "@/schemas/settings-config"
 
@@ -59,7 +59,7 @@ export const sync = internalAction({
         location,
       })
     } catch (error) {
-      if (error instanceof UnipileAPIError) {
+      if (error instanceof FetchError) {
         await ctx.runMutation(internal.linkedin.mutate.upsertAccountStatus, {
           unipileId,
           status: "ERROR",

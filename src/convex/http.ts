@@ -45,6 +45,7 @@ http.route({
       await ctx.runMutation(internal.linkedin.mutate.upsertAccountSubscription, {
         userId,
         subscription: "member",
+        subscriptionAmount: 0,
       })
       return new Response(null, { status: 201 })
     }
@@ -56,7 +57,7 @@ http.route({
     await ctx.runMutation(internal.linkedin.mutate.upsertAccountSubscription, {
       userId,
       subscription: SubscriptionPlan.parse(currentPlan?.slug),
-      subscriptionAmount: currentPlan?.amount,
+      subscriptionAmount: currentPlan?.amount ?? 0,
     })
 
     return new Response(null, { status: 201 })

@@ -41,7 +41,13 @@
       },
       "style": {
         "noNestedTernary": "off",
-        "useDefaultSwitchClause": "off"
+        "useDefaultSwitchClause": "off",
+        "useConsistentTypeDefinitions": {
+          "level": "warn",
+          "options": {
+            "style": "type"
+          }
+        }
       },
       "nursery": {
         "noEqualsToNull": "off",

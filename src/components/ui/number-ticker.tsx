@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 export type NumberTickerProps = ComponentPropsWithoutRef<"span"> & {
   value: number
+  options?: Intl.NumberFormatOptions
   startValue?: number
   direction?: "up" | "down"
   delay?: number
@@ -14,6 +15,7 @@ export type NumberTickerProps = ComponentPropsWithoutRef<"span"> & {
 
 export const NumberTicker: React.FC<NumberTickerProps> = ({
   value,
+  options,
   startValue = 0,
   direction = "up",
   delay = 0,
@@ -46,10 +48,11 @@ export const NumberTicker: React.FC<NumberTickerProps> = ({
           ref.current.textContent = Intl.NumberFormat("en-US", {
             minimumFractionDigits: decimalPlaces,
             maximumFractionDigits: decimalPlaces,
+            ...options,
           }).format(Number(latest.toFixed(decimalPlaces)))
         }
       }),
-    [springValue, decimalPlaces]
+    [springValue, decimalPlaces, options]
   )
 
   return (

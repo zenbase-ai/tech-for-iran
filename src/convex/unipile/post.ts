@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import * as z from "zod"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
-import { isDisconnectedUnipileAccountError, unipile } from "@/lib/server/unipile"
+import { isDisconnectedUnipileAccountError, unipile } from "@/convex/unipile/client"
 import { errorMessage } from "@/lib/utils"
 import { Attachment, Author, ParsedDatetime } from "@/schemas/unipile"
 
@@ -40,7 +40,7 @@ export const fetch = internalAction({
   handler: async (_ctx, { urn, unipileId: account_id }): Promise<Fetch> => {
     try {
       const data = FetchData.parse(
-        await unipile.get(`api/v1/posts/${urn}`, { searchParams: { account_id } }).json()
+        await unipile.get(`posts/${urn}`, { searchParams: { account_id } }).json()
       )
       return { data, error: null }
     } catch (error: unknown) {
@@ -63,7 +63,7 @@ export const react = internalAction({
     try {
       const data = ReactData.parse(
         await unipile
-          .post("api/v1/posts/reaction", {
+          .post("posts/reaction", {
             json: {
               account_id: unipileId,
               post_id: socialId,
@@ -100,7 +100,7 @@ export const comment = internalAction({
     try {
       const data = CommentData.parse(
         await unipile
-          .post(`api/v1/posts/${socialId}/comments`, {
+          .post(`posts/${socialId}/comments`, {
             json: {
               account_id: unipileId,
               text: commentText,

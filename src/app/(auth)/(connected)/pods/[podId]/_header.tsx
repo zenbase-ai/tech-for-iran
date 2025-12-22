@@ -1,11 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { useParams } from "next/navigation"
-import { LuArrowRight } from "react-icons/lu"
 import { PageHeader } from "@/components/layout/header"
 import { BreakevenBadge } from "@/components/presenters/breakeven-badge"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import { useAuthQuery } from "@/hooks/use-auth-query"
@@ -28,13 +25,8 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
   return (
     <PageHeader title={pod.name}>
       <InviteButton inviteCode={pod.inviteCode} variant="outline" />
+
       <BreakevenBadge size="sm" />
-      <Button asChild size="sm">
-        <Link href="/settings">
-          Membership
-          <LuArrowRight />
-        </Link>
-      </Button>
     </PageHeader>
   )
 }

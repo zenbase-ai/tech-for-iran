@@ -2,7 +2,6 @@
 
 import type { BillingSubscriptionItemJSON, UserJSON } from "@clerk/backend"
 import { v } from "convex/values"
-import { sumBy } from "es-toolkit"
 import { internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
 import { NotFoundError } from "@/convex/_helpers/errors"
@@ -29,19 +28,42 @@ export const userEmail = internalAction({
   },
 })
 
-type SubscriptionItemsData = {
-  data: BillingSubscriptionItemJSON[]
+export type Subscriptions = {
+  lifetime: number
+  mrr: number
+  arr: number
 }
 
-export const lifetimeRevenue = internalAction({
-  handler: async (_ctx): Promise<number> => {
+export const subscriptions = internalAction({
+  handler: async (_ctx): Promise<Subscriptions> => {
     const statuses = ["active", "ended", "past_due", "upcoming"] as const
     const subscriptions = (await Promise.all(statuses.map(fetchSubscriptionItems))).flatMap(
       ({ data }) => data
     )
-    return sumBy(subscriptions, ({ lifetime_paid }) => lifetime_paid?.amount ?? 0) ?? 0
+
+    let lifetime = 0
+    let arr = 0
+    let mrr = 0
+    for (const s of subscriptions) {
+      lifetime += s.lifetime_paid?.amount ?? 0
+      if (s.plan_period === "annual") {
+        arr += s.amount?.amount ?? 0
+      } else {
+        mrr += s.amount?.amount ?? 0
+      }
+    }
+
+    return {
+      lifetime,
+      mrr,
+      arr,
+    }
   },
 })
+
+type SubscriptionItemsData = {
+  data: BillingSubscriptionItemJSON[]
+}
 
 const fetchSubscriptionItems = async (
   status: "active" | "ended" | "past_due" | "upcoming" | "free_trial"

@@ -6,9 +6,7 @@ import { LuHouse, LuSettings } from "react-icons/lu"
 import { HStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
 import { ThemeToggler } from "@/components/ui/theme-toggler"
-import { api } from "@/convex/_generated/api"
-import { useAuthQuery } from "@/hooks/use-auth-query"
-import { subscriptionPlan } from "@/lib/linkedin"
+import { useSubscriptionPlan } from "@/hooks/use-subscription-plan"
 import { cn } from "@/lib/utils"
 
 export type NavProps = {
@@ -17,8 +15,7 @@ export type NavProps = {
 }
 
 export const Nav: React.FC<NavProps> = ({ initial, className }) => {
-  const linkedin = useAuthQuery(api.linkedin.query.getState)
-  const subscription = subscriptionPlan(linkedin?.account?.subscription)
+  const subscription = useSubscriptionPlan() ?? "member"
 
   const navcn = cn(
     "gap-3",

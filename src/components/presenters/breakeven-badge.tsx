@@ -22,20 +22,27 @@ const NUMBER_FORMAT_CURRENCY: Intl.NumberFormatOptions = { style: "currency", cu
 const formatCurrency = (valueInCents: number) =>
   new Intl.NumberFormat("en-US", NUMBER_FORMAT_CURRENCY).format(valueInCents / 100)
 
-export const BreakevenBadge: React.FC<BreakevenBadgeProps> = ({ className, ...props }) => {
+export const BreakevenBadge: React.FC<BreakevenBadgeProps> = (props) => {
   const subscription = useSubscriptionPlan()
+  if (subscription == null || subscription === "gold_member") {
+    return null
+  }
+
+  return <BreakevenBadgeWithPopover {...props} />
+}
+
+const BreakevenBadgeWithPopover: React.FC<BreakevenBadgeProps> = ({ className, ...props }) => {
   const fetchProgress = useAsyncFn(useAction(api.breakeven.progress))
   const isMounted = useMounted()
-  const isGoldMember = subscription === "gold_member"
 
   useAsyncEffect(async () => {
-    if (isMounted && subscription != null && !isGoldMember) {
+    if (isMounted) {
       await fetchProgress.execute()
     }
-  }, [isMounted, subscription, isGoldMember])
+  }, [isMounted])
 
   const profit = (fetchProgress.data?.lifetime?.profit ?? 0) / 100
-  if (profit >= 0 || isGoldMember) {
+  if (profit >= 0) {
     return null
   }
 
@@ -43,7 +50,7 @@ export const BreakevenBadge: React.FC<BreakevenBadgeProps> = ({ className, ...pr
     <Popover>
       <PopoverTrigger asChild>
         <Badge
-          className={cn(className)}
+          className={cn("animate-in fade-in cursor-pointer", className)}
           variant={profit === 0 ? "outline" : profit > 0 ? "default" : "destructive"}
           {...props}
         >
@@ -70,14 +77,12 @@ export const BreakevenBadge: React.FC<BreakevenBadgeProps> = ({ className, ...pr
               {formatCurrency(fetchProgress.data?.monthly?.expenses ?? 0)}
             </dd>
           </Grid>
-          {!isGoldMember && (
-            <Button asChild size="sm">
-              <Link href="/settings">
-                Membership
-                <LuArrowRight />
-              </Link>
-            </Button>
-          )}
+          <Button asChild size="sm">
+            <Link href="/settings">
+              Membership
+              <LuArrowRight />
+            </Link>
+          </Button>
         </VStack>
       </PopoverContent>
     </Popover>

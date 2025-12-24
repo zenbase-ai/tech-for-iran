@@ -53,7 +53,6 @@
     "**/coverage": true,
     "**/dist": true,
     "**/node_modules": true,
-    ".claude/": true,
     ".husky/": true,
     "next-env.d.ts": true,
     "src/convex/_generated/": true,

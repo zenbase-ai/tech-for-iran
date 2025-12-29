@@ -21,7 +21,9 @@
       "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/src/proxy.ts)",
       "Bash(test -f /Users/knrz/Git/zenbase-ai/engagement-pod/middleware.ts)",
       "Bash(just lint)",
-      "Bash(just fmt)"
+      "Bash(just fmt)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

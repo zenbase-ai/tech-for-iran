@@ -27,7 +27,6 @@
   },
   "biome.requireConfiguration": true,
   "biome.lsp.bin": "./node_modules/@biomejs/cli-darwin-arm64/biome",
-  "biome.configurationPath": "./biome.json",
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"

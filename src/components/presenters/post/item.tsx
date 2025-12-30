@@ -44,8 +44,8 @@ export const PostItem: React.FC<PostItemProps> = ({ post, profile, ...props }) =
       </ProfileItem>
       <ItemDescription>{post.text}</ItemDescription>
       <HStack className="gap-2" items="center" wrap>
-        {post.attachments?.map((attachment) => (
-          <Box className="rounded-md overflow-hidden max-w-xs" key={attachment.id}>
+        {post.attachments?.slice(0, 2).map((attachment) => (
+          <Box className="rounded-md overflow-hidden w-2/5" key={attachment.id}>
             <PostAttachment attachment={attachment} />
           </Box>
         ))}

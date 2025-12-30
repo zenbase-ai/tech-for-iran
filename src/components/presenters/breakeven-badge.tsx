@@ -3,7 +3,6 @@
 import { useAction } from "convex/react"
 import Link from "next/link"
 import { LuArrowRight, LuInfo } from "react-icons/lu"
-import { Grid } from "@/components/layout/grid"
 import { VStack } from "@/components/layout/stack"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,8 +18,6 @@ import { cn } from "@/lib/utils"
 export type BreakevenBadgeProps = Omit<BadgeProps, "children" | "variant">
 
 const NUMBER_FORMAT_CURRENCY: Intl.NumberFormatOptions = { style: "currency", currency: "USD" }
-const formatCurrency = (valueInCents: number) =>
-  new Intl.NumberFormat("en-US", NUMBER_FORMAT_CURRENCY).format(valueInCents / 100)
 
 export const BreakevenBadge: React.FC<BreakevenBadgeProps> = (props) => {
   const subscription = useSubscriptionPlan()
@@ -32,16 +29,16 @@ export const BreakevenBadge: React.FC<BreakevenBadgeProps> = (props) => {
 }
 
 const BreakevenBadgeWithPopover: React.FC<BreakevenBadgeProps> = ({ className, ...props }) => {
-  const fetchProgress = useAsyncFn(useAction(api.breakeven.progress))
+  const { data, execute } = useAsyncFn(useAction(api.breakeven.progress))
   const isMounted = useMounted()
 
   useAsyncEffect(async () => {
     if (isMounted) {
-      await fetchProgress.execute()
+      await execute()
     }
   }, [isMounted])
 
-  const profit = (fetchProgress.data?.lifetime?.profit ?? 0) / 100
+  const profit = (data?.lifetime?.profit ?? 0) / 100
   if (profit >= 0) {
     return null
   }
@@ -67,16 +64,6 @@ const BreakevenBadgeWithPopover: React.FC<BreakevenBadgeProps> = ({ className, .
       <PopoverContent>
         <VStack className="gap-4" items="end">
           <p>Help us exist forever so we can support our friends forever ❤️</p>
-          <Grid as="dl" className="gap-2 w-full items-center grid-cols-[2fr_1fr]">
-            <dt className="text-sm font-semibold text-muted-foreground">Monthly Revenue</dt>
-            <dd className="justify-self-end">
-              {formatCurrency(fetchProgress.data?.monthly?.revenue ?? 0)}
-            </dd>
-            <dt className="text-sm font-semibold text-muted-foreground">Monthly Expenses</dt>
-            <dd className="justify-self-end">
-              {formatCurrency(fetchProgress.data?.monthly?.expenses ?? 0)}
-            </dd>
-          </Grid>
           <Button asChild size="sm">
             <Link href="/settings">
               Membership

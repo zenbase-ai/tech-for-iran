@@ -3,7 +3,8 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { AnimatePresence, type HTMLMotionProps, motion } from "motion/react"
 import { useEffect, useEffectEvent, useState } from "react"
-import { LuCheck, LuCopy } from "react-icons/lu"
+import type { IconType } from "react-icons/lib"
+import { LuCheck } from "react-icons/lu"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -37,7 +38,8 @@ export const buttonVariants = cva(
 
 export type CopyButtonProps = Omit<HTMLMotionProps<"button">, "children" | "onCopy"> &
   VariantProps<typeof buttonVariants> & {
-    icon?: React.FC
+    leftIcon?: IconType
+    rightIcon?: IconType
     content?: string
     delay?: number
     onCopy?: (content: string) => void
@@ -50,7 +52,8 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
   className,
   size,
   variant,
-  icon: CopyIcon = LuCopy,
+  leftIcon: LeftIcon,
+  rightIcon: RightIcon,
   delay = 2000,
   onClick,
   onCopy,
@@ -59,8 +62,8 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
   children,
   ...props
 }) => {
+  const iconcn = cn("inline")
   const [localIsCopied, setLocalIsCopied] = useState(isCopied ?? false)
-  const Icon = localIsCopied ? LuCheck : CopyIcon
 
   useEffect(() => {
     setLocalIsCopied(isCopied ?? false)
@@ -100,18 +103,33 @@ export const CopyButton: React.FC<React.PropsWithChildren<CopyButtonProps>> = ({
       onClick={handleCopy}
       {...props}
     >
+      {LeftIcon && (
+        <AnimatePresence mode="wait">
+          <motion.span
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            initial={{ scale: 0 }}
+            key={localIsCopied ? "check" : "copy"}
+            transition={{ duration: 0.15 }}
+          >
+            {localIsCopied ? <LuCheck className={iconcn} /> : <LeftIcon className={iconcn} />}
+          </motion.span>
+        </AnimatePresence>
+      )}
       {children}
-      <AnimatePresence mode="wait">
-        <motion.span
-          animate={{ scale: 1 }}
-          exit={{ scale: 0 }}
-          initial={{ scale: 0 }}
-          key={localIsCopied ? "check" : "copy"}
-          transition={{ duration: 0.15 }}
-        >
-          <Icon className="inline size-3" />
-        </motion.span>
-      </AnimatePresence>
+      {RightIcon && (
+        <AnimatePresence mode="wait">
+          <motion.span
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            initial={{ scale: 0 }}
+            key={localIsCopied ? "check" : "copy"}
+            transition={{ duration: 0.15 }}
+          >
+            {localIsCopied ? <LuCheck className={iconcn} /> : <RightIcon className={iconcn} />}
+          </motion.span>
+        </AnimatePresence>
+      )}
     </motion.button>
   )
 }

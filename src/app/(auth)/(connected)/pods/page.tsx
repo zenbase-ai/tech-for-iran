@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { PageHeader } from "@/components/layout/header"
 import { VStack } from "@/components/layout/stack"
+import { MessageButton } from "../../_message"
 import PodsClientPage from "./page.client"
 
 export const metadata: Metadata = {
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
 export default function PodsPage() {
   return (
     <VStack as="main" className="max-w-lg mx-auto gap-8">
-      <PageHeader title="Pods" />
+      <PageHeader title="Pods">
+        <MessageButton />
+      </PageHeader>
 
       <PodsClientPage />
     </VStack>

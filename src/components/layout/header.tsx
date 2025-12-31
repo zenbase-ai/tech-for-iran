@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { Nav } from "@/app/(auth)/(connected)/_nav"
 import { Logo } from "@/components/assets/logo"
+import { Nav } from "@/components/layout/nav"
 import { Separator } from "@/components/ui/separator"
 import useScreenSize from "@/hooks/use-screen-size"
 import { cn } from "@/lib/utils"
@@ -40,11 +40,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
 
       <PageTitle className="-mt-1">{title}</PageTitle>
 
-      {!!children && (
-        <HStack className="gap-2 sm:gap-3 lg:gap-4 ml-auto md:ml-4" items={items} wrap={wrap}>
-          {children}
-        </HStack>
-      )}
+      {children}
 
       <Nav
         className={cn(

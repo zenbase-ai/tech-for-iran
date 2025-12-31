@@ -1,6 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
+import { MessageButton } from "@/app/(auth)/_message"
 import { PageHeader } from "@/components/layout/header"
 import { BreakevenBadge } from "@/components/presenters/breakeven-badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -25,7 +26,7 @@ export const PodHeader: React.FC<PodHeaderProps> = ({ className }) => {
   return (
     <PageHeader title={pod.name}>
       <InviteButton inviteCode={pod.inviteCode} variant="outline" />
-
+      <MessageButton />
       <BreakevenBadge size="sm" />
     </PageHeader>
   )

@@ -15,7 +15,7 @@ export const InviteButton: React.FC<InviteButtonProps> = ({ inviteCode, ...props
   const onCopy = useEffectEvent(() => toast.success("Invite link copied to clipboard"))
 
   return (
-    <CopyButton content={inviteURL} icon={LuSend} onCopy={onCopy} size="sm" {...props}>
+    <CopyButton content={inviteURL} leftIcon={LuSend} onCopy={onCopy} size="sm" {...props}>
       Invite
     </CopyButton>
   )

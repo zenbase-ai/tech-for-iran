@@ -205,7 +205,7 @@ This section documents the common coding patterns used throughout the codebase. 
 - Example from workflows:
   ```typescript
   try {
-    await unipile.post("/api/v1/posts/reaction", { json: { ... } })
+    await unipile.post("posts/reaction", { json: { ... } })
   } catch (error: unknown) {
     if (error instanceof UnipileAPIError) {
       const status = error.data.status

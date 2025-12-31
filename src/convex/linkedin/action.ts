@@ -80,7 +80,7 @@ export const generateHostedAuthURL = authAction({
   },
   handler: async (ctx, { inviteCode }) =>
     await unipile
-      .post<GenerateHostedAuthURL>("api/v1/hosted/accounts/link", {
+      .post<GenerateHostedAuthURL>("hosted/accounts/link", {
         json: {
           api_url: env.UNIPILE_API_URL,
           type: "create",

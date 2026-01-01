@@ -34,7 +34,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ podId, className, 
     defaultValues: boostPost.defaultValues,
     disabled: !targetCount,
   })
-  const { isSubmitting, disabled } = form.formState
+  const { isSubmitting, disabled, errors } = form.formState
 
   const { execute } = useAsyncFn(useAction(api.pods.action.boost))
   const onSubmit = useEffectEvent(async (data: BoostPost) => {
@@ -47,7 +47,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ podId, className, 
 
   return (
     <VStack as="form" className={cn("gap-4", className)} onSubmit={form.handleSubmit(onSubmit)}>
-      {!!form.formState.errors.root && <FieldError errors={[form.formState.errors.root]} />}
+      {!!errors.root && <FieldError errors={[errors.root]} />}
 
       <Controller
         control={form.control}

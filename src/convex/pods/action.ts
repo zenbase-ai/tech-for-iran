@@ -31,20 +31,17 @@ export const boost = connectedMemberAction({
     const { unipileId, subscription } = ctx.account
 
     {
-      const { ok, retryAfter } = await ratelimits.check(ctx, ...boostPostRateLimit(ctx.account))
-      if (!ok) {
+      const limit = await ratelimits.check(ctx, ...boostPostRateLimit(ctx.account))
+      if (!limit.ok) {
         return {
           postId: null,
-          error: rateLimitError({ retryAfter }),
+          error: rateLimitError(limit),
           info: subscription !== "gold_member" ? "Maybe upgrade your membership?" : undefined,
         }
       }
     }
 
-    const fetch = await ctx.runAction(internal.unipile.post.fetch, {
-      unipileId,
-      urn,
-    })
+    const fetch = await ctx.runAction(internal.unipile.post.fetch, { unipileId, urn })
     if (fetch.error != null) {
       return { postId: null, error: fetch.error }
     }

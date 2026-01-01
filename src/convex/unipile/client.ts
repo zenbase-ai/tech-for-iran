@@ -36,8 +36,8 @@ export const unipile = ky.create({
           })
         }
 
-        const { data, error } = UnipileErrorResponse.safeParse(await response.clone().json())
-        if (!error) {
+        const { data, success } = UnipileErrorResponse.safeParse(await response.clone().json())
+        if (success) {
           throw new FetchError({
             method: request.method,
             path: request.url,

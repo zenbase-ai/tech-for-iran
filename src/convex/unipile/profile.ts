@@ -1,15 +1,8 @@
 import { v } from "convex/values"
-import * as z from "zod"
 import { internalAction } from "@/convex/_generated/server"
 import { unipile } from "@/convex/unipile/client"
-import { ProfilePrototype } from "@/schemas/unipile"
-
-const OwnProfile = ProfilePrototype.extend({
-  object: z.literal("AccountOwnerProfile"),
-  public_profile_url: z.string(),
-  occupation: z.string(),
-})
-type OwnProfile = z.infer<typeof OwnProfile>
+import { errorMessage } from "@/lib/utils"
+import type { OwnProfile, Posts, Profile } from "@/schemas/unipile"
 
 export const getOwn = internalAction({
   args: {
@@ -18,20 +11,6 @@ export const getOwn = internalAction({
   handler: async (_ctx, { unipileId: account_id }) =>
     await unipile.get<OwnProfile>("users/me", { searchParams: { account_id } }).json(),
 })
-
-const Profile = ProfilePrototype.extend({
-  object: z.literal("UserProfile"),
-  provider: z.literal("LINKEDIN"),
-  is_relationship: z.boolean(),
-  profile_picture_url_large: z.string(),
-  headline: z.string(),
-  invitation: z
-    .object({
-      type: z.enum(["SENT", "RECEIVED"]),
-    })
-    .optional(),
-})
-type Profile = z.infer<typeof Profile>
 
 export const get = internalAction({
   args: {
@@ -42,26 +21,49 @@ export const get = internalAction({
     await unipile.get<Profile>(`users/${id}`, { searchParams: { account_id } }).json(),
 })
 
-type SendConnectionRequest = {
-  object: "UserInvitationSent"
-  invitation_id: string
-  usage: number
-}
+export const posts = internalAction({
+  args: {
+    unipileId: v.string(),
+    id: v.string(),
+    limit: v.optional(v.number()),
+    isCompany: v.optional(v.boolean()),
+  },
+  handler: async (_, { unipileId, id, limit = 6, isCompany = false }) => {
+    try {
+      const data = await unipile
+        .get<Posts>(`users/${id}/posts`, {
+          searchParams: {
+            account_id: unipileId,
+            is_company: isCompany,
+            limit,
+          },
+        })
+        .json()
+      return { data, error: null }
+    } catch (error: unknown) {
+      return { data: null, error: errorMessage(error) }
+    }
+  },
+})
 
 export const sendConnectionRequest = internalAction({
   args: {
-    fromUnipileId: v.string(),
-    toProviderId: v.string(),
+    unipileId: v.string(),
+    id: v.string(),
     message: v.optional(v.string()),
   },
-  handler: async (_ctx, args) =>
+  handler: async (_ctx, { unipileId, id, message }) =>
     await unipile
-      .post<SendConnectionRequest>("users/invite", {
+      .post("users/invite", {
         json: {
-          account_id: args.fromUnipileId,
-          provider_id: args.toProviderId,
-          message: args.message,
+          account_id: unipileId,
+          provider_id: id,
+          message,
         },
       })
-      .json(),
+      .json<{
+        object: "UserInvitationSent"
+        invitation_id: string
+        usage: number
+      }>(),
 })

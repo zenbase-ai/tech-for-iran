@@ -14,7 +14,9 @@ export type PodPageProps = {
 
 export const generateMetadata = async (props: PodPageProps): Promise<Metadata> => {
   const [{ podId }, { token }] = await Promise.all([props.params, clerkAuth()])
-  const pod = await fetchQuery(api.pods.query.get, { podId }, { token })
+  const pod = await fetchQuery(api.pods.query.get, { podId }, { token }).catch(() => ({
+    name: "Pod",
+  }))
 
   return {
     title: `${pod.name} | Crackedbook`,

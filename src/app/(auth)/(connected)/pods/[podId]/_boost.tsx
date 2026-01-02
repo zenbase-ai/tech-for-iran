@@ -22,16 +22,24 @@ import { BoostPost, boostPost } from "@/schemas/boost-post"
 
 export type BoostPostFormProps = {
   podId: Id<"pods">
+  defaultValues?: Partial<typeof boostPost.defaultValues>
+  onSuccess?: (postId: Id<"posts">, data: BoostPost) => void
   className?: string
   autoFocus?: boolean
 }
 
-export const BoostPostForm: React.FC<BoostPostFormProps> = ({ podId, className, autoFocus }) => {
+export const BoostPostForm: React.FC<BoostPostFormProps> = ({
+  podId,
+  defaultValues,
+  onSuccess,
+  className,
+  autoFocus,
+}) => {
   const targetCount = useAuthQuery(api.pods.query.targetCount, { podId })
 
   const form = useForm({
     resolver: zodResolver(BoostPost),
-    defaultValues: boostPost.defaultValues,
+    defaultValues: { ...boostPost.defaultValues, ...defaultValues },
     disabled: !targetCount,
   })
   const { isSubmitting, disabled, errors } = form.formState
@@ -41,6 +49,7 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({ podId, className, 
     const { postId } = await execute({ podId, ...data })
     if (postId) {
       posthog.capture("post:boost", { podId })
+      onSuccess?.(postId, data)
       form.reset()
     }
   })

@@ -31,7 +31,7 @@ export const boost = connectedMemberAction({
     const { unipileId, subscription } = ctx.account
 
     {
-      const limit = await ratelimits.check(ctx, ...boostPostRateLimit(ctx.account))
+      const limit = await ratelimits.check(ctx, ...boostPostRateLimit(podId, ctx.account))
       if (!limit.ok) {
         return {
           postId: null,
@@ -70,7 +70,7 @@ export const boost = connectedMemberAction({
     const { postId } = insert
 
     {
-      const limit = await ratelimits.limit(ctx, ...boostPostRateLimit(ctx.account))
+      const limit = await ratelimits.limit(ctx, ...boostPostRateLimit(podId, ctx.account))
       if (!limit.ok) {
         await ctx.runMutation(internal.posts.mutate.remove, { postId })
         return {

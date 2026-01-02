@@ -28,7 +28,7 @@ export const posts = internalAction({
     limit: v.optional(v.number()),
     isCompany: v.optional(v.boolean()),
   },
-  handler: async (_, { unipileId, id, limit = 6, isCompany = false }) => {
+  handler: async (_, { unipileId, id, limit = 10, isCompany = false }) => {
     try {
       const data = await unipile
         .get<Posts>(`users/${id}/posts`, {
@@ -46,24 +46,24 @@ export const posts = internalAction({
   },
 })
 
-export const sendConnectionRequest = internalAction({
-  args: {
-    unipileId: v.string(),
-    id: v.string(),
-    message: v.optional(v.string()),
-  },
-  handler: async (_ctx, { unipileId, id, message }) =>
-    await unipile
-      .post("users/invite", {
-        json: {
-          account_id: unipileId,
-          provider_id: id,
-          message,
-        },
-      })
-      .json<{
-        object: "UserInvitationSent"
-        invitation_id: string
-        usage: number
-      }>(),
-})
+// export const sendConnectionRequest = internalAction({
+//   args: {
+//     unipileId: v.string(),
+//     id: v.string(),
+//     message: v.optional(v.string()),
+//   },
+//   handler: async (_ctx, { unipileId, id, message }) =>
+//     await unipile
+//       .post("users/invite", {
+//         json: {
+//           account_id: unipileId,
+//           provider_id: id,
+//           message,
+//         },
+//       })
+//       .json<{
+//         object: "UserInvitationSent"
+//         invitation_id: string
+//         usage: number
+//       }>(),
+// })

@@ -6,7 +6,7 @@ import {
 } from "@convex-dev/rate-limiter"
 import { DateTime } from "luxon"
 import { components } from "@/convex/_generated/api"
-import type { Doc } from "@/convex/_generated/dataModel"
+import type { Doc, Id } from "@/convex/_generated/dataModel"
 
 export const ratelimits = new RateLimiter(components.rateLimiter, {})
 
@@ -28,16 +28,19 @@ export const accountActionsRateLimit = ({
   return [name, { config }] as const
 }
 
-export const boostPostRateLimit = ({
-  userId,
-  subscription,
-}: Pick<Doc<"linkedinAccounts">, "userId" | "subscription">) => {
-  const name = `boostPost:${userId}`
-  const config: RateLimitConfig =
-    subscription === "gold_member"
-      ? { kind: "fixed window", rate: 2, period: 24 * HOUR }
-      : subscription === "silver_member"
-        ? { kind: "fixed window", rate: 2, period: 28 * 24 * HOUR }
-        : { kind: "fixed window", rate: 2, period: 365 * 24 * HOUR }
+export const boostPostRateLimit = (
+  podId: Id<"pods">,
+  { userId, subscription }: Pick<Doc<"linkedinAccounts">, "userId" | "subscription">
+) => {
+  const name = `boostPost:${podId}:${userId}`
+
+  const rate = 2
+  const period = {
+    gold_member: 24 * HOUR,
+    silver_member: 28 * 24 * HOUR,
+    member: 365 * 24 * HOUR,
+  }[subscription ?? "member"]
+
+  const config: RateLimitConfig = { kind: "fixed window", rate, period }
   return [name, { config }] as const
 }

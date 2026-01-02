@@ -13,6 +13,7 @@ import { CONVEX_SITE_URL } from "@/lib/server/convex"
 import { openai } from "@/lib/server/openai"
 import { url } from "@/lib/utils"
 import { settingsConfig } from "@/schemas/settings-config"
+import type { Posts } from "@/schemas/unipile"
 
 export const syncOwn = connectedAction({
   args: {},
@@ -144,5 +145,24 @@ Return the most likely IANA timezone. If uncertain, default to America/New_York.
     })
 
     await ctx.runMutation(internal.linkedin.mutate.updateAccountTimezone, { unipileId, timezone })
+  },
+})
+
+export const getOwnPosts = connectedAction({
+  args: {},
+  handler: async (ctx) => {
+    const { unipileId } = ctx.account
+    const { providerId } = ctx.profile
+    if (!providerId) {
+      return { data: null, error: "Profile not synced yet :-/" }
+    }
+
+    return await unipile
+      .get(`users/${providerId}/posts`, {
+        searchParams: { account_id: unipileId, is_company: false, limit: 10 },
+      })
+      .json<Posts>()
+      .then((data) => ({ data, error: null }))
+      .catch((error) => ({ data: null, error: errorMessage(error) }))
   },
 })

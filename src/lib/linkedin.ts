@@ -1,6 +1,7 @@
 import { pick } from "es-toolkit"
 import * as z from "zod"
 import type { Doc } from "@/convex/_generated/dataModel"
+import type { Post } from "@/schemas/unipile"
 
 export const SubscriptionPlan = z
   .enum(["member", "silver_member", "gold_member"])
@@ -88,3 +89,25 @@ export const postProfile = (
 
   return pick(profile, ["firstName", "lastName", "picture", "headline", "url"])
 }
+
+export const postModel = (data: Post) =>
+  ({
+    socialId: data.social_id,
+    text: data.text,
+    attachments: data.attachments,
+    url: data.share_url,
+    author: {
+      name: data.author.name,
+      headline: data.author.headline ?? "Company",
+      url: profileURL(data.author),
+    },
+    postedAt: data.parsed_datetime,
+  }) as const
+
+export const statsModel = (data: Post) =>
+  ({
+    commentCount: data.comment_counter,
+    impressionCount: data.impressions_counter,
+    reactionCount: data.reaction_counter,
+    repostCount: data.repost_counter,
+  }) as const

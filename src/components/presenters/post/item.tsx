@@ -13,35 +13,49 @@ import {
   type ItemProps,
 } from "@/components/ui/item"
 import { RelativeTime } from "@/components/ui/relative-time"
-import type { Doc } from "@/convex/_generated/dataModel"
+import type { Doc, Id } from "@/convex/_generated/dataModel"
 import { PostAttachment } from "./attachment"
 import { PostStatsStack } from "./stats"
 
 export type PostItemProps = ItemProps & {
-  post: Omit<Doc<"posts">, "author">
-  profile: Pick<Doc<"linkedinProfiles">, "firstName" | "lastName" | "picture" | "headline" | "url">
+  post: { _id?: Id<"posts">; podId?: Id<"pods"> } & Omit<
+    Doc<"posts">,
+    "_id" | "_creationTime" | "urn" | "author" | "userId" | "updatedAt" | "podId"
+  >
+  profile: null | Pick<
+    Doc<"linkedinProfiles">,
+    "firstName" | "lastName" | "picture" | "headline" | "url"
+  >
 }
 
-export const PostItem: React.FC<PostItemProps> = ({ post, profile, ...props }) => (
+export const PostItem: React.FC<React.PropsWithChildren<PostItemProps>> = ({
+  post,
+  profile,
+  children,
+  ...props
+}) => (
   <Item {...props}>
     <ItemContent className="gap-2">
-      <ProfileItem
-        className="p-0"
-        description={
-          <ProfileHeader profile={profile}>
-            <RelativeTime date={post.postedAt} />
-          </ProfileHeader>
-        }
-        profile={profile}
-      >
-        <ItemActions>
-          <Button asChild className="ml-auto" size="icon" variant="ghost">
-            <ExternalLink href={post.url}>
-              <LuExternalLink className="size-3" />
-            </ExternalLink>
-          </Button>
-        </ItemActions>
-      </ProfileItem>
+      {profile && (
+        <ProfileItem
+          className="p-0"
+          description={
+            <ProfileHeader profile={profile}>
+              <RelativeTime date={post.postedAt} />
+            </ProfileHeader>
+          }
+          profile={profile}
+        >
+          <ItemActions>
+            {children}
+            <Button asChild className="ml-auto" size="icon" variant="ghost">
+              <ExternalLink href={post.url}>
+                <LuExternalLink className="size-3" />
+              </ExternalLink>
+            </Button>
+          </ItemActions>
+        </ProfileItem>
+      )}
       <ItemDescription>{post.text}</ItemDescription>
       <HStack className="gap-2" items="center" wrap>
         {post.attachments?.slice(0, 2).map((attachment) => (
@@ -50,7 +64,9 @@ export const PostItem: React.FC<PostItemProps> = ({ post, profile, ...props }) =
           </Box>
         ))}
       </HStack>
-      <PostStatsStack direction="horizontal" podId={post.podId} postId={post._id} />
+      {post._id && post.podId && (
+        <PostStatsStack direction="horizontal" podId={post.podId} postId={post._id} />
+      )}
     </ItemContent>
   </Item>
 )

@@ -3,7 +3,7 @@ import { api, internal } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { authAction, connectedMemberAction } from "@/convex/_helpers/server"
 import { boostPostRateLimit, rateLimitError, ratelimits } from "@/convex/ratelimits"
-import { profileURL } from "@/lib/linkedin"
+import { postModel, statsModel } from "@/lib/linkedin"
 import { errorMessage, pluralize } from "@/lib/utils"
 
 export const validate = authAction({
@@ -54,15 +54,7 @@ export const boost = connectedMemberAction({
       userId,
       podId,
       urn,
-      url: data.share_url,
-      socialId: data.social_id,
-      postedAt: data.parsed_datetime,
-      text: data.text,
-      author: {
-        name: data.author.name,
-        headline: data.author.headline ?? "Company",
-        url: profileURL(data.author),
-      },
+      ...postModel(data),
     })
     if (insert.error != null) {
       return { postId: null, error: insert.error }
@@ -85,6 +77,7 @@ export const boost = connectedMemberAction({
       const targetCount = await ctx.runQuery(api.pods.query.targetCount, { podId })
 
       await Promise.all([
+        ctx.runMutation(internal.stats.mutate.insert, { userId, postId, ...statsModel(data) }),
         ctx.runMutation(internal.engagement.workflow.start, {
           userId,
           podId,
@@ -93,14 +86,6 @@ export const boost = connectedMemberAction({
           reactionTypes,
           comments,
           targetCount,
-        }),
-        ctx.runMutation(internal.stats.mutate.insert, {
-          userId,
-          postId,
-          commentCount: data.comment_counter,
-          impressionCount: data.impressions_counter,
-          reactionCount: data.reaction_counter,
-          repostCount: data.repost_counter,
         }),
       ])
 

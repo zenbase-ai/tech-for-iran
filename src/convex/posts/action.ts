@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import { internal } from "@/convex/_generated/api"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { internalAction } from "@/convex/_generated/server"
-import { profileURL } from "@/lib/linkedin"
+import { postModel, statsModel } from "@/lib/linkedin"
 
 export const sync = internalAction({
   args: {
@@ -18,29 +18,15 @@ export const sync = internalAction({
       return null
     }
 
-    const { text, attachments, author } = data
-
     const [statId] = await Promise.all([
       ctx.runMutation(internal.stats.mutate.insert, {
         userId,
         postId,
-        commentCount: data.comment_counter,
-        impressionCount: data.impressions_counter,
-        reactionCount: data.reaction_counter,
-        repostCount: data.repost_counter,
+        ...statsModel(data),
       }),
       ctx.runMutation(internal.posts.mutate.upsert, {
         postId,
-        data: {
-          text,
-          attachments,
-          author: {
-            name: author.name,
-            headline: author.headline ?? "Company",
-            url: profileURL(author),
-          },
-          postedAt: data.parsed_datetime,
-        },
+        data: postModel(data),
       }),
     ])
 

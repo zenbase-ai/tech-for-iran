@@ -1,5 +1,5 @@
 import {
-  HOUR,
+  DAY,
   type RateLimitConfig,
   RateLimiter,
   type RateLimitReturns,
@@ -7,6 +7,7 @@ import {
 import { DateTime } from "luxon"
 import { components } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
+import { type SubscriptionPlan, subscriptionPlan } from "@/lib/linkedin"
 
 export const ratelimits = new RateLimiter(components.rateLimiter, {})
 
@@ -23,24 +24,23 @@ export const accountActionsRateLimit = ({
   const config: RateLimitConfig = {
     kind: "fixed window",
     rate: maxActions,
-    period: 24 * HOUR,
+    period: DAY,
   }
   return [name, { config }] as const
 }
 
 export const boostPostRateLimit = (
   podId: Id<"pods">,
-  { userId, subscription }: Pick<Doc<"linkedinAccounts">, "userId" | "subscription">
+  account: Pick<Doc<"linkedinAccounts">, "userId" | "subscription">
 ) => {
-  const name = `boostPost:${podId}:${userId}`
+  const name = `boostPost:${podId}:${account.userId}`
 
-  const rate = 2
-  const period = {
-    gold_member: 24 * HOUR,
-    silver_member: 28 * 24 * HOUR,
-    member: 365 * 24 * HOUR,
-  }[subscription ?? "member"]
+  const limits: Record<SubscriptionPlan, RateLimitConfig> = {
+    gold_member: { kind: "fixed window", rate: 14, period: 7 * DAY },
+    silver_member: { kind: "fixed window", rate: 4, period: 28 * DAY },
+    member: { kind: "fixed window", rate: 4, period: 365 * DAY },
+  }
 
-  const config: RateLimitConfig = { kind: "fixed window", rate, period }
+  const config = limits[subscriptionPlan(account.subscription)]
   return [name, { config }] as const
 }

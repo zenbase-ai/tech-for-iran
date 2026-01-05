@@ -23,7 +23,6 @@ import { BoostPost, boostPost } from "@/schemas/boost-post"
 export type BoostPostFormProps = {
   podId: Id<"pods">
   defaultValues?: Partial<typeof boostPost.defaultValues>
-  onSuccess?: (postId: Id<"posts">, data: BoostPost) => void
   className?: string
   autoFocus?: boolean
 }
@@ -31,7 +30,6 @@ export type BoostPostFormProps = {
 export const BoostPostForm: React.FC<BoostPostFormProps> = ({
   podId,
   defaultValues,
-  onSuccess,
   className,
   autoFocus,
 }) => {
@@ -49,7 +47,6 @@ export const BoostPostForm: React.FC<BoostPostFormProps> = ({
     const { postId } = await execute({ podId, ...data })
     if (postId) {
       posthog.capture("post:boost", { podId })
-      onSuccess?.(postId, data)
       form.reset()
     }
   })

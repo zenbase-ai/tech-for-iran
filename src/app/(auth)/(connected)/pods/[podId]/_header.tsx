@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation"
 import { MessageButton } from "@/app/(auth)/_message"
 import { PageHeader } from "@/components/layout/header"
-import { BreakevenBadge } from "@/components/presenters/breakeven-badge"
+import { BreakevenBadge } from "@/components/presenters/billing/breakeven"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/convex/_generated/api"
 import { useAuthQuery } from "@/hooks/use-auth-query"

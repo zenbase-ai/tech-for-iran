@@ -5,6 +5,7 @@ import { NotFoundError, UnauthorizedError } from "@/convex/_helpers/errors"
 import { connectedMutation, memberMutation, update } from "@/convex/_helpers/server"
 import { podMembers } from "@/convex/aggregates"
 import { PodSettings } from "@/schemas/pod-settings"
+import { internal } from "../_generated/api"
 
 export type Join =
   | { data: null; error: string }
@@ -21,21 +22,25 @@ export const join = connectedMutation({
     inviteCode: v.string(),
   },
   handler: async (ctx, { inviteCode }): Promise<Join> => {
+    const { userId } = ctx
+
     const pod = await getOneFrom(ctx.db, "pods", "by_inviteCode", inviteCode)
     if (!pod) {
       return { data: null, error: "Invalid invite code." }
     }
 
+    const podId = pod._id
     const membership = await ctx.db
       .query("memberships")
-      .withIndex("by_userId", (q) => q.eq("userId", ctx.userId).eq("podId", pod._id))
+      .withIndex("by_userId", (q) => q.eq("userId", userId).eq("podId", podId))
       .first()
 
     if (!membership) {
-      await ctx.db.insert("memberships", { userId: ctx.userId, podId: pod._id })
+      await ctx.db.insert("memberships", { userId, podId })
+      await ctx.scheduler.runAfter(5000, internal.pods.action.welcome, { podId, userId })
     }
 
-    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [pod._id] } })
+    const memberCount = await podMembers.count(ctx, { bounds: { prefix: [podId] } })
     return { data: { pod, memberCount }, success: `Welcome to ${pod.name}!` }
   },
 })

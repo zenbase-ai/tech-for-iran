@@ -17,8 +17,6 @@ import { cn } from "@/lib/utils"
 
 export type BreakevenBadgeProps = Omit<BadgeProps, "children" | "variant">
 
-const NUMBER_FORMAT_CURRENCY: Intl.NumberFormatOptions = { style: "currency", currency: "USD" }
-
 export const BreakevenBadge: React.FC<BreakevenBadgeProps> = (props) => {
   const subscription = useSubscriptionPlan()
   if (subscription == null || subscription === "gold_member") {
@@ -28,8 +26,10 @@ export const BreakevenBadge: React.FC<BreakevenBadgeProps> = (props) => {
   return <BreakevenBadgeWithPopover {...props} />
 }
 
+const NUMBER_FORMAT_CURRENCY: Intl.NumberFormatOptions = { style: "currency", currency: "USD" }
+
 const BreakevenBadgeWithPopover: React.FC<BreakevenBadgeProps> = ({ className, ...props }) => {
-  const { data, execute } = useAsyncFn(useAction(api.breakeven.progress))
+  const { data, execute } = useAsyncFn(useAction(api.billing.breakeven.progress))
   const isMounted = useMounted()
 
   useAsyncEffect(async () => {

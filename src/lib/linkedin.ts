@@ -92,6 +92,7 @@ export const postProfile = (
 
 export const postModel = (data: Post) =>
   ({
+    urn: data.social_id,
     socialId: data.social_id,
     text: data.text,
     attachments: data.attachments,

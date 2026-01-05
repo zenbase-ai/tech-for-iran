@@ -5,7 +5,6 @@ import { ReactionType } from "@/lib/linkedin"
 export const boostPost = {
   defaultValues: {
     url: "",
-    comments: false,
     reactionTypes: ["like", "love"] satisfies ReactionType[],
   },
   options: {
@@ -28,7 +27,6 @@ const parsePostURN = (url: string): string | null => {
 export const BoostPost = z
   .object({
     url: z.url("Please enter a valid URL"),
-    comments: z.boolean().default(boostPost.defaultValues.comments),
     reactionTypes: z.array(ReactionType).min(1, "Select at least one reaction type"),
   })
   .transform((data) => ({

@@ -28,7 +28,7 @@ export const posts = internalAction({
     limit: v.optional(v.number()),
     isCompany: v.optional(v.boolean()),
   },
-  handler: async (_, { unipileId, id, limit = 10, isCompany = false }) => {
+  handler: async (_, { unipileId, id, limit = 5, isCompany = false }) => {
     try {
       const data = await unipile
         .get<Posts>(`users/${id}/posts`, {

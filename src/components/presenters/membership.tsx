@@ -2,7 +2,7 @@ import { PricingTable } from "@clerk/nextjs"
 import { HStack, type StackProps, VStack } from "@/components/layout/stack"
 import { PageTitle } from "@/components/layout/text"
 import { cn, type Route } from "@/lib/utils"
-import { BreakevenBadge } from "./breakeven-badge"
+import { BreakevenBadge } from "./billing/breakeven"
 
 export type MembershipProps<T extends string = string> = StackProps & {
   redirectURL: Route<T>

@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import type React from "react"
 import { LuArrowRight } from "react-icons/lu"
 import { VStack } from "@/components/layout/stack"
@@ -36,10 +35,8 @@ export const JoinDialog: React.FC<JoinDialogProps> = ({ pod, memberCount }) => (
 
         <AlertDialogFooter>
           <AlertDialogAction asChild size="sm">
-            <Link href={`/pods/${pod._id}`}>
-              Enter
-              <LuArrowRight className="size-3 inline" />
-            </Link>
+            Enter
+            <LuArrowRight className="size-3 inline" />
           </AlertDialogAction>
         </AlertDialogFooter>
       </VStack>

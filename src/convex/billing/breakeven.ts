@@ -6,7 +6,7 @@ import { DateTime } from "luxon"
 import { components, internal } from "@/convex/_generated/api"
 import { internalAction } from "@/convex/_generated/server"
 import { authAction } from "@/convex/_helpers/server"
-import type { Subscriptions } from "./clerk/query"
+import type { Subscriptions } from "@/convex/clerk/query"
 
 const LAUNCH_DATE = DateTime.fromISO("2025-11-01")
 
@@ -47,8 +47,8 @@ export const progress = authAction({
 })
 
 const cache = new ActionCache(components.actionCache, {
-  name: "internalProgress",
-  action: internal.breakeven.internalProgress,
+  name: "pnl",
+  action: internal.billing.breakeven.pnl,
   ttl: 24 * HOUR,
 })
 
@@ -65,7 +65,7 @@ type PNL = {
   }
 }
 
-export const internalProgress = internalAction({
+export const pnl = internalAction({
   args: {
     now: v.string(),
   },

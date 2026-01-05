@@ -14,7 +14,7 @@ import type * as admin_linkedin from "../admin/linkedin.js";
 import type * as admin_moderation from "../admin/moderation.js";
 import type * as aggregates from "../aggregates.js";
 import type * as auth from "../auth.js";
-import type * as breakeven from "../breakeven.js";
+import type * as billing_breakeven from "../billing/breakeven.js";
 import type * as clerk_client from "../clerk/client.js";
 import type * as clerk_mutate from "../clerk/mutate.js";
 import type * as clerk_query from "../clerk/query.js";
@@ -60,7 +60,7 @@ declare const fullApi: ApiFromModules<{
   "admin/moderation": typeof admin_moderation;
   aggregates: typeof aggregates;
   auth: typeof auth;
-  breakeven: typeof breakeven;
+  "billing/breakeven": typeof billing_breakeven;
   "clerk/client": typeof clerk_client;
   "clerk/mutate": typeof clerk_mutate;
   "clerk/query": typeof clerk_query;

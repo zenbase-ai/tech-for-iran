@@ -5,18 +5,16 @@ export const env = createEnv({
   server: {
     CLERK_JWT_ISSUER_DOMAIN: z.url(),
     CLERK_SECRET_KEY: z.string().min(1),
-    CLERK_SIGNING_SECRET: z.string().min(1),
-    CONVEX_DEPLOYMENT: z.string().min(1),
-    NODE_ENV: z.enum(["development", "production"]).default("development"),
-    RESEND_API_KEY: z.string().min(1),
-    RESEND_WEBHOOK_SECRET: z.string().min(1),
+    // CLERK_SIGNING_SECRET: z.string().min(1),
+    // CONVEX_DEPLOYMENT: z.string().min(1),
+    // NODE_ENV: z.enum(["development", "production"]).default("development"),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.url(),
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
+    // NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
     NEXT_PUBLIC_CONVEX_URL: z.url(),
-    NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
-    NEXT_PUBLIC_POSTHOG_HOST: z.url(),
+    // NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
+    // NEXT_PUBLIC_POSTHOG_HOST: z.url(),
   },
   runtimeEnv: {
     CLERK_JWT_ISSUER_DOMAIN: process.env.CLERK_JWT_ISSUER_DOMAIN,
@@ -29,7 +27,5 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NODE_ENV: process.env.NODE_ENV,
-    RESEND_API_KEY: process.env.RESEND_API_KEY,
-    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
   },
 })

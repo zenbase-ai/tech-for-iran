@@ -6,21 +6,17 @@ set dotenv-path := ".env"
 set ignore-comments := true
 
 [group('ai')]
-claude *args:
-  bunx @anthropic-ai/claude-code@latest {{args}}
-
-[group('ai')]
 gemini *args:
   bunx @google/gemini-cli@latest {{args}}
 
 dev:
-  bun --bun convex dev & \
-  bun --bun next dev & \
+  bun convex dev & \
+  bun next dev & \
   pnpx dotenv-cli -c local -- pnpx react-email dev --dir src/emails --port 3001 & \
   wait
 
 build:
-  bun --bun next build
+  bun next build
 
 preview: build
   bun --bun next start
@@ -33,4 +29,4 @@ lint:
   bun --bun ultracite check
 
 deploy:
-  pnpx convex deploy -y
+  bun convex deploy -y

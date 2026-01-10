@@ -1,8 +1,13 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useMutation } from "convex/react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { VStack } from "@/components/layout/stack"
 import { Separator } from "@/components/ui/separator"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
+import useAsyncFn from "@/hooks/use-async-fn"
+import { clearReferralId, getReferralId } from "@/lib/referral"
 import { cn } from "@/lib/utils"
 import { useSignFlow } from "./hooks/use-sign-flow"
 import type { Code, Commitment, Identity, SignFlowData, Verify, WhySigned } from "./schema"
@@ -15,12 +20,17 @@ import { WhyStep } from "./steps/why-step"
 
 export type SignFlowResult = SignFlowData & {
   phoneHash: string
+  signatoryId: Id<"signatories">
+  isUpdate: boolean
 }
 
 export type SignFlowProps = {
   onSuccess?: (result: SignFlowResult) => void
   className?: string
 }
+
+// Regex patterns moved to top level for performance
+const CONVEX_ID_REGEX = /^[a-z0-9]{32}$/i
 
 /**
  * SignFlow - Progressive disclosure sign flow component.
@@ -36,6 +46,14 @@ export type SignFlowProps = {
 export const SignFlow: React.FC<SignFlowProps> = ({ onSuccess, className }) => {
   const signFlow = useSignFlow()
   const stepContainerRef = useRef<HTMLDivElement>(null)
+  const [signatoryResult, setSignatoryResult] = useState<{
+    signatoryId: Id<"signatories">
+    isUpdate: boolean
+  } | null>(null)
+
+  // Convex mutation for creating signatory
+  const createSignatoryMutation = useMutation(api.signatories.mutate.create)
+  const createSignatory = useAsyncFn(createSignatoryMutation)
 
   const {
     currentStep,
@@ -68,12 +86,53 @@ export const SignFlow: React.FC<SignFlowProps> = ({ onSuccess, className }) => {
     }
   }, [currentStep])
 
-  // Notify parent when flow completes successfully
+  // Create signatory when verification succeeds
   useEffect(() => {
-    if (currentStep === "SUCCESS" && onSuccess && phoneHash) {
-      onSuccess({ ...(data as SignFlowData), phoneHash })
+    if (currentStep === "SUCCESS" && phoneHash && !signatoryResult && !createSignatory.pending) {
+      const createRecord = async () => {
+        // Get referral ID if present
+        const referredByRaw = getReferralId()
+        // Only pass referredBy if it looks like a valid Convex ID
+        const referredBy =
+          referredByRaw && CONVEX_ID_REGEX.test(referredByRaw)
+            ? (referredByRaw as Id<"signatories">)
+            : undefined
+
+        const result = await createSignatory.execute({
+          name: data.name || "",
+          title: data.title || "",
+          company: data.company || "",
+          phoneHash,
+          whySigned: data.whySigned || undefined,
+          commitmentText: data.commitment || undefined,
+          referredBy,
+        })
+
+        if (result.signatoryId) {
+          // Clear referral cookie after successful creation
+          clearReferralId()
+          setSignatoryResult({
+            signatoryId: result.signatoryId,
+            isUpdate: result.isUpdate,
+          })
+        }
+      }
+
+      createRecord()
     }
-  }, [currentStep, data, phoneHash, onSuccess])
+  }, [currentStep, phoneHash, signatoryResult, createSignatory, data])
+
+  // Notify parent when signatory is created
+  useEffect(() => {
+    if (currentStep === "SUCCESS" && onSuccess && phoneHash && signatoryResult) {
+      onSuccess({
+        ...(data as SignFlowData),
+        phoneHash,
+        signatoryId: signatoryResult.signatoryId,
+        isUpdate: signatoryResult.isUpdate,
+      })
+    }
+  }, [currentStep, data, phoneHash, signatoryResult, onSuccess])
 
   // =================================================================
   // Step Handlers

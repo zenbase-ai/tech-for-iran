@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react"
 import { ManifestoSection } from "./_manifesto"
-import { SignFlow, type SignFlowData } from "./_sign-flow"
+import { SignFlow, type SignFlowResult } from "./_sign-flow"
 
 /**
  * HomeClientPage - Client component for the homepage.
@@ -14,7 +14,7 @@ import { SignFlow, type SignFlowData } from "./_sign-flow"
 export const HomeClientPage: React.FC = () => {
   const signFlowRef = useRef<HTMLDivElement>(null)
   const [signFlowSuccess, setSignFlowSuccess] = useState(false)
-  const [signedData, setSignedData] = useState<SignFlowData | null>(null)
+  const [signedData, setSignedData] = useState<SignFlowResult | null>(null)
 
   const scrollToSignFlow = useCallback(() => {
     signFlowRef.current?.scrollIntoView({
@@ -23,7 +23,7 @@ export const HomeClientPage: React.FC = () => {
     })
   }, [])
 
-  const handleSignFlowSuccess = useCallback((data: SignFlowData) => {
+  const handleSignFlowSuccess = useCallback((data: SignFlowResult) => {
     setSignedData(data)
     setSignFlowSuccess(true)
   }, [])

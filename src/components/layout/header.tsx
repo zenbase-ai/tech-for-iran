@@ -32,7 +32,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       wrap={wrap}
       {...props}
     >
-      <Link href="/pods">
+      <Link href="/">
         <Logo className="stroke-2" size="size-7" />
       </Link>
 

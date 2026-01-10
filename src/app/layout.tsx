@@ -1,4 +1,4 @@
-import type { Viewport } from "next"
+import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import { Suspense } from "react"
 import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
@@ -8,11 +8,20 @@ import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
+export const metadata: Metadata = {
+  title: {
+    default: "Tech for Iran",
+    template: "%s | Tech for Iran",
+  },
+  description:
+    "An open letter from founders, investors, and operators pledging to do business with a free Iran.",
+}
+
 export const viewport: Viewport = {
   colorScheme: "light dark",
   initialScale: 1.0,
   maximumScale: 1.0,
-  themeColor: "#74abae",
+  themeColor: "#000000",
   viewportFit: "cover",
   width: "device-width",
 }

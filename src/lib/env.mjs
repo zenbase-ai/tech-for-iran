@@ -8,11 +8,8 @@ export const env = createEnv({
     CLERK_SIGNING_SECRET: z.string().min(1),
     CONVEX_DEPLOYMENT: z.string().min(1),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
-    OPENAI_API_KEY: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
     RESEND_WEBHOOK_SECRET: z.string().min(1),
-    UNIPILE_API_KEY: z.string().min(1),
-    UNIPILE_API_URL: z.url(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.url(),
@@ -32,10 +29,7 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NODE_ENV: process.env.NODE_ENV,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
-    UNIPILE_API_KEY: process.env.UNIPILE_API_KEY,
-    UNIPILE_API_URL: process.env.UNIPILE_API_URL,
   },
 })

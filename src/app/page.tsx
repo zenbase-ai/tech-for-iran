@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
-import { VStack } from "@/components/layout/stack"
-import { PageTitle } from "@/components/layout/text"
+import { HomeClientPage } from "./page.client"
 
 export const metadata: Metadata = {
   title: "Tech for Iran",
@@ -10,10 +9,5 @@ export const metadata: Metadata = {
 export default function HomePage() {
   "use memo"
 
-  return (
-    <VStack as="main" className="gap-8" items="center" justify="center">
-      <PageTitle>Tech for Iran</PageTitle>
-      <p className="text-muted-foreground">Coming soon.</p>
-    </VStack>
-  )
+  return <HomeClientPage />
 }

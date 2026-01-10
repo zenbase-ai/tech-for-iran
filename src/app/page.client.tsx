@@ -1,8 +1,8 @@
 "use client"
 
 import { useCallback, useRef } from "react"
-import { ManifestoSection } from "./_manifesto"
-import { SignFlow } from "./_sign-flow"
+import { ManifestoSection } from "./_manifesto/manifesto-section"
+import { SignLetter } from "./_sign-flow/sign-letter"
 
 /**
  * HomeClientPage - Client component for the homepage.
@@ -34,7 +34,7 @@ export const HomeClientPage: React.FC = () => {
       >
         <div className="w-full max-w-[650px]">
           <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">Sign the Letter</h2>
-          <SignFlow />
+          <SignLetter />
         </div>
       </section>
     </main>

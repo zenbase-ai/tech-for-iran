@@ -2,7 +2,7 @@ import { v } from "convex/values"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
 import { authQuery } from "@/convex/_helpers/server"
-import { signatoryReferrals } from "@/convex/aggregates"
+import { signatoryCount, signatoryReferrals } from "@/convex/aggregates"
 
 // Regex pattern for validating phone hash (64 hex chars)
 const PHONE_HASH_REGEX = /^[a-f0-9]{64}$/i
@@ -100,5 +100,91 @@ export const get = query({
   },
   handler: async (ctx, { signatoryId }): Promise<Doc<"signatories"> | null> => {
     return await ctx.db.get(signatoryId)
+  },
+})
+
+/**
+ * Get the total count of signatories.
+ *
+ * Uses the signatoryCount aggregate for O(1) reads rather than
+ * counting documents on each request. This is used on:
+ * - Success state: "Join X founders ready for a free Iran"
+ * - Wall of Commitments header
+ *
+ * @returns The total number of signatories who have signed the letter
+ */
+export const count = query({
+  args: {},
+  handler: async (ctx): Promise<number> => {
+    return await signatoryCount.count(ctx, {})
+  },
+})
+
+// =================================================================
+// Wall of Commitments Queries
+// =================================================================
+
+// Sort options for the wall of commitments
+export const sortOptions = ["upvotes", "recent"] as const
+export type SortOption = (typeof sortOptions)[number]
+
+/**
+ * Paginated list of signatories for the Wall of Commitments.
+ *
+ * Returns pinned signatories first (on the first page only), then the rest
+ * sorted by upvote count or creation time.
+ *
+ * @param sort - Sort order: 'upvotes' (by upvoteCount desc) or 'recent' (by _creationTime desc)
+ * @param paginationOpts - Pagination options from usePaginatedQuery
+ * @returns Paginated list of signatories
+ */
+export const list = query({
+  args: {
+    sort: v.union(v.literal("upvotes"), v.literal("recent")),
+    paginationOpts: v.object({
+      numItems: v.number(),
+      cursor: v.union(v.string(), v.null()),
+    }),
+  },
+  handler: async (ctx, { sort, paginationOpts }) => {
+    const { numItems, cursor } = paginationOpts
+    const isFirstPage = cursor === null
+
+    // Get pinned signatories (only on first page)
+    let pinned: Doc<"signatories">[] = []
+    if (isFirstPage) {
+      pinned = await ctx.db
+        .query("signatories")
+        .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", true))
+        .order("desc")
+        .collect()
+    }
+
+    // Get non-pinned signatories with pagination
+    // Both sorts use the same index query - "recent" re-sorts in memory after
+    const regularPage = await ctx.db
+      .query("signatories")
+      .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", false))
+      .order("desc")
+      .paginate({
+        numItems,
+        cursor,
+      })
+
+    // For recent sort, we need to re-sort by creation time
+    // since by_pinned_upvoteCount sorts by upvoteCount
+    let regular = regularPage.page
+    if (sort === "recent") {
+      regular = regular.sort((a, b) => b._creationTime - a._creationTime)
+    }
+
+    // Combine pinned and regular signatories
+    const results = isFirstPage ? [...pinned, ...regular] : regular
+
+    return {
+      page: results,
+      isDone: regularPage.isDone,
+      continueCursor: regularPage.continueCursor,
+    }
   },
 })

@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
       ? truncate(signatory.commitmentText, { length: 160 })
       : `${signatory.name} pledged to do business with a free Iran. Join the movement.`
 
-    const shareUrl = url(`/s/${signatoryId}`)
+    const shareURL = url(`/s/${signatoryId}`)
 
     return {
       title,
@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
       openGraph: {
         title,
         description,
-        url: shareUrl,
+        url: shareURL,
         type: "website",
         siteName: "Tech for Iran",
       },

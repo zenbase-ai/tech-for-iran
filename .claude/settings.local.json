@@ -17,7 +17,16 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(ls:*)",
-      "Bash(just build:*)"
+      "Bash(just build:*)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran status)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran diff)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran log --oneline -5)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran add src/app/_sign-flow/steps/success-step.tsx src/components/share-url-card.tsx)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran commit -m \"$\\(cat <<''EOF''\nreplace shareURLCard with CopyButton in success step\n\nRemoves the single-use shareURLCard component in favor of the existing\nCopyButton which provides better animated feedback on copy.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran reset HEAD)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran stash drop)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran status src/components/share-url-card.tsx src/app/_sign-flow/steps/success-step.tsx)",
+      "Bash(git -C /Users/knrz/Git/CyrusNuevoDia/tech-for-iran add src/app/_sign-flow/steps/success-step.tsx)"
     ],
     "deny": [],
     "ask": []

@@ -23,6 +23,7 @@ export default defineSchema({
     // Content fields (optional)
     whySigned: v.optional(v.string()), // "Why I'm signing" text (max 280 chars)
     commitmentText: v.optional(v.string()), // "100 days" commitment text (max 2000 chars)
+    xUsername: v.optional(v.string()), // X (Twitter) username without @ (max 15 chars)
 
     // Metadata fields
     pinned: v.boolean(), // Featured signatories (defaults to false)

@@ -11,6 +11,7 @@ export const signFlowConfig = {
     company: 100,
     whySigned: 280,
     commitment: 2000,
+    xUsername: 15, // Twitter/X max username length
   },
   defaultValues: {
     name: "",
@@ -18,6 +19,7 @@ export const signFlowConfig = {
     company: "",
     whySigned: "",
     commitment: "",
+    xUsername: "",
     phoneNumber: "",
     countryCode: "+1",
     verificationCode: "",
@@ -71,6 +73,20 @@ export const CommitmentSchema = z.object({
 
 export type Commitment = z.infer<typeof CommitmentSchema>
 
+export const XUsernameSchema = z.object({
+  xUsername: z
+    .string()
+    .max(
+      signFlowConfig.max.xUsername,
+      `Username must be ${signFlowConfig.max.xUsername} characters or less`
+    )
+    .regex(/^[a-zA-Z0-9_]*$/, "Username can only contain letters, numbers, and underscores")
+    .optional()
+    .or(z.literal("")),
+})
+
+export type XUsername = z.infer<typeof XUsernameSchema>
+
 export const VerifySchema = z.object({
   countryCode: z.string().min(1, "Country code is required"),
   phoneNumber: z
@@ -98,6 +114,7 @@ export const SignFlowSchema = z.object({
   ...IdentitySchema.shape,
   ...WhySignedSchema.shape,
   ...CommitmentSchema.shape,
+  ...XUsernameSchema.shape,
   ...VerifySchema.shape,
   ...CodeSchema.shape,
 })

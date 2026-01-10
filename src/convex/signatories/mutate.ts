@@ -15,6 +15,7 @@ export const createSignatoryConfig = {
     company: 100,
     whySigned: 280,
     commitmentText: 2000,
+    xUsername: 15,
     phoneHash: 64,
   },
 }
@@ -33,6 +34,11 @@ const CreateSignatorySchema = z.object({
     .regex(/^[a-f0-9]+$/i, "Phone hash must be a valid hex string"),
   whySigned: z.string().max(createSignatoryConfig.max.whySigned).optional(),
   commitmentText: z.string().max(createSignatoryConfig.max.commitmentText).optional(),
+  xUsername: z
+    .string()
+    .max(createSignatoryConfig.max.xUsername)
+    .regex(/^[a-zA-Z0-9_]*$/, "Username can only contain letters, numbers, and underscores")
+    .optional(),
   referredBy: z.string().optional(),
 })
 
@@ -74,6 +80,7 @@ export const create = authMutation({
     phoneHash: v.string(),
     whySigned: v.optional(v.string()),
     commitmentText: v.optional(v.string()),
+    xUsername: v.optional(v.string()),
     referredBy: v.optional(v.id("signatories")),
   },
   handler: async (ctx, args): Promise<CreateResult> => {
@@ -83,7 +90,7 @@ export const create = authMutation({
       return { signatoryId: null, error: errorMessage(error) }
     }
 
-    const { name, title, company, phoneHash, whySigned, commitmentText } = data
+    const { name, title, company, phoneHash, whySigned, commitmentText, xUsername } = data
 
     // Check if signatory already exists with this phone hash
     const existing = await ctx.db
@@ -102,6 +109,7 @@ export const create = authMutation({
         // Only update optional fields if provided
         ...(whySigned !== undefined && { whySigned }),
         ...(commitmentText !== undefined && { commitmentText }),
+        ...(xUsername !== undefined && { xUsername }),
       })
 
       return { signatoryId: existing._id, isUpdate: true }
@@ -126,6 +134,7 @@ export const create = authMutation({
       phoneHash,
       whySigned: whySigned || undefined,
       commitmentText: commitmentText || undefined,
+      xUsername: xUsername || undefined,
       pinned: false,
       upvoteCount: 0,
       referredBy: validReferredBy,

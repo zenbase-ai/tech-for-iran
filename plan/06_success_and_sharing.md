@@ -28,7 +28,7 @@ The main success step component that appears after phone verification completes.
 - Constructs the unique share URL using the signatory ID
 - Renders the celebratory UI with share options
 
-### ShareUrlCard Component
+### shareURLCard Component
 
 A card component displaying the shareable URL with a copy-to-clipboard button:
 
@@ -229,7 +229,7 @@ The user just completed a meaningful action. The UI should:
 
 ### Automated Testing Suggestions
 
-- Unit test ShareUrlCard copy functionality with mocked clipboard API
+- Unit test shareURLCard copy functionality with mocked clipboard API
 - Unit test SocialShareButtons URL construction with various commitment lengths
 - Integration test the signatory count aggregate increments correctly
 
@@ -525,7 +525,7 @@ SuccessStep
 │   │
 │   └── <p> "Join {count} founders ready for a free Iran."
 │
-├── <ShareUrlCard signatoryId={id} />
+├── <shareURLCard signatoryId={id} />
 │   │
 │   ├── <span> "Share your pledge"
 │   │

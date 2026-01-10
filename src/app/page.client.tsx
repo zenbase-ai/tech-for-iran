@@ -1,8 +1,8 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useRef } from "react"
 import { ManifestoSection } from "./_manifesto"
-import { SignFlow, type SignFlowResult } from "./_sign-flow"
+import { SignFlow } from "./_sign-flow"
 
 /**
  * HomeClientPage - Client component for the homepage.
@@ -13,19 +13,12 @@ import { SignFlow, type SignFlowResult } from "./_sign-flow"
  */
 export const HomeClientPage: React.FC = () => {
   const signFlowRef = useRef<HTMLDivElement>(null)
-  const [signFlowSuccess, setSignFlowSuccess] = useState(false)
-  const [signedData, setSignedData] = useState<SignFlowResult | null>(null)
 
   const scrollToSignFlow = useCallback(() => {
     signFlowRef.current?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     })
-  }, [])
-
-  const handleSignFlowSuccess = useCallback((data: SignFlowResult) => {
-    setSignedData(data)
-    setSignFlowSuccess(true)
   }, [])
 
   return (
@@ -41,22 +34,7 @@ export const HomeClientPage: React.FC = () => {
       >
         <div className="w-full max-w-[650px]">
           <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">Sign the Letter</h2>
-
-          {signFlowSuccess && signedData ? (
-            /* Success state - placeholder for Step 4 */
-            <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="mb-6 text-5xl">&#10003;</div>
-              <h3 className="text-xl font-semibold mb-2">You've signed the letter!</h3>
-              <p className="text-muted-foreground mb-4">
-                Thank you, {signedData.name}. Your voice matters.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Share options and success page will be built in Step 4.
-              </p>
-            </div>
-          ) : (
-            <SignFlow onSuccess={handleSignFlowSuccess} />
-          )}
+          <SignFlow />
         </div>
       </section>
     </main>

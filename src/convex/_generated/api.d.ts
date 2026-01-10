@@ -15,7 +15,11 @@ import type * as auth from "../auth.js";
 import type * as clerk_client from "../clerk/client.js";
 import type * as clerk_mutate from "../clerk/mutate.js";
 import type * as clerk_query from "../clerk/query.js";
+import type * as signatories_mutate from "../signatories/mutate.js";
+import type * as signatories_query from "../signatories/query.js";
 import type * as triggers from "../triggers.js";
+import type * as upvotes_mutate from "../upvotes/mutate.js";
+import type * as upvotes_query from "../upvotes/query.js";
 
 import type {
   ApiFromModules,
@@ -31,7 +35,11 @@ declare const fullApi: ApiFromModules<{
   "clerk/client": typeof clerk_client;
   "clerk/mutate": typeof clerk_mutate;
   "clerk/query": typeof clerk_query;
+  "signatories/mutate": typeof signatories_mutate;
+  "signatories/query": typeof signatories_query;
   triggers: typeof triggers;
+  "upvotes/mutate": typeof upvotes_mutate;
+  "upvotes/query": typeof upvotes_query;
 }>;
 
 /**

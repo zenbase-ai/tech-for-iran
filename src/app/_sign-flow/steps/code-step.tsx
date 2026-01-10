@@ -1,17 +1,18 @@
 "use client"
 
+import { useClerk, useSignUp } from "@clerk/nextjs"
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
 import { HStack, VStack } from "@/components/layout/stack"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { hashPhoneNumber } from "@/lib/phone"
 import { cn } from "@/lib/utils"
 import { type Code, signFlowConfig } from "../schema"
 
 export type CodeStepProps = {
   phoneNumber: string
-  onComplete: (data: Code) => boolean
-  onResend: () => Promise<boolean>
-  onVerify: (code: string) => Promise<boolean>
+  fullPhoneNumber: string
+  onComplete: (data: Code, phoneHash: string) => boolean
   className?: string
 }
 
@@ -19,18 +20,33 @@ const CODE_LENGTH = 6
 const DIGIT_REGEX = /^\d$/
 
 /**
+ * Map Clerk error codes to user-friendly messages.
+ */
+const getClerkErrorMessage = (errorCode: string | undefined): string => {
+  switch (errorCode) {
+    case "form_code_incorrect":
+      return "That code didn't work. Please try again or request a new code."
+    case "too_many_requests":
+      return "Too many attempts. Please wait a few minutes."
+    default:
+      return "Something went wrong. Please try again."
+  }
+}
+
+/**
  * CodeStep - 6-digit OTP verification step.
  *
  * Features auto-advancing between digit boxes, paste support,
- * and a resend countdown timer.
+ * and a resend countdown timer. Uses Clerk for verification.
  */
 export const CodeStep: React.FC<CodeStepProps> = ({
   phoneNumber,
+  fullPhoneNumber,
   onComplete,
-  onResend,
-  onVerify,
   className,
 }) => {
+  const { signUp, isLoaded } = useSignUp()
+  const { setActive } = useClerk()
   const [digits, setDigits] = useState<string[]>(new Array(CODE_LENGTH).fill(""))
   const [isVerifying, setIsVerifying] = useState(false)
   const [isResending, setIsResending] = useState(false)
@@ -71,7 +87,7 @@ export const CodeStep: React.FC<CodeStepProps> = ({
   }, [isComplete, isVerifying])
 
   const handleVerify = useEffectEvent(async () => {
-    if (!isComplete || isVerifying) {
+    if (!isComplete || isVerifying || !isLoaded || !signUp) {
       return
     }
 
@@ -79,25 +95,38 @@ export const CodeStep: React.FC<CodeStepProps> = ({
     setError(null)
 
     try {
-      const success = await onVerify(code)
+      // Attempt to verify the code with Clerk
+      const result = await signUp.attemptPhoneNumberVerification({ code })
 
-      if (success) {
-        onComplete({ verificationCode: code })
+      if (result.status === "complete") {
+        // Set the active session
+        await setActive({ session: result.createdSessionId })
+
+        // Hash the phone number
+        const phoneHash = await hashPhoneNumber(fullPhoneNumber)
+
+        // Success - transition to completion
+        onComplete({ verificationCode: code }, phoneHash)
       } else {
-        setError("That code didn't work. Please try again or request a new code.")
-        // Clear digits and focus first input
-        setDigits(new Array(CODE_LENGTH).fill(""))
-        inputRefs.current[0]?.focus()
+        // Verification not complete (shouldn't happen with phone-only flow)
+        setError("Verification incomplete. Please try again.")
       }
-    } catch (_err) {
-      setError("An error occurred. Please try again.")
+    } catch (err: unknown) {
+      // Extract Clerk error code
+      const clerkError = err as { errors?: Array<{ code?: string }> }
+      const errorCode = clerkError.errors?.[0]?.code
+      setError(getClerkErrorMessage(errorCode))
+
+      // Don't clear digits on error - let user correct
+      // Focus first input for correction
+      inputRefs.current[0]?.focus()
     } finally {
       setIsVerifying(false)
     }
   })
 
   const handleResend = useEffectEvent(async () => {
-    if (resendCountdown > 0 || isResending) {
+    if (resendCountdown > 0 || isResending || !isLoaded || !signUp) {
       return
     }
 
@@ -105,17 +134,18 @@ export const CodeStep: React.FC<CodeStepProps> = ({
     setError(null)
 
     try {
-      const success = await onResend()
+      // Resend verification code via Clerk
+      await signUp.preparePhoneNumberVerification({ strategy: "phone_code" })
 
-      if (success) {
-        setResendCountdown(signFlowConfig.resendCooldown)
-        setDigits(new Array(CODE_LENGTH).fill(""))
-        inputRefs.current[0]?.focus()
-      } else {
-        setError("Failed to resend code. Please try again.")
-      }
-    } catch (_err) {
-      setError("An error occurred. Please try again.")
+      // Reset countdown and clear digits
+      setResendCountdown(signFlowConfig.resendCooldown)
+      setDigits(new Array(CODE_LENGTH).fill(""))
+      inputRefs.current[0]?.focus()
+    } catch (err: unknown) {
+      // Extract Clerk error code
+      const clerkError = err as { errors?: Array<{ code?: string }> }
+      const errorCode = clerkError.errors?.[0]?.code
+      setError(getClerkErrorMessage(errorCode))
     } finally {
       setIsResending(false)
     }

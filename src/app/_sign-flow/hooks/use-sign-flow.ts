@@ -28,6 +28,8 @@ export type SignFlowState = {
   completedSteps: SignFlowStep[]
   skippedSteps: SignFlowStep[]
   phoneNumberForDisplay: string | null
+  fullPhoneNumber: string | null
+  phoneHash: string | null
   errors: Partial<Record<keyof SignFlowData, string>>
 }
 
@@ -41,8 +43,11 @@ type SignFlowAction =
   | { type: "SKIP_WHY" }
   | { type: "COMPLETE_COMMITMENT"; payload: Commitment }
   | { type: "SKIP_COMMITMENT" }
-  | { type: "COMPLETE_VERIFY"; payload: Verify & { displayNumber: string } }
-  | { type: "COMPLETE_CODE"; payload: Code }
+  | {
+      type: "COMPLETE_VERIFY"
+      payload: Verify & { displayNumber: string; fullPhoneNumber: string }
+    }
+  | { type: "COMPLETE_CODE"; payload: Code & { phoneHash: string } }
   | { type: "SET_ERROR"; payload: { field: keyof SignFlowData; message: string } }
   | { type: "CLEAR_ERROR"; payload: keyof SignFlowData }
   | { type: "RESET" }
@@ -67,6 +72,8 @@ const initialState: SignFlowState = {
   completedSteps: [],
   skippedSteps: [],
   phoneNumberForDisplay: null,
+  fullPhoneNumber: null,
+  phoneHash: null,
   errors: {},
 }
 
@@ -141,23 +148,26 @@ function signFlowReducer(state: SignFlowState, action: SignFlowAction): SignFlow
     }
 
     case "COMPLETE_VERIFY": {
-      const { displayNumber, ...verifyData } = action.payload
+      const { displayNumber, fullPhoneNumber, ...verifyData } = action.payload
       return {
         ...state,
         currentStep: "CODE",
         data: { ...state.data, ...verifyData },
         completedSteps: [...state.completedSteps, "VERIFY"],
         phoneNumberForDisplay: displayNumber,
+        fullPhoneNumber,
         errors: {},
       }
     }
 
     case "COMPLETE_CODE": {
+      const { phoneHash, ...codeData } = action.payload
       return {
         ...state,
         currentStep: "SUCCESS",
-        data: { ...state.data, ...action.payload },
+        data: { ...state.data, ...codeData },
         completedSteps: [...state.completedSteps, "CODE"],
+        phoneHash,
         errors: {},
       }
     }
@@ -213,6 +223,8 @@ export type UseSignFlowReturn = {
   completedSteps: SignFlowStep[]
   skippedSteps: SignFlowStep[]
   phoneNumberForDisplay: string | null
+  fullPhoneNumber: string | null
+  phoneHash: string | null
   errors: Partial<Record<keyof SignFlowData, string>>
 
   // Step completion actions
@@ -221,8 +233,8 @@ export type UseSignFlowReturn = {
   skipWhy: () => void
   completeCommitment: (data: Commitment) => boolean
   skipCommitment: () => void
-  completeVerify: (data: Verify, displayNumber: string) => boolean
-  completeCode: (data: Code) => boolean
+  completeVerify: (data: Verify, displayNumber: string, fullPhoneNumber: string) => boolean
+  completeCode: (data: Code, phoneHash: string) => boolean
 
   // Navigation
   goBack: () => void
@@ -299,23 +311,32 @@ export function useSignFlow(): UseSignFlowReturn {
     dispatch({ type: "SKIP_COMMITMENT" })
   }, [])
 
-  const completeVerify = useCallback((data: Verify, displayNumber: string): boolean => {
-    const result = VerifySchema.safeParse(data)
-    if (!result.success) {
-      const firstError = result.error.issues[0]
-      if (firstError) {
-        dispatch({
-          type: "SET_ERROR",
-          payload: { field: firstError.path[0] as keyof SignFlowData, message: firstError.message },
-        })
+  const completeVerify = useCallback(
+    (data: Verify, displayNumber: string, fullPhoneNumber: string): boolean => {
+      const result = VerifySchema.safeParse(data)
+      if (!result.success) {
+        const firstError = result.error.issues[0]
+        if (firstError) {
+          dispatch({
+            type: "SET_ERROR",
+            payload: {
+              field: firstError.path[0] as keyof SignFlowData,
+              message: firstError.message,
+            },
+          })
+        }
+        return false
       }
-      return false
-    }
-    dispatch({ type: "COMPLETE_VERIFY", payload: { ...result.data, displayNumber } })
-    return true
-  }, [])
+      dispatch({
+        type: "COMPLETE_VERIFY",
+        payload: { ...result.data, displayNumber, fullPhoneNumber },
+      })
+      return true
+    },
+    []
+  )
 
-  const completeCode = useCallback((data: Code): boolean => {
+  const completeCode = useCallback((data: Code, phoneHash: string): boolean => {
     const result = CodeSchema.safeParse(data)
     if (!result.success) {
       const firstError = result.error.issues[0]
@@ -327,7 +348,7 @@ export function useSignFlow(): UseSignFlowReturn {
       }
       return false
     }
-    dispatch({ type: "COMPLETE_CODE", payload: result.data })
+    dispatch({ type: "COMPLETE_CODE", payload: { ...result.data, phoneHash } })
     return true
   }, [])
 
@@ -377,6 +398,8 @@ export function useSignFlow(): UseSignFlowReturn {
     completedSteps: state.completedSteps,
     skippedSteps: state.skippedSteps,
     phoneNumberForDisplay: state.phoneNumberForDisplay,
+    fullPhoneNumber: state.fullPhoneNumber,
+    phoneHash: state.phoneHash,
     errors: state.errors,
 
     completeIdentity,

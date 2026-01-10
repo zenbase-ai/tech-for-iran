@@ -13,8 +13,12 @@ import { IdentityStep } from "./steps/identity-step"
 import { VerifyStep } from "./steps/verify-step"
 import { WhyStep } from "./steps/why-step"
 
+export type SignFlowResult = SignFlowData & {
+  phoneHash: string
+}
+
 export type SignFlowProps = {
-  onSuccess?: (data: SignFlowData) => void
+  onSuccess?: (result: SignFlowResult) => void
   className?: string
 }
 
@@ -39,6 +43,8 @@ export const SignFlow: React.FC<SignFlowProps> = ({ onSuccess, className }) => {
     completedSteps,
     skippedSteps,
     phoneNumberForDisplay,
+    fullPhoneNumber,
+    phoneHash,
     completeIdentity,
     completeWhy,
     skipWhy,
@@ -64,10 +70,10 @@ export const SignFlow: React.FC<SignFlowProps> = ({ onSuccess, className }) => {
 
   // Notify parent when flow completes successfully
   useEffect(() => {
-    if (currentStep === "SUCCESS" && onSuccess) {
-      onSuccess(data as SignFlowData)
+    if (currentStep === "SUCCESS" && onSuccess && phoneHash) {
+      onSuccess({ ...(data as SignFlowData), phoneHash })
     }
-  }, [currentStep, data, onSuccess])
+  }, [currentStep, data, phoneHash, onSuccess])
 
   // =================================================================
   // Step Handlers
@@ -86,38 +92,18 @@ export const SignFlow: React.FC<SignFlowProps> = ({ onSuccess, className }) => {
   )
 
   const handleVerifyComplete = useCallback(
-    (verifyData: Verify, displayNumber: string) => completeVerify(verifyData, displayNumber),
+    (verifyData: Verify, displayNumber: string) => {
+      // Build full phone number from country code and phone number
+      const fullPhone = `${verifyData.countryCode}${verifyData.phoneNumber.replace(/\D/g, "")}`
+      return completeVerify(verifyData, displayNumber, fullPhone)
+    },
     [completeVerify]
   )
 
-  const handleCodeComplete = useCallback((codeData: Code) => completeCode(codeData), [completeCode])
-
-  // =================================================================
-  // Mock API Handlers (to be replaced with real API in Wave 3)
-  // =================================================================
-
-  const handleSendCode = useCallback(async (fullPhoneNumber: string): Promise<boolean> => {
-    // Mock: simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    // Mock: always succeed for now
-    console.log("[Mock] Sending verification code to:", fullPhoneNumber)
-    return true
-  }, [])
-
-  const handleVerifyCode = useCallback(async (code: string): Promise<boolean> => {
-    // Mock: simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    // Mock: accept any 6-digit code for now
-    console.log("[Mock] Verifying code:", code)
-    return code.length === 6
-  }, [])
-
-  const handleResendCode = useCallback(async (): Promise<boolean> => {
-    // Mock: simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log("[Mock] Resending verification code")
-    return true
-  }, [])
+  const handleCodeComplete = useCallback(
+    (codeData: Code, hash: string) => completeCode(codeData, hash),
+    [completeCode]
+  )
 
   // =================================================================
   // Render
@@ -185,16 +171,14 @@ export const SignFlow: React.FC<SignFlowProps> = ({ onSuccess, className }) => {
               phoneNumber: data.phoneNumber,
             }}
             onComplete={handleVerifyComplete}
-            onSendCode={handleSendCode}
           />
         )}
 
         {/* Code Step */}
-        {currentStep === "CODE" && phoneNumberForDisplay && (
+        {currentStep === "CODE" && phoneNumberForDisplay && fullPhoneNumber && (
           <CodeStep
+            fullPhoneNumber={fullPhoneNumber}
             onComplete={handleCodeComplete}
-            onResend={handleResendCode}
-            onVerify={handleVerifyCode}
             phoneNumber={phoneNumberForDisplay}
           />
         )}

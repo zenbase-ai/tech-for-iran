@@ -1,5 +1,6 @@
 "use client"
 
+import { useSignUp } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useEffectEvent, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -15,27 +16,37 @@ import {
 import { Input } from "@/components/ui/input"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Spinner } from "@/components/ui/spinner"
+import { formatPhoneForDisplay } from "@/lib/phone"
 import { cn } from "@/lib/utils"
 import { countryCodes, signFlowConfig, type Verify, VerifySchema } from "../schema"
 
 export type VerifyStepProps = {
   initialData?: Partial<Verify>
   onComplete: (data: Verify, displayNumber: string) => boolean
-  onSendCode: (fullPhoneNumber: string) => Promise<boolean>
   className?: string
+}
+
+/**
+ * Map Clerk error codes to user-friendly messages.
+ */
+const getClerkErrorMessage = (errorCode: string | undefined): string => {
+  switch (errorCode) {
+    case "form_identifier_exists":
+      return "This phone number has already signed the letter. If this is you and you need to update your information, contact us at hello@techforiran.com"
+    case "too_many_requests":
+      return "Too many attempts. Please wait a few minutes."
+    default:
+      return "Something went wrong. Please try again."
+  }
 }
 
 /**
  * VerifyStep - Phone verification step.
  *
- * Collects phone number with country code selector and sends verification code.
+ * Collects phone number with country code selector and sends verification code via Clerk.
  */
-export const VerifyStep: React.FC<VerifyStepProps> = ({
-  initialData,
-  onComplete,
-  onSendCode,
-  className,
-}) => {
+export const VerifyStep: React.FC<VerifyStepProps> = ({ initialData, onComplete, className }) => {
+  const { signUp, isLoaded } = useSignUp()
   const phoneInputRef = useRef<HTMLInputElement>(null)
   const [isSending, setIsSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
@@ -58,22 +69,31 @@ export const VerifyStep: React.FC<VerifyStepProps> = ({
   }, [])
 
   const handleSubmit = useEffectEvent(async (data: Verify) => {
+    if (!(isLoaded && signUp)) {
+      setSendError("Phone verification is not available. Please try again later.")
+      return
+    }
+
     setIsSending(true)
     setSendError(null)
 
     try {
       const fullPhoneNumber = `${data.countryCode}${data.phoneNumber.replace(/\D/g, "")}`
-      const displayNumber = formatPhoneForDisplay(data.phoneNumber)
+      const displayNumber = formatPhoneForDisplay(data.phoneNumber, data.countryCode)
 
-      const success = await onSendCode(fullPhoneNumber)
+      // Create the signup with phone number
+      await signUp.create({ phoneNumber: fullPhoneNumber })
 
-      if (success) {
-        onComplete(data, displayNumber)
-      } else {
-        setSendError("Failed to send verification code. Please try again.")
-      }
-    } catch (_error) {
-      setSendError("An error occurred. Please try again.")
+      // Trigger SMS verification
+      await signUp.preparePhoneNumberVerification({ strategy: "phone_code" })
+
+      // Success - transition to code step
+      onComplete(data, displayNumber)
+    } catch (err: unknown) {
+      // Extract Clerk error code
+      const clerkError = err as { errors?: Array<{ code?: string }> }
+      const errorCode = clerkError.errors?.[0]?.code
+      setSendError(getClerkErrorMessage(errorCode))
     } finally {
       setIsSending(false)
     }
@@ -156,21 +176,4 @@ export const VerifyStep: React.FC<VerifyStepProps> = ({
       </HStack>
     </VStack>
   )
-}
-
-/**
- * Format phone number for display (e.g., "(555) 123-4567")
- */
-function formatPhoneForDisplay(phoneNumber: string): string {
-  const digits = phoneNumber.replace(/\D/g, "")
-
-  if (digits.length === 10) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-  }
-
-  if (digits.length === 11 && digits[0] === "1") {
-    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
-  }
-
-  return phoneNumber
 }

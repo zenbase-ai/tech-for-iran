@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef } from "react"
+import { VStack } from "@/components/layout/stack"
 import { ManifestoSection } from "./_manifesto/manifesto-section"
 import { SignLetter } from "./_sign-flow/sign-letter"
 
@@ -11,32 +11,15 @@ import { SignLetter } from "./_sign-flow/sign-letter"
  * The manifesto section fills the viewport, and clicking "Sign the letter"
  * smoothly scrolls to the sign flow section below.
  */
-export const HomeClientPage: React.FC = () => {
-  const signFlowRef = useRef<HTMLDivElement>(null)
+export const HomeClientPage: React.FC = () => (
+  <VStack as="main" className="max-w-2xl mx-auto">
+    {/* Section 1: The Manifesto */}
+    <ManifestoSection />
 
-  const scrollToSignFlow = useCallback(() => {
-    signFlowRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    })
-  }, [])
-
-  return (
-    <main>
-      {/* Section 1: The Manifesto */}
-      <ManifestoSection onScrollToSign={scrollToSignFlow} />
-
-      {/* Section 2: The Sign Flow */}
-      <section
-        aria-label="Sign the letter"
-        className="min-h-svh flex flex-col items-center px-6 py-16 md:py-24"
-        ref={signFlowRef}
-      >
-        <div className="w-full max-w-[650px]">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-8 text-center">Sign the Letter</h2>
-          <SignLetter />
-        </div>
-      </section>
-    </main>
-  )
-}
+    {/* Section 2: The Sign Flow */}
+    <VStack aria-label="Sign the letter" as="section" className="gap-8 mx-auto min-h-svh">
+      <h2 className="text-xl font-semibold text-left">Sign the Letter</h2>
+      <SignLetter />
+    </VStack>
+  </VStack>
+)

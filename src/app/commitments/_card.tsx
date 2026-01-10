@@ -51,7 +51,7 @@ export const CommitmentCard: React.FC<CommitmentCardProps> = ({
   const [whyExpanded, setWhyExpanded] = useState(false)
   const [showSignModal, setShowSignModal] = useState(false)
 
-  const hasCommitment = !!signatory.commitmentText
+  const hasCommitment = !!signatory.commitment
   const hasWhySigned = !!signatory.whySigned
 
   const upvote = useUpvote({
@@ -98,7 +98,7 @@ export const CommitmentCard: React.FC<CommitmentCardProps> = ({
             {/* Commitment text or fallback */}
             {hasCommitment ? (
               <blockquote className="border-l-2 border-primary/30 pl-4 italic text-sm">
-                "{signatory.commitmentText}"
+                "{signatory.commitment}"
               </blockquote>
             ) : (
               <p className="text-muted-foreground text-sm">Signed the letter.</p>
@@ -137,7 +137,7 @@ export const CommitmentCard: React.FC<CommitmentCardProps> = ({
             />
 
             {/* Relative timestamp */}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               <RelativeTime date={signatory._creationTime} />
             </span>
           </CardFooter>

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery } from "convex/react"
 import { AnimatePresence, motion } from "motion/react"
 import Link from "next/link"
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
+import { useCallback, useEffect, useEffectEvent, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { LuArrowRight, LuCheck, LuCopy } from "react-icons/lu"
 import { HStack, VStack } from "@/components/layout/stack"
@@ -14,6 +14,12 @@ import { Button } from "@/components/ui/button"
 import { CopyButton } from "@/components/ui/copy-button"
 import { FieldDescription, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group"
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { NumberTicker } from "@/components/ui/number-ticker"
@@ -114,7 +120,7 @@ const SuccessSection: React.FC<SuccessSectionProps> = ({ shareURL, totalCount, i
 
       {/* Share URL card */}
       <VStack className="w-full max-w-md gap-3">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
           Share your pledge
         </span>
         <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-3">
@@ -150,8 +156,6 @@ const SuccessSection: React.FC<SuccessSectionProps> = ({ shareURL, totalCount, i
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Form with many sections
 export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
-  const nameInputRef = useRef<HTMLInputElement>(null)
-
   // Clerk hooks
   const { signUp, isLoaded } = useSignUp()
   const { setActive } = useClerk()
@@ -181,19 +185,14 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
   const signatory = useQuery(api.signatories.query.get, signatoryId ? { signatoryId } : "skip")
   const totalCount = useQuery(api.signatories.query.count, isSubmitted ? {} : "skip")
 
-  // Form setup
+  // Form setup with shared schema
   const form = useForm<SignFlowData>({
     resolver: zodResolver(SignFlowSchema),
     defaultValues: {
-      name: signFlowConfig.defaultValues.name,
-      title: signFlowConfig.defaultValues.title,
-      company: signFlowConfig.defaultValues.company,
-      whySigned: signFlowConfig.defaultValues.whySigned,
-      commitment: signFlowConfig.defaultValues.commitment,
-      xUsername: signFlowConfig.defaultValues.xUsername,
-      countryCode: signFlowConfig.defaultValues.countryCode,
-      phoneNumber: signFlowConfig.defaultValues.phoneNumber,
-      verificationCode: signFlowConfig.defaultValues.verificationCode,
+      ...signFlowConfig.defaultValues,
+      countryCode: "+1",
+      phoneNumber: "",
+      verificationCode: "",
     },
     mode: "onBlur",
   })
@@ -207,14 +206,6 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
   const showVerify = showCommitment && (commitment.length > 0 || skippedCommitment)
   const showOtp = verificationState === "sent" || verificationState === "verifying"
   const isPhoneValid = phoneNumber.replace(/\D/g, "").length >= 7
-
-  // Auto-focus name input on mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      nameInputRef.current?.focus()
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [])
 
   // Countdown timer for resend
   useEffect(() => {
@@ -262,40 +253,42 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
     }
   })
 
-  const handleVerificationSuccess = useEffectEvent(async (sessionId: string | null) => {
-    await setActive({ session: sessionId })
+  const handleVerificationSuccess = useEffectEvent(
+    async (sessionId: string | null, formData: SignFlowData) => {
+      await setActive({ session: sessionId })
 
-    // Hash the phone number (fullPhoneNumber is always set before OTP verification)
-    if (!fullPhoneNumber) {
-      throw new Error("Phone number not set")
+      // Hash the phone number (fullPhoneNumber is always set before OTP verification)
+      if (!fullPhoneNumber) {
+        throw new Error("Phone number not set")
+      }
+      const phoneHash = await hashPhoneNumber(fullPhoneNumber)
+
+      // Get referral ID if valid
+      const referredByRaw = getReferralId()
+      const referredBy =
+        referredByRaw && CONVEX_ID_REGEX.test(referredByRaw)
+          ? (referredByRaw as Id<"signatories">)
+          : undefined
+
+      // Create signatory with validated form data
+      const createResult = await createSignatory.execute({
+        name: formData.name,
+        title: formData.title,
+        company: formData.company,
+        phoneHash,
+        whySigned: formData.whySigned || undefined,
+        commitment: formData.commitment || undefined,
+        xUsername: formData.xUsername || undefined,
+        referredBy,
+      })
+
+      if (createResult.signatoryId) {
+        clearReferralId()
+        setSignatoryId(createResult.signatoryId)
+        setIsSubmitted(true)
+      }
     }
-    const phoneHash = await hashPhoneNumber(fullPhoneNumber)
-
-    // Get referral ID if valid
-    const referredByRaw = getReferralId()
-    const referredBy =
-      referredByRaw && CONVEX_ID_REGEX.test(referredByRaw)
-        ? (referredByRaw as Id<"signatories">)
-        : undefined
-
-    // Create signatory
-    const createResult = await createSignatory.execute({
-      name: form.getValues("name"),
-      title: form.getValues("title"),
-      company: form.getValues("company"),
-      phoneHash,
-      whySigned: form.getValues("whySigned") || undefined,
-      commitmentText: form.getValues("commitment") || undefined,
-      xUsername: form.getValues("xUsername") || undefined,
-      referredBy,
-    })
-
-    if (createResult.signatoryId) {
-      clearReferralId()
-      setSignatoryId(createResult.signatoryId)
-      setIsSubmitted(true)
-    }
-  })
+  )
 
   const handleVerifyCode = useEffectEvent(async () => {
     if (!isOtpComplete || verificationState === "verifying" || !isLoaded || !signUp) {
@@ -309,7 +302,10 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
       const result = await signUp.attemptPhoneNumberVerification({ code: otpValue })
 
       if (result.status === "complete") {
-        await handleVerificationSuccess(result.createdSessionId)
+        // Use form.handleSubmit to validate and get form data
+        await form.handleSubmit((data) =>
+          handleVerificationSuccess(result.createdSessionId, data)
+        )()
       } else {
         setVerificationError("Verification incomplete. Please try again.")
         setVerificationState("sent")
@@ -356,7 +352,7 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
     <VStack className={cn("gap-8", className)} data-slot="sign-letter">
       {/* Identity Section - Always visible */}
       <div>
-        <HStack className="text-lg leading-relaxed" items="center" wrap>
+        <HStack className="text-lg leading-relaxed" items="start" wrap>
           <span className="text-muted-foreground">I,&nbsp;</span>
           <Controller
             control={form.control}
@@ -368,6 +364,7 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                   aria-describedby={fieldState.error ? "name-error" : undefined}
                   aria-invalid={fieldState.invalid}
                   autoComplete="name"
+                  autoFocus
                   className={cn(
                     "inline-block min-w-44 border-b-2 bg-transparent px-1 py-0.5 text-lg outline-none transition-colors field-sizing-content",
                     "border-input placeholder:text-muted-foreground/50",
@@ -377,14 +374,10 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                   disabled={isSubmitted}
                   maxLength={signFlowConfig.max.name}
                   placeholder="Full Name"
-                  ref={(el) => {
-                    field.ref(el)
-                    ;(nameInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el
-                  }}
                   type="text"
                 />
                 {fieldState.error && (
-                  <span className="mt-1 text-xs text-destructive" id="name-error">
+                  <span className="mt-1 text-sm text-destructive" id="name-error">
                     {fieldState.error.message}
                   </span>
                 )}
@@ -414,7 +407,7 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                   type="text"
                 />
                 {fieldState.error && (
-                  <span className="mt-1 text-xs text-destructive" id="title-error">
+                  <span className="mt-1 text-sm text-destructive" id="title-error">
                     {fieldState.error.message}
                   </span>
                 )}
@@ -444,7 +437,7 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                   type="text"
                 />
                 {fieldState.error && (
-                  <span className="mt-1 text-xs text-destructive" id="company-error">
+                  <span className="mt-1 text-sm text-destructive" id="company-error">
                     {fieldState.error.message}
                   </span>
                 )}
@@ -453,9 +446,9 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
           />
           <span className="text-muted-foreground">,&nbsp;sign this letter</span>
 
-          {/* Why Section - inline */}
+          {/* Why Section - inline (hides completely when skipped) */}
           <AnimatePresence>
-            {showWhy && !isSubmitted && (
+            {showWhy && !isSubmitted && !skippedWhy && (
               <motion.span {...revealAnimation} className="inline-flex items-center">
                 <span className="text-muted-foreground">&nbsp;because&nbsp;</span>
                 <Controller
@@ -471,15 +464,13 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                             "inline-block min-w-64 border-b-2 bg-transparent px-1 py-0.5 text-lg outline-none transition-colors field-sizing-content",
                             "border-input placeholder:text-muted-foreground/50",
                             "focus:border-primary",
-                            fieldState.invalid && "border-destructive",
-                            skippedWhy && "text-muted-foreground"
+                            fieldState.invalid && "border-destructive"
                           )}
-                          disabled={skippedWhy}
                           maxLength={signFlowConfig.max.whySigned}
                           placeholder="this matters to me..."
                           type="text"
                         />
-                        {!(skippedWhy || whySigned) && (
+                        {!whySigned && (
                           <button
                             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                             onClick={() => setSkippedWhy(true)}
@@ -490,7 +481,7 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                         )}
                       </span>
                       {fieldState.error && (
-                        <span className="mt-1 text-xs text-destructive">
+                        <span className="mt-1 text-sm text-destructive">
                           {fieldState.error.message}
                         </span>
                       )}
@@ -501,9 +492,9 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
             )}
           </AnimatePresence>
 
-          {/* Commitment Section - inline */}
+          {/* Commitment Section - inline (hides completely when skipped) */}
           <AnimatePresence>
-            {showCommitment && !isSubmitted && (
+            {showCommitment && !isSubmitted && !skippedCommitment && (
               <motion.span {...revealAnimation} className="inline-flex items-center">
                 <span className="text-muted-foreground whitespace-nowrap">
                   .&nbsp;In the first 100 days of a free Iran, I commit to&nbsp;
@@ -521,15 +512,13 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                             "inline-block min-w-64 border-b-2 bg-transparent px-1 py-0.5 text-lg outline-none transition-colors field-sizing-content",
                             "border-input placeholder:text-muted-foreground/50",
                             "focus:border-primary",
-                            fieldState.invalid && "border-destructive",
-                            skippedCommitment && "text-muted-foreground"
+                            fieldState.invalid && "border-destructive"
                           )}
-                          disabled={skippedCommitment}
                           maxLength={signFlowConfig.max.commitment}
                           placeholder="building something great..."
                           type="text"
                         />
-                        {!(skippedCommitment || commitment) && (
+                        {!commitment && (
                           <button
                             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                             onClick={() => setSkippedCommitment(true)}
@@ -540,7 +529,7 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                         )}
                       </span>
                       {fieldState.error && (
-                        <span className="mt-1 text-xs text-destructive">
+                        <span className="mt-1 text-sm text-destructive">
                           {fieldState.error.message}
                         </span>
                       )}
@@ -559,33 +548,48 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
         {showVerify && !isSubmitted && (
           <motion.div {...revealAnimation}>
             <VStack className="gap-6">
-              {/* Optional X username field */}
+              {/* Optional X username field - inline */}
               {!showOtp && (
-                <Controller
-                  control={form.control}
-                  name="xUsername"
-                  render={({ field, fieldState }) => (
-                    <VStack className="gap-2">
-                      <span className="text-base font-medium">
-                        Share your X profile{" "}
-                        <span className="text-muted-foreground font-normal">(optional)</span>
+                <HStack className="text-lg leading-relaxed" items="center" wrap>
+                  <span className="text-muted-foreground">By&nbsp;</span>
+                  <Controller
+                    control={form.control}
+                    name="xUsername"
+                    render={({ field, fieldState }) => (
+                      <span className="inline-flex flex-col">
+                        <InputGroup
+                          className={cn(
+                            "h-auto min-w-40 w-auto border-0 border-b-2 rounded-none shadow-none bg-transparent transition-colors field-sizing-content",
+                            "border-input",
+                            "focus-within:border-primary",
+                            fieldState.invalid && "border-destructive"
+                          )}
+                        >
+                          <InputGroupAddon align="inline-start" className="pl-1 pr-0">
+                            <InputGroupText className="text-lg text-muted-foreground">
+                              @
+                            </InputGroupText>
+                          </InputGroupAddon>
+                          <InputGroupInput
+                            {...field}
+                            aria-invalid={fieldState.invalid}
+                            autoComplete="off"
+                            className="px-1 py-0.5 text-lg placeholder:text-muted-foreground/50"
+                            maxLength={signFlowConfig.max.xUsername}
+                            placeholder="username"
+                            type="text"
+                          />
+                        </InputGroup>
+                        {fieldState.error && (
+                          <span className="mt-1 text-sm text-destructive">
+                            {fieldState.error.message}
+                          </span>
+                        )}
                       </span>
-                      <HStack className="gap-2" items="center">
-                        <span className="text-muted-foreground">@</span>
-                        <Input
-                          {...field}
-                          aria-invalid={fieldState.invalid}
-                          autoComplete="off"
-                          className="max-w-xs"
-                          maxLength={signFlowConfig.max.xUsername}
-                          placeholder="username"
-                          type="text"
-                        />
-                      </HStack>
-                      {fieldState.error && <FieldError errors={[fieldState.error]} />}
-                    </VStack>
-                  )}
-                />
+                    )}
+                  />
+                  <span className="text-muted-foreground/60 ml-2 text-sm">(optional)</span>
+                </HStack>
               )}
 
               <VStack className="gap-4">
@@ -635,7 +639,7 @@ export const SignLetter: React.FC<SignLetterProps> = ({ className }) => {
                         )}
                       />
                     </HStack>
-                    <FieldDescription className="text-xs">
+                    <FieldDescription className="text-sm">
                       Your number is never displayed or shared.
                     </FieldDescription>
 

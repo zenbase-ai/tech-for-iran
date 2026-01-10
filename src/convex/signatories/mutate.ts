@@ -1,46 +1,8 @@
 import { v } from "convex/values"
-import * as z from "zod"
 import type { Id } from "@/convex/_generated/dataModel"
 import { errorMessage } from "@/convex/_helpers/errors"
 import { authMutation } from "@/convex/_helpers/server"
-
-// =================================================================
-// Schema Configuration
-// =================================================================
-
-export const createSignatoryConfig = {
-  max: {
-    name: 100,
-    title: 100,
-    company: 100,
-    whySigned: 280,
-    commitmentText: 2000,
-    xUsername: 15,
-    phoneHash: 64,
-  },
-}
-
-// =================================================================
-// Validation Schema
-// =================================================================
-
-const CreateSignatorySchema = z.object({
-  name: z.string().min(1, "Name is required").max(createSignatoryConfig.max.name),
-  title: z.string().min(1, "Title is required").max(createSignatoryConfig.max.title),
-  company: z.string().min(1, "Company is required").max(createSignatoryConfig.max.company),
-  phoneHash: z
-    .string()
-    .length(createSignatoryConfig.max.phoneHash, "Phone hash must be exactly 64 characters")
-    .regex(/^[a-f0-9]+$/i, "Phone hash must be a valid hex string"),
-  whySigned: z.string().max(createSignatoryConfig.max.whySigned).optional(),
-  commitmentText: z.string().max(createSignatoryConfig.max.commitmentText).optional(),
-  xUsername: z
-    .string()
-    .max(createSignatoryConfig.max.xUsername)
-    .regex(/^[a-zA-Z0-9_]*$/, "Username can only contain letters, numbers, and underscores")
-    .optional(),
-  referredBy: z.string().optional(),
-})
+import { SignatoryCreate } from "@/schemas/signatory"
 
 // =================================================================
 // Return Types
@@ -65,7 +27,7 @@ type CreateResult =
  * @param company - Company name (1-100 chars)
  * @param phoneHash - SHA256 hash of verified phone number (64 hex chars)
  * @param whySigned - Optional "Why I'm signing" text (max 280 chars)
- * @param commitmentText - Optional "100 days" commitment text (max 2000 chars)
+ * @param commitment - Optional "100 days" commitment text (max 2000 chars)
  * @param referredBy - Optional signatory ID who referred them
  *
  * @returns { signatoryId, isUpdate: false } for new signatories
@@ -79,18 +41,18 @@ export const create = authMutation({
     company: v.string(),
     phoneHash: v.string(),
     whySigned: v.optional(v.string()),
-    commitmentText: v.optional(v.string()),
+    commitment: v.optional(v.string()),
     xUsername: v.optional(v.string()),
     referredBy: v.optional(v.id("signatories")),
   },
   handler: async (ctx, args): Promise<CreateResult> => {
-    // Validate input
-    const { data, success, error } = CreateSignatorySchema.safeParse(args)
+    // Validate input with shared schema
+    const { data, success, error } = SignatoryCreate.safeParse(args)
     if (!success) {
       return { signatoryId: null, error: errorMessage(error) }
     }
 
-    const { name, title, company, phoneHash, whySigned, commitmentText, xUsername } = data
+    const { name, title, company, phoneHash, whySigned, commitment, xUsername } = data
 
     // Check if signatory already exists with this phone hash
     const existing = await ctx.db
@@ -108,7 +70,7 @@ export const create = authMutation({
         company,
         // Only update optional fields if provided
         ...(whySigned !== undefined && { whySigned }),
-        ...(commitmentText !== undefined && { commitmentText }),
+        ...(commitment !== undefined && { commitment }),
         ...(xUsername !== undefined && { xUsername }),
       })
 
@@ -133,7 +95,7 @@ export const create = authMutation({
       company,
       phoneHash,
       whySigned: whySigned || undefined,
-      commitmentText: commitmentText || undefined,
+      commitment: commitment || undefined,
       xUsername: xUsername || undefined,
       pinned: false,
       upvoteCount: 0,

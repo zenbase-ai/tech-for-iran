@@ -1,91 +1,18 @@
 import * as z from "zod"
+import { Signatory, signatory } from "@/schemas/signatory"
 
 // =================================================================
-// Schema Configuration
+// Phone Verification Configuration
 // =================================================================
 
 export const signFlowConfig = {
-  max: {
-    name: 100,
-    title: 100,
-    company: 100,
-    whySigned: 280,
-    commitment: 2000,
-    xUsername: 15, // Twitter/X max username length
-  },
-  defaultValues: {
-    name: "",
-    title: "",
-    company: "",
-    whySigned: "",
-    commitment: "",
-    xUsername: "",
-    phoneNumber: "",
-    countryCode: "+1",
-    verificationCode: "",
-  },
+  ...signatory,
   resendCooldown: 60, // seconds
 }
 
 // =================================================================
-// Step-specific Schemas
+// Phone Verification Schemas (Client-only)
 // =================================================================
-
-export const IdentitySchema = z.object({
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(signFlowConfig.max.name, `Name must be ${signFlowConfig.max.name} characters or less`),
-  title: z
-    .string()
-    .min(1, "Title is required")
-    .max(signFlowConfig.max.title, `Title must be ${signFlowConfig.max.title} characters or less`),
-  company: z
-    .string()
-    .min(1, "Company is required")
-    .max(
-      signFlowConfig.max.company,
-      `Company must be ${signFlowConfig.max.company} characters or less`
-    ),
-})
-
-export type Identity = z.infer<typeof IdentitySchema>
-
-export const WhySignedSchema = z.object({
-  whySigned: z
-    .string()
-    .max(
-      signFlowConfig.max.whySigned,
-      `Must be ${signFlowConfig.max.whySigned} characters or less`
-    ),
-})
-
-export type WhySigned = z.infer<typeof WhySignedSchema>
-
-export const CommitmentSchema = z.object({
-  commitment: z
-    .string()
-    .max(
-      signFlowConfig.max.commitment,
-      `Must be ${signFlowConfig.max.commitment} characters or less`
-    ),
-})
-
-export type Commitment = z.infer<typeof CommitmentSchema>
-
-export const XUsernameSchema = z.object({
-  xUsername: z
-    .string()
-    .max(
-      signFlowConfig.max.xUsername,
-      `Username must be ${signFlowConfig.max.xUsername} characters or less`
-    )
-    .regex(/^[a-zA-Z0-9_]*$/, "Username can only contain letters, numbers, and underscores")
-    .optional()
-    .or(z.literal("")),
-})
-
-export type XUsername = z.infer<typeof XUsernameSchema>
 
 export const VerifySchema = z.object({
   countryCode: z.string().min(1, "Country code is required"),
@@ -110,31 +37,17 @@ export type Code = z.infer<typeof CodeSchema>
 // Combined Form Data
 // =================================================================
 
-export const SignFlowSchema = z.object({
-  ...IdentitySchema.shape,
-  ...WhySignedSchema.shape,
-  ...CommitmentSchema.shape,
-  ...XUsernameSchema.shape,
-  ...VerifySchema.shape,
-  ...CodeSchema.shape,
+/**
+ * Complete sign flow form schema.
+ * Combines signatory fields with phone verification fields.
+ */
+export const SignFlowSchema = Signatory.extend({
+  countryCode: z.string(),
+  phoneNumber: z.string(),
+  verificationCode: z.string(),
 })
 
 export type SignFlowData = z.infer<typeof SignFlowSchema>
-
-// =================================================================
-// Flow Steps
-// =================================================================
-
-export const SIGN_FLOW_STEPS = [
-  "IDENTITY",
-  "WHY_SIGNED",
-  "COMMITMENT",
-  "VERIFY",
-  "CODE",
-  "SUCCESS",
-] as const
-
-export type SignFlowStep = (typeof SIGN_FLOW_STEPS)[number]
 
 // =================================================================
 // Country Codes

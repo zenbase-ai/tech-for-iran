@@ -42,8 +42,8 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
     }
 
     const title = `${signatory.name} signed Tech for Iran`
-    const description = signatory.commitmentText
-      ? truncate(signatory.commitmentText, { length: 160 })
+    const description = signatory.commitment
+      ? truncate(signatory.commitment, { length: 160 })
       : `${signatory.name} pledged to do business with a free Iran. Join the movement.`
 
     const shareURL = url(`/s/${signatoryId}`)

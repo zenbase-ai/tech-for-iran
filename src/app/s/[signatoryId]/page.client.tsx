@@ -79,7 +79,7 @@ export const SharePageClient: React.FC<SharePageClientProps> = ({ signatoryId })
         </VStack>
 
         {/* Commitment Blockquote or "Signed the letter" fallback */}
-        {signatory.commitmentText ? (
+        {signatory.commitment ? (
           <blockquote
             className={cn(
               "relative w-full max-w-xl px-6 py-5 md:px-8 md:py-6",
@@ -91,7 +91,7 @@ export const SharePageClient: React.FC<SharePageClientProps> = ({ signatoryId })
               "after:text-4xl after:text-muted-foreground/30 after:font-serif"
             )}
           >
-            <p className="text-center italic">{signatory.commitmentText}</p>
+            <p className="text-center italic">{signatory.commitment}</p>
           </blockquote>
         ) : (
           <p className="text-muted-foreground text-lg">Signed the letter.</p>

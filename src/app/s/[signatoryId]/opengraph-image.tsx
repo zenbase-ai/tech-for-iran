@@ -151,22 +151,22 @@ function SignatoryOGImage({
   name,
   title,
   company,
-  commitmentText,
+  commitment,
   interBold,
   interRegular,
 }: {
   name: string
   title: string
   company: string
-  commitmentText: string | undefined
+  commitment: string | undefined
   interBold: ArrayBuffer
   interRegular: ArrayBuffer
 }) {
-  const displayText = commitmentText
-    ? truncate(commitmentText, { length: 200, on: "word" })
+  const displayText = commitment
+    ? truncate(commitment, { length: 200, on: "word" })
     : "Signed the letter."
 
-  const hasCommitment = !!commitmentText
+  const hasCommitment = !!commitment
 
   return new ImageResponse(
     <div
@@ -347,7 +347,7 @@ export default async function Image({ params }: { params: Promise<{ signatoryId:
       name: signatory.name,
       title: signatory.title,
       company: signatory.company,
-      commitmentText: signatory.commitmentText,
+      commitment: signatory.commitment,
       interBold,
       interRegular,
     })

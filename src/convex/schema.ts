@@ -9,7 +9,7 @@ export default defineSchema({
    * Signatories table - stores everyone who has signed the letter.
    *
    * Each signatory has identity info (name, title, company), optional content
-   * (whySigned, commitmentText), and metadata for display/sorting (pinned, upvoteCount).
+   * (whySigned, commitment), and metadata for display/sorting (pinned, upvoteCount).
    * Phone numbers are stored as SHA256 hashes for deduplication without storing PII.
    */
   signatories: defineTable({
@@ -22,7 +22,7 @@ export default defineSchema({
 
     // Content fields (optional)
     whySigned: v.optional(v.string()), // "Why I'm signing" text (max 280 chars)
-    commitmentText: v.optional(v.string()), // "100 days" commitment text (max 2000 chars)
+    commitment: v.optional(v.string()), // "100 days" commitment text (max 2000 chars)
     xUsername: v.optional(v.string()), // X (Twitter) username without @ (max 15 chars)
 
     // Metadata fields
@@ -43,8 +43,8 @@ export default defineSchema({
     .index("by_userId", ["userId"]) // Look up signatory by Clerk user ID
     .index("by_phoneHash", ["phoneHash"]) // Check for duplicate phone numbers
     .index("by_pinned_upvoteCount", ["pinned", "upvoteCount"]) // Sort by pinned first, then upvotes
+    .index("by_pinned_creationTime", ["pinned", "_creationTime"]) // Sort by pinned first, then recent
     .index("by_referredBy", ["referredBy"]), // Count referrals for a signatory
-  // Note: Sorting by _creationTime uses the default table order (no explicit index needed)
 
   /**
    * Upvotes table - tracks who has upvoted whom on the Wall of Commitments.

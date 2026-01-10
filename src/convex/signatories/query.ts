@@ -129,14 +129,30 @@ export const sortOptions = ["upvotes", "recent"] as const
 export type SortOption = (typeof sortOptions)[number]
 
 /**
- * Paginated list of signatories for the Wall of Commitments.
+ * Get all pinned signatories for the Wall of Commitments.
  *
- * Returns pinned signatories first (on the first page only), then the rest
- * sorted by upvote count or creation time.
+ * Pinned signatories are displayed at the top of the wall, separate from
+ * the paginated list. Expected to be a small number (<50).
+ *
+ * @returns All pinned signatories sorted by upvote count descending
+ */
+export const pinned = query({
+  args: {},
+  handler: async (ctx): Promise<Doc<"signatories">[]> => {
+    return await ctx.db
+      .query("signatories")
+      .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", true))
+      .order("desc")
+      .collect()
+  },
+})
+
+/**
+ * Paginated list of non-pinned signatories for the Wall of Commitments.
  *
  * @param sort - Sort order: 'upvotes' (by upvoteCount desc) or 'recent' (by _creationTime desc)
  * @param paginationOpts - Pagination options from usePaginatedQuery
- * @returns Paginated list of signatories
+ * @returns Paginated list of non-pinned signatories
  */
 export const list = query({
   args: {
@@ -147,44 +163,12 @@ export const list = query({
     }),
   },
   handler: async (ctx, { sort, paginationOpts }) => {
-    const { numItems, cursor } = paginationOpts
-    const isFirstPage = cursor === null
+    const index = sort === "upvotes" ? "by_pinned_upvoteCount" : "by_pinned_creationTime"
 
-    // Get pinned signatories (only on first page)
-    let pinned: Doc<"signatories">[] = []
-    if (isFirstPage) {
-      pinned = await ctx.db
-        .query("signatories")
-        .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", true))
-        .order("desc")
-        .collect()
-    }
-
-    // Get non-pinned signatories with pagination
-    // Both sorts use the same index query - "recent" re-sorts in memory after
-    const regularPage = await ctx.db
+    return await ctx.db
       .query("signatories")
-      .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", false))
+      .withIndex(index, (q) => q.eq("pinned", false))
       .order("desc")
-      .paginate({
-        numItems,
-        cursor,
-      })
-
-    // For recent sort, we need to re-sort by creation time
-    // since by_pinned_upvoteCount sorts by upvoteCount
-    let regular = regularPage.page
-    if (sort === "recent") {
-      regular = regular.sort((a, b) => b._creationTime - a._creationTime)
-    }
-
-    // Combine pinned and regular signatories
-    const results = isFirstPage ? [...pinned, ...regular] : regular
-
-    return {
-      page: results,
-      isDone: regularPage.isDone,
-      continueCursor: regularPage.continueCursor,
-    }
+      .paginate(paginationOpts)
   },
 })

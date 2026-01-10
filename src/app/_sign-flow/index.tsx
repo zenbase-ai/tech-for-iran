@@ -15,6 +15,7 @@ import { CodeStep } from "./steps/code-step"
 import { CommitmentStep } from "./steps/commitment-step"
 import { CompletedSteps } from "./steps/completed-steps"
 import { IdentityStep } from "./steps/identity-step"
+import { SuccessStep } from "./steps/success-step"
 import { VerifyStep } from "./steps/verify-step"
 import { WhyStep } from "./steps/why-step"
 
@@ -168,9 +169,14 @@ export const SignFlow: React.FC<SignFlowProps> = ({ onSuccess, className }) => {
   // Render
   // =================================================================
 
-  // Success state is handled by parent component
+  // Success state - show the success step with share functionality
+  if (currentStep === "SUCCESS" && signatoryResult) {
+    return <SuccessStep className={className} signatoryId={signatoryResult.signatoryId} />
+  }
+
+  // Success state - still creating signatory, show loading placeholder
   if (currentStep === "SUCCESS") {
-    return null
+    return <SuccessStep className={className} signatoryId={"" as Id<"signatories">} />
   }
 
   return (

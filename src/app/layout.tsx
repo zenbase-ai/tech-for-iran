@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
 import { FlashToasts } from "@/components/effects/flash-toasts"
 import { InitPosthog } from "@/components/effects/init-posthog"
+import { InitReferrer } from "@/components/effects/init-referrer"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           <Suspense fallback={null}>
             <FlashToasts />
             <InitPosthog />
+            <InitReferrer />
           </Suspense>
 
           <section className="min-w-[320px] w-full md:max-w-4xl lg:max-w-7xl mx-auto px-4 py-8 sm:py-12 md:py-16">

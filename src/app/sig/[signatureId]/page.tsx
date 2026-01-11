@@ -1,37 +1,24 @@
 import { fetchQuery } from "convex/nextjs"
 import type { Metadata } from "next"
-import { cookies } from "next/headers"
 import { notFound, redirect } from "next/navigation"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { truncate, url } from "@/lib/utils"
 
-type SharePageProps = {
-  params: Promise<{ signatureId: string }>
+export type SignaturePageParams = {
+  signatureId: Id<"signatures">
 }
 
-/**
- * Regex pattern to validate Convex IDs.
- * Convex IDs are 32 character alphanumeric strings.
- */
-const CONVEX_ID_REGEX = /^[a-z0-9]{32}$/i
+export type SignaturePageProps = {
+  params: Promise<SignaturePageParams>
+}
 
-const isValidConvexId = (id: string): boolean => CONVEX_ID_REGEX.test(id)
-
-export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: SignaturePageProps): Promise<Metadata> {
   const { signatureId } = await params
-
-  // Validate ID format before querying
-  if (!isValidConvexId(signatureId)) {
-    return {
-      title: "Signature Not Found | Tech for Iran",
-      description: "This signature could not be found.",
-    }
-  }
 
   try {
     const signature = await fetchQuery(api.signatures.query.get, {
-      signatureId: signatureId as Id<"signatures">,
+      signatureId,
     })
 
     if (!signature) {
@@ -72,43 +59,17 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   }
 }
 
-const REFERRAL_COOKIE_NAME = "referred_by"
-const REFERRAL_EXPIRY_DAYS = 7
-
-export default async function SharePage({ params }: SharePageProps) {
+export default async function SignaturePage({ params }: SignaturePageProps) {
   const { signatureId } = await params
 
-  // Validate ID format before querying
-  if (!isValidConvexId(signatureId)) {
-    notFound()
-  }
-
-  // Fetch signature (handle error separately to allow redirect to work)
-  let signature
-  try {
-    signature = await fetchQuery(api.signatures.query.get, {
-      signatureId: signatureId as Id<"signatures">,
-    })
-  } catch {
-    notFound()
-  }
-
-  if (!signature) {
-    notFound()
-  }
-
-  // Set the referral cookie
-  const cookieStore = await cookies()
-  const expiryDate = new Date()
-  expiryDate.setDate(expiryDate.getDate() + REFERRAL_EXPIRY_DAYS)
-
-  cookieStore.set(REFERRAL_COOKIE_NAME, signatureId, {
-    expires: expiryDate,
-    path: "/",
-    sameSite: "lax",
+  const signature = await fetchQuery(api.signatures.query.get, {
+    signatureId,
   })
 
-  // Redirect to homepage with success message
+  if (!signature) {
+    return notFound()
+  }
+
   const successMessage = `${signature.name} encourages you to sign!`
-  redirect(`/?success=${encodeURIComponent(successMessage)}`)
+  return redirect(`/?referredBy=${signatureId}&success=${encodeURIComponent(successMessage)}`)
 }

@@ -68,8 +68,7 @@ export default async function Image() {
             fontFamily: "Inter",
           }}
         >
-          An open letter from founders, investors, and operators pledging to do business with a free
-          Iran.
+          Founders, investors, and operators pledging to do business with a free Iran.
         </div>
       </div>
 

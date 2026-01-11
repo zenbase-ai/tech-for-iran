@@ -11,20 +11,68 @@ import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
+const title = "Tech for Iran"
+const description =
+  "Founders, investors, and operators pledging to do business with a free Iran. Day one. This is not hope. This is a commitment."
+const url = "https://techforiran.com"
+
 export const metadata: Metadata = {
   title: {
-    default: "Tech for Iran",
-    template: "%s | Tech for Iran",
+    default: title,
+    template: `%s | ${title}`,
   },
-  description:
-    "An open letter from founders, investors, and operators pledging to do business with a free Iran.",
+  description,
+  keywords: [
+    "Iran",
+    "tech",
+    "founders",
+    "investors",
+    "operators",
+    "startups",
+    "commitment",
+    "free Iran",
+    "open letter",
+    "pledge",
+  ],
+  authors: [{ name: "Tech for Iran" }],
+  creator: "Tech for Iran",
+  publisher: "Tech for Iran",
+  metadataBase: new URL(url),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url,
+    siteName: title,
+    title: "Tech for Iran — When Iran opens, we're in.",
+    description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tech for Iran — When Iran opens, we're in.",
+    description,
+    creator: "@cyrusnewday",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 }
 
 export const viewport: Viewport = {
   colorScheme: "light dark",
   initialScale: 1.0,
   maximumScale: 1.0,
-  themeColor: "#000000",
+  themeColor: "#f5bf4a",
   viewportFit: "cover",
   width: "device-width",
 }

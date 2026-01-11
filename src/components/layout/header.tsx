@@ -33,7 +33,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       {...props}
     >
       <Link href="/">
-        <Logo className="stroke-2" size="size-7" />
+        <Logo className="stroke-2 size-7" />
       </Link>
 
       <Separator className="h-9!" orientation="vertical" />

@@ -59,7 +59,7 @@ export const metadata = {
     title: "Tech for Iran — When Iran opens, we're in.",
     description,
     creator: "@cyrusnewday",
-    images: ["/opengraph.gif", "/opengraph.png"],
+    images: ["/opengraph.png", "/opengraph.gif"],
   },
   robots: {
     index: true,

@@ -48,7 +48,7 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
   // Form setup with signature schema
   const form = useForm({
     resolver: zodResolver(CreateSignature),
-    mode: "onBlur",
+    mode: "onChange",
     defaultValues: {
       ...createSignature.defaultValues,
       referredBy: getReferredBy(),

@@ -3,26 +3,16 @@ import * as z from "zod"
 
 export const env = createEnv({
   server: {
-    CLERK_JWT_ISSUER_DOMAIN: z.url(),
-    CLERK_SECRET_KEY: z.string().min(1),
-    // CLERK_SIGNING_SECRET: z.string().min(1),
-    // CONVEX_DEPLOYMENT: z.string().min(1),
-    // NODE_ENV: z.enum(["development", "production"]).default("development"),
+    NODE_ENV: z.enum(["development", "production"]).default("development"),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.url(),
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
     NEXT_PUBLIC_CONVEX_URL: z.url(),
     // NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
     // NEXT_PUBLIC_POSTHOG_HOST: z.url(),
   },
   runtimeEnv: {
-    CLERK_JWT_ISSUER_DOMAIN: process.env.CLERK_JWT_ISSUER_DOMAIN,
-    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-    CLERK_SIGNING_SECRET: process.env.CLERK_SIGNING_SECRET,
-    CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,

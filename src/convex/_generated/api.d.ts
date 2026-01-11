@@ -11,10 +11,6 @@
 import type * as _helpers_errors from "../_helpers/errors.js";
 import type * as _helpers_server from "../_helpers/server.js";
 import type * as aggregates from "../aggregates.js";
-import type * as auth from "../auth.js";
-import type * as clerk_client from "../clerk/client.js";
-import type * as clerk_mutate from "../clerk/mutate.js";
-import type * as clerk_query from "../clerk/query.js";
 import type * as seed from "../seed.js";
 import type * as signatures_mutate from "../signatures/mutate.js";
 import type * as signatures_query from "../signatures/query.js";
@@ -32,10 +28,6 @@ declare const fullApi: ApiFromModules<{
   "_helpers/errors": typeof _helpers_errors;
   "_helpers/server": typeof _helpers_server;
   aggregates: typeof aggregates;
-  auth: typeof auth;
-  "clerk/client": typeof clerk_client;
-  "clerk/mutate": typeof clerk_mutate;
-  "clerk/query": typeof clerk_query;
   seed: typeof seed;
   "signatures/mutate": typeof signatures_mutate;
   "signatures/query": typeof signatures_query;

@@ -1,6 +1,5 @@
-import { clerkMiddleware } from "@clerk/nextjs/server"
 import KSUID from "ksuid"
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { ANON_ID_COOKIE, COOKIE_EXPIRY_DAYS } from "./lib/cookies"
 
 export const config = {
@@ -12,7 +11,7 @@ export const config = {
   ],
 }
 
-export default clerkMiddleware(async (_auth, request) => {
+export default async function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
   if (!request.cookies.has(ANON_ID_COOKIE)) {
@@ -26,4 +25,4 @@ export default clerkMiddleware(async (_auth, request) => {
   }
 
   return response
-})
+}

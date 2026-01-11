@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
 import { motion, type Variants } from "motion/react"
+import { useEffectEvent } from "react"
+import { useBoolean, useCounter } from "usehooks-ts"
 import { Box, type BoxProps } from "@/components/layout/box"
 import { GlowEffect } from "@/components/ui/glow-effect"
 import { cn } from "@/lib/utils"
 import { IslamicRepublicFlag } from "./islamic-republic-flag"
-import { LionFlag } from "./lion-flag"
 import { Lion } from "./lion"
+import { LionFlag } from "./lion-flag"
 import { Logo } from "./logo"
 
 const duration = 1.3
@@ -84,7 +85,7 @@ const lionFlagVariants: Variants = {
   animate: {
     opacity: 1,
     transition: {
-      duration: duration,
+      duration,
       delay: duration * 8.5,
       ease: "easeOut",
     },
@@ -99,25 +100,26 @@ const lionFlagVariants: Variants = {
 }
 
 export const RisingLion: React.FC<BoxProps> = ({ className, ...props }) => {
-  const [restartKey, setRestartKey] = useState(0)
-  const [isExiting, setIsExiting] = useState(false)
-  const [isIdle, setIsIdle] = useState(false)
+  const { count: restartKey, increment: restartAnimation } = useCounter()
 
-  const handleAnimationComplete = (definition: unknown) => {
+  const isIdle = useBoolean(false)
+  const isExiting = useBoolean(false)
+
+  const handleAnimationComplete = useEffectEvent((definition: unknown) => {
     if (definition === "animate") {
-      setIsIdle(true)
+      isIdle.setTrue()
     } else if (definition === "exit") {
-      setIsExiting(false)
-      setIsIdle(false)
-      setRestartKey((prev) => prev + 1)
+      isExiting.setFalse()
+      isIdle.setFalse()
+      restartAnimation()
     }
-  }
+  })
 
-  const handleClick = () => {
-    if (isIdle && !isExiting) {
-      setIsExiting(true)
+  const handleClick = useEffectEvent(() => {
+    if (isIdle.value && !isExiting.value) {
+      isExiting.setTrue()
     }
-  }
+  })
 
   return (
     <Box
@@ -136,7 +138,7 @@ export const RisingLion: React.FC<BoxProps> = ({ className, ...props }) => {
       </motion.div>
 
       <motion.div
-        animate={isExiting ? "exit" : "animate"}
+        animate={isExiting.value ? "exit" : "animate"}
         className="absolute inset-0 z-2"
         initial="initial"
         key={`lion-flag-${restartKey}`}
@@ -147,7 +149,7 @@ export const RisingLion: React.FC<BoxProps> = ({ className, ...props }) => {
       </motion.div>
 
       <motion.div
-        animate={isExiting ? "exit" : "animate"}
+        animate={isExiting.value ? "exit" : "animate"}
         className="absolute z-3"
         initial="initial"
         key={`lion-element-${restartKey}`}

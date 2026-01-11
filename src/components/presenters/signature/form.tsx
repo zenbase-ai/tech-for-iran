@@ -68,11 +68,11 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
   // Form setup with signature schema
   const form = useForm({
     resolver: zodResolver(CreateSignature),
+    mode: "onBlur",
     defaultValues: {
       ...createSignature.defaultValues,
       referredBy: getReferredBy(),
     },
-    mode: "onBlur",
   })
 
   // Form destructuring
@@ -80,9 +80,9 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
   const { name, title, company, because, commitment } = form.watch()
 
   // Section visibility logic
-  const showWhy = name?.length > 0 && title?.length > 0 && company?.length > 0
-  const showCommitment = showWhy && (because?.length > 0 || skippedBecause)
-  const showXUsername = showCommitment && (commitment?.length > 0 || skippedCommitment)
+  const showWhy = (name?.length ?? 0) > 0 && (title?.length ?? 0) > 0 && (company?.length ?? 0) > 0
+  const showCommitment = showWhy && ((because?.length ?? 0) > 0 || skippedBecause)
+  const showXUsername = showCommitment && ((commitment?.length ?? 0) > 0 || skippedCommitment)
 
   // =================================================================
   // Handlers
@@ -237,8 +237,8 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
               )}
             />
             <HoverButton
-              className="min-w-28 h-8.5 p-0"
-              disabled={!formState.isValid || formState.isSubmitting}
+              aria-disabled={!formState.isValid || formState.isSubmitting}
+              className="min-w-28 h-8.5 p-0 aria-disabled:pointer-events-none aria-disabled:opacity-50"
               type="submit"
             >
               {formState.isSubmitting ? "Signing..." : "Sign"}

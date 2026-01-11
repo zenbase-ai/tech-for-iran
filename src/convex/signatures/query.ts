@@ -92,10 +92,6 @@ export const count = query({
 // Wall of Commitments Queries
 // =================================================================
 
-// Sort options for the wall of commitments
-export const sortOptions = ["upvotes", "recent"] as const
-export type SortOption = (typeof sortOptions)[number]
-
 /**
  * Get all pinned signatures for the Wall of Commitments.
  *
@@ -126,5 +122,9 @@ export const list = query({
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, { paginationOpts }) =>
-    await ctx.db.query("signatures").order("desc").paginate(paginationOpts),
+    await ctx.db
+      .query("signatures")
+      .withIndex("by_pinned_upvoteCount")
+      .order("desc")
+      .paginate(paginationOpts),
 })

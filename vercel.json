@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "bun install",
-  "buildCommand": "npx convex deploy -y --cmd 'NODE_ENV=production bun run --bun next build'",
+  "buildCommand": "bun convex deploy -y --cmd 'NODE_ENV=production bun next build'",
   "bunVersion": "1.x",
   "framework": "nextjs"
 }

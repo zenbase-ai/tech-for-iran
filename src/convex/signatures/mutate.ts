@@ -41,8 +41,8 @@ export const create = mutation({
     title: v.string(),
     company: v.string(),
     xUsername: v.string(),
-    because: v.string(),
-    commitment: v.string(),
+    because: v.optional(v.string()),
+    commitment: v.optional(v.string()),
     referredBy: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<CreateResult> => {

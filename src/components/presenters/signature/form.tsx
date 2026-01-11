@@ -3,11 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "convex/react"
 import type React from "react"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useEffect, useEffectEvent } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { FaXTwitter } from "react-icons/fa6"
+import { useBoolean } from "usehooks-ts"
 import { HStack, VStack } from "@/components/layout/stack"
-import { Button } from "@/components/ui/button"
+import { Button, type ButtonProps } from "@/components/ui/button"
 import { HoverButton } from "@/components/ui/hover-button"
 import { InlineField } from "@/components/ui/inline-field"
 import {
@@ -26,38 +27,17 @@ import { CreateSignature, createSignature } from "@/schemas/signature"
 import { useSignatureContext } from "./context"
 
 // =================================================================
-// Types
+// Sub-components
 // =================================================================
 
 export type SignatureFormProps = {
   className?: string
 }
 
-// =================================================================
-// Sub-components
-// =================================================================
-
-type SkipButtonProps = {
-  setState: React.Dispatch<React.SetStateAction<boolean>>
-}
-
-const SkipButton: React.FC<SkipButtonProps> = ({ setState }) => (
-  <Button onClick={() => setState(true)} size="sm" type="button" variant="outline">
-    Skip
-  </Button>
-)
-
-// =================================================================
-// Component
-// =================================================================
-
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: this is mega
 export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
   // Context
   const { setXUsername } = useSignatureContext()
-
-  // Local state for skipped sections
-  const [skippedBecause, setSkippedBecause] = useState(false)
-  const [skippedCommitment, setSkippedCommitment] = useState(false)
 
   // Convex
   const create = useAsyncFn(useMutation(api.signatures.mutate.create))
@@ -79,10 +59,23 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
   const { formState } = form
   const { name, title, company, because, commitment } = form.watch()
 
+  // Local state for skipped sections
+  const skipBecause = useBoolean(false)
+  const skipCommitment = useBoolean(false)
+
+  useEffect(() => {
+    if (skipBecause.value) {
+      form.clearErrors("because")
+    }
+    if (skipCommitment.value) {
+      form.clearErrors("commitment")
+    }
+  }, [form.clearErrors, skipBecause.value, skipCommitment.value])
+
   // Section visibility logic
   const showWhy = (name?.length ?? 0) > 0 && (title?.length ?? 0) > 0 && (company?.length ?? 0) > 0
-  const showCommitment = showWhy && ((because?.length ?? 0) > 0 || skippedBecause)
-  const showXUsername = showCommitment && ((commitment?.length ?? 0) > 0 || skippedCommitment)
+  const showCommitment = showWhy && ((because?.length ?? 0) > 0 || skipBecause.value)
+  const showXUsername = showCommitment && ((commitment?.length ?? 0) > 0 || skipCommitment.value)
 
   // =================================================================
   // Handlers
@@ -136,7 +129,6 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
                   <LetterInput
                     {...field}
                     aria-invalid={fieldState.invalid}
-                    disabled={formState.isSubmitted}
                     maxLength={createSignature.max.title}
                     placeholder="Title"
                   />
@@ -153,7 +145,6 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
                     {...field}
                     aria-invalid={fieldState.invalid}
                     autoComplete="organization"
-                    disabled={formState.isSubmitted}
                     maxLength={createSignature.max.company}
                     placeholder="Company"
                   />
@@ -161,7 +152,7 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
               )}
             />
             &nbsp;,
-            {showWhy && !skippedBecause && (
+            {showWhy && !skipBecause.value && (
               <span className="inline-flex items-center whitespace-nowrap">
                 sign this letter&nbsp;because&nbsp;
                 <Controller
@@ -172,11 +163,10 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
                       <LetterInput
                         {...field}
                         aria-invalid={fieldState.invalid}
-                        disabled={formState.isSubmitted}
                         maxLength={createSignature.max.because}
                         placeholder="this matters to me..."
                       />
-                      {!because && <SkipButton setState={setSkippedBecause} />}
+                      {!because && <SkipButton onClick={skipBecause.setTrue} />}
                     </InlineField>
                   )}
                 />
@@ -184,7 +174,7 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
               </span>
             )}
             {/* Commitment Section */}
-            {showCommitment && !skippedCommitment && (
+            {showCommitment && !skipCommitment.value && (
               <div>
                 In the first 100 days of a free Iran, I commit to{" "}
                 <Controller
@@ -195,11 +185,10 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
                       <LetterInput
                         {...field}
                         aria-invalid={fieldState.invalid}
-                        disabled={formState.isSubmitted}
                         maxLength={createSignature.max.commitment}
                         placeholder="building something great..."
                       />
-                      {!commitment && <SkipButton setState={setSkippedCommitment} />}
+                      {!commitment && <SkipButton onClick={skipCommitment.setTrue} />}
                     </InlineField>
                   )}
                 />
@@ -237,8 +226,8 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
               )}
             />
             <HoverButton
-              aria-disabled={!formState.isValid || formState.isSubmitting}
               className="min-w-28 h-8.5 p-0 aria-disabled:pointer-events-none aria-disabled:opacity-50"
+              disabled={!formState.isValid || formState.isSubmitting}
               type="submit"
             >
               {formState.isSubmitting ? "Signing..." : "Sign"}
@@ -249,3 +238,9 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
     </VStack>
   )
 }
+
+const SkipButton: React.FC<ButtonProps> = (props) => (
+  <Button size="sm" type="button" variant="outline" {...props}>
+    Skip
+  </Button>
+)

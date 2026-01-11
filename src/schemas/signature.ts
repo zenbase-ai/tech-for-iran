@@ -81,15 +81,16 @@ export const CreateSignature = z.object({
     .string()
     .trim()
     .max(createSignature.max.because, `Must be ${createSignature.max.because} characters or less`)
-    .transform((v) => (v.endsWith(".") ? v.slice(0, -1) : v)),
+    .transform((v) => (v.endsWith(".") ? v.slice(0, -1) : v))
+    .optional(),
   commitment: z
     .string()
-    .trim()
     .max(
       createSignature.max.commitment,
       `Must be ${createSignature.max.commitment} characters or less`
     )
-    .transform((v) => (v.endsWith(".") ? v.slice(0, -1) : v)),
+    .transform((v) => (v.endsWith(".") ? v.slice(0, -1) : v))
+    .optional(),
   referredBy: z.string().optional(),
 })
 

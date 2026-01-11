@@ -3,13 +3,13 @@
 import { usePaginatedQuery } from "convex/react"
 import { Box, type BoxProps } from "@/components/layout/box"
 import { Grid } from "@/components/layout/grid"
+import { Spacer } from "@/components/layout/spacer"
 import { SignatureItem, SignatureItemSkeleton } from "@/components/presenters/signature/item"
 import { Repeat } from "@/components/ui/repeat"
 import { api } from "@/convex/_generated/api"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { cn } from "@/lib/utils"
 import { UpvoteButton } from "./upvote"
-import { Spacer } from "@/components/layout/spacer"
 
 const PAGE_SIZE = 20
 

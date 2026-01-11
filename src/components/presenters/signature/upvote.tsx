@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { getAnonId } from "@/lib/cookies"
 import { cn } from "@/lib/utils"
+import { useSignatureContext } from "./context"
 
 export type UpvoteButtonProps = {
   signatureId: Id<"signatures">
@@ -18,7 +18,7 @@ export type UpvoteButtonProps = {
 export const UpvoteButton: React.FC<UpvoteButtonProps> = ({ signatureId, className }) => {
   const signature = useQuery(api.signatures.query.get, { signatureId })
 
-  const anonId = getAnonId()
+  const { anonId } = useSignatureContext()
   const hasUpvoted =
     useQuery(api.upvotes.query.hasUpvoted, anonId ? { signatureId, anonId } : "skip") ?? false
 

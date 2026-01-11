@@ -239,7 +239,6 @@ import { NumberTicker } from "@/components/ui/number-ticker"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { cn } from "@/lib/utils"
-import { getAnonId } from "@/lib/cookies"
 
 export type UpvoteButtonProps = {
   signatureId: Id<"signatures">

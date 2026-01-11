@@ -3,6 +3,7 @@ import { RisingLion } from "@/components/assets/rising-lion"
 import { Prose } from "@/components/layout/prose"
 import { Stack, VStack } from "@/components/layout/stack"
 import Manifesto from "@/components/presenters/manifesto.mdx"
+import { SignatureProvider } from "@/components/presenters/signature/context"
 import { SignatureSection } from "@/components/presenters/signature/section"
 import { SignatureWall } from "@/components/presenters/signature/wall"
 import { cn } from "@/lib/utils"
@@ -24,13 +25,17 @@ export default function HomePage() {
           <Manifesto />
         </Prose>
 
-        <SignatureSection />
+        <SignatureProvider>
+          <SignatureSection />
+        </SignatureProvider>
       </VStack>
 
-      <SignatureWall
-        className="flex-1 lg:flex-3/5 xl:flex-2/3"
-        gridClassName="grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
-      />
+      <SignatureProvider>
+        <SignatureWall
+          className="flex-1 lg:flex-3/5 xl:flex-2/3"
+          gridClassName="grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+        />
+      </SignatureProvider>
     </Stack>
   )
 }

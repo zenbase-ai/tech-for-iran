@@ -69,7 +69,6 @@ import { useEffect, useEffectEvent, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
-import { clearReferredBy, getReferredBy } from "@/lib/cookies"
 import { CreateSignature, createSignature } from "@/schemas/signature"
 
 export const SignatureForm: React.FC<{ className?: string }> = ({ className }) => {
@@ -86,7 +85,6 @@ export const SignatureForm: React.FC<{ className?: string }> = ({ className }) =
     resolver: zodResolver(CreateSignature),
     defaultValues: {
       ...createSignature.defaultValues,
-      referredBy: getReferredBy(),
     },
     mode: "onBlur",
   })
@@ -423,8 +421,6 @@ Schema Definition (src/schemas/)
     |
 Client Form Setup (useForm + zodResolver)
     |
-Referral Tracking (getReferredBy in defaultValues)
-    |
 Section Visibility (form.watch + boolean conditions)
     |
 Field Components (Controller + InlineField/LetterInput or Field system)
@@ -450,7 +446,6 @@ Clear Referral (clearReferredBy on success)
 - [ ] Config includes `min`, `max`, and `defaultValues`
 - [ ] Dev defaults for faster testing
 - [ ] Form setup with `zodResolver(Schema)` and `mode: "onBlur"`
-- [ ] Referral tracking in `defaultValues` via `getReferredBy()`
 - [ ] Hidden input for `referredBy`
 - [ ] Section visibility via `form.watch()` destructuring
 - [ ] Skip state for optional sections (`useState(false)`)

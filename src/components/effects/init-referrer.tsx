@@ -1,26 +1,21 @@
 "use client"
 
-import Cookies from "js-cookie"
 import { parseAsString, useQueryState } from "nuqs"
 import { useEffect } from "react"
-
-const REFERRAL_COOKIE_NAME = "referred_by"
-const REFERRAL_EXPIRY_DAYS = 7
+import type { Id } from "@/convex/_generated/dataModel"
+import useCookie from "@/hooks/use-cookies"
+import { REFERRAL_COOKIE } from "@/lib/cookies"
 
 export const InitReferrer: React.FC = () => {
-  const [referredBy, setReferredBy] = useQueryState(
+  const [referredBy] = useQueryState(
     "referredBy",
     parseAsString.withOptions({ history: "replace" })
   )
+  const [_, setReferredBy] = useCookie<Id<"signatures">>(REFERRAL_COOKIE)
 
   useEffect(() => {
     if (referredBy) {
-      Cookies.set(REFERRAL_COOKIE_NAME, referredBy, {
-        expires: REFERRAL_EXPIRY_DAYS,
-        path: "/",
-        sameSite: "lax",
-      })
-      setReferredBy(null)
+      setReferredBy(referredBy as Id<"signatures">)
     }
   }, [referredBy, setReferredBy])
 

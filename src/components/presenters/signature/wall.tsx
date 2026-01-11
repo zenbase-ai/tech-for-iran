@@ -8,6 +8,7 @@ import { Repeat } from "@/components/ui/repeat"
 import { api } from "@/convex/_generated/api"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { cn } from "@/lib/utils"
+import { UpvoteButton } from "./upvote"
 
 const PAGE_SIZE = 20
 
@@ -41,7 +42,11 @@ export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...
             <SignatureItemSkeleton />
           </Repeat>
         ) : results.length !== 0 ? (
-          results.map((signature) => <SignatureItem key={signature._id} signature={signature} />)
+          results.map((signature) => (
+            <SignatureItem key={signature._id} signature={signature}>
+              <UpvoteButton signatureId={signature._id} />
+            </SignatureItem>
+          ))
         ) : null}
       </Grid>
 

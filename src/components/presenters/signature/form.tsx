@@ -21,7 +21,6 @@ import { Item, ItemContent, ItemFooter } from "@/components/ui/item"
 import { LetterInput } from "@/components/ui/letter-input"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
-import { clearReferredBy, getReferredBy } from "@/lib/cookies"
 import { cn } from "@/lib/utils"
 import { CreateSignature, createSignature } from "@/schemas/signature"
 import { useSignatureContext } from "./context"
@@ -37,13 +36,10 @@ export type SignatureFormProps = {
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: this is mega
 export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
   // Context
-  const { setXUsername } = useSignatureContext()
+  const { setXUsername, referredBy } = useSignatureContext()
 
   // Convex
   const create = useAsyncFn(useMutation(api.signatures.mutate.create))
-
-  // Derived state from mutation result
-  const signatureId = create.data?.data?.signatureId
 
   // Form setup with signature schema
   const form = useForm({
@@ -51,7 +47,7 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
     mode: "onChange",
     defaultValues: {
       ...createSignature.defaultValues,
-      referredBy: getReferredBy(),
+      referredBy,
     },
   })
 
@@ -85,12 +81,6 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
     setXUsername(data.xUsername)
     await create.execute(data)
   })
-
-  useEffect(() => {
-    if (signatureId) {
-      clearReferredBy()
-    }
-  }, [signatureId])
 
   // =================================================================
   // Render

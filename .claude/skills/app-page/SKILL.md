@@ -207,11 +207,6 @@ Share pages redirect with referral info in URL params:
 // In share page (sig/[signatureId]/page.tsx)
 const successMessage = `${signature.name} encourages you to sign!`
 return redirect(`/?referredBy=${signatureId}&success=${encodeURIComponent(successMessage)}`)
-
-// Client-side referral handling in @/lib/referral.ts
-// getReferredBy() reads from URL params or cookie
-// setReferredBy() stores in cookie
-// clearReferredBy() removes after successful sign
 ```
 
 ## MDX Content

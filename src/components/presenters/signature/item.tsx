@@ -1,7 +1,8 @@
 "use client"
 
+import type React from "react"
+import { Spacer } from "@/components/layout/spacer"
 import { HStack } from "@/components/layout/stack"
-import { UpvoteButton } from "@/components/presenters/signature/upvote"
 import { Button } from "@/components/ui/button"
 import { Item, ItemContent, ItemDescription, ItemFooter } from "@/components/ui/item"
 import { RelativeTime } from "@/components/ui/relative-time"
@@ -9,14 +10,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { cn, xProfileURL } from "@/lib/utils"
 
-export type SignatureCardProps = {
+export type SignatureCardProps = React.PropsWithChildren<{
   signature: Doc<"signatures">
   className?: string
-}
+}>
 
-export const SignatureItem: React.FC<SignatureCardProps> = ({ signature, className }) => (
+export const SignatureItem: React.FC<SignatureCardProps> = ({ signature, className, children }) => (
   <Item
-    className={cn("bg-background", signature.pinned && "border-accent", className)}
+    className={cn("bg-background justify-between", signature.pinned && "border-accent", className)}
     variant="outline"
   >
     <ItemContent>
@@ -43,7 +44,7 @@ export const SignatureItem: React.FC<SignatureCardProps> = ({ signature, classNa
     </ItemContent>
 
     <ItemFooter className="justify-between">
-      <HStack className="gap-3 text-muted-foreground text-sm" items="center">
+      <HStack className="gap-3 text-muted-foreground text-sm w-full" items="center">
         {/* X username link */}
         <Button asChild variant="outline">
           <a href={xProfileURL(signature.xUsername)} rel="noopener noreferrer" target="_blank">
@@ -53,9 +54,14 @@ export const SignatureItem: React.FC<SignatureCardProps> = ({ signature, classNa
 
         {/* Relative timestamp */}
         <RelativeTime date={signature._creationTime} />
+
+        {children && (
+          <>
+            <Spacer className="ml-auto w-1" />
+            {children}
+          </>
+        )}
       </HStack>
-      {/* Upvote button */}
-      <UpvoteButton signatureId={signature._id} />
     </ItemFooter>
   </Item>
 )

@@ -123,16 +123,8 @@ export const pinned = query({
  */
 export const list = query({
   args: {
-    sort: v.union(v.literal("upvotes"), v.literal("recent")),
     paginationOpts: paginationOptsValidator,
   },
-  handler: async (ctx, { sort, paginationOpts }) => {
-    const index = sort === "upvotes" ? "by_pinned_upvoteCount" : "by_pinned"
-
-    return await ctx.db
-      .query("signatures")
-      .withIndex(index, (q) => q.eq("pinned", false))
-      .order("desc")
-      .paginate(paginationOpts)
-  },
+  handler: async (ctx, { paginationOpts }) =>
+    await ctx.db.query("signatures").order("desc").paginate(paginationOpts),
 })

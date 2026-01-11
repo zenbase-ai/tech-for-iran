@@ -16,49 +16,34 @@ export type SignatureWallProps = BoxProps & {
 }
 
 export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...props }) => {
-  const { results, status, loadMore, isLoading } = usePaginatedQuery(
-    api.signatures.query.list,
-    { sort: "upvotes" },
-    { initialNumItems: PAGE_SIZE }
-  )
+  const list = usePaginatedQuery(api.signatures.query.list, {}, { initialNumItems: PAGE_SIZE })
 
-  const pinned = results.filter((s) => s.pinned)
-  const regular = results.filter((s) => !s.pinned)
+  // Sort results: pinned first, then by creation time descending
+  const results = list.results.toSorted((a, b) => {
+    if (a.pinned !== b.pinned) {
+      return a.pinned ? -1 : 1
+    }
+    return b._creationTime - a._creationTime
+  })
 
-  const canLoadMore = status === "CanLoadMore"
+  const canLoadMore = list.status === "CanLoadMore"
 
   const { ref: sentinelRef } = useInfiniteScroll({
     threshold: 0.5,
-    loadMore: () => canLoadMore && loadMore(PAGE_SIZE),
+    loadMore: () => canLoadMore && list.loadMore(PAGE_SIZE),
   })
-
-  const gridcn = cn("w-full gap-6", gridClassName)
 
   return (
     <Box {...props}>
-      {(isLoading || results.length === 0) && (
-        <Grid className={gridcn}>
+      <Grid className={cn("w-full gap-6", gridClassName)}>
+        {list.isLoading || results.length === 0 ? (
           <Repeat count={12}>
             <SignatureItemSkeleton />
           </Repeat>
-        </Grid>
-      )}
-
-      {pinned.length > 0 && (
-        <Grid className={gridcn}>
-          {pinned.map((signature) => (
-            <SignatureItem key={signature._id} signature={signature} />
-          ))}
-        </Grid>
-      )}
-
-      {regular.length > 0 && (
-        <Grid className={gridcn}>
-          {regular.map((signature) => (
-            <SignatureItem key={signature._id} signature={signature} />
-          ))}
-        </Grid>
-      )}
+        ) : results.length !== 0 ? (
+          results.map((signature) => <SignatureItem key={signature._id} signature={signature} />)
+        ) : null}
+      </Grid>
 
       {/* Sentinel element for infinite scroll */}
       <div className="h-1" ref={sentinelRef} />

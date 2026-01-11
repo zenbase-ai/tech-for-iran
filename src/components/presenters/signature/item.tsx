@@ -7,28 +7,28 @@ import { Item, ItemContent, ItemDescription, ItemFooter } from "@/components/ui/
 import { RelativeTime } from "@/components/ui/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Doc } from "@/convex/_generated/dataModel"
-import { xProfileURL } from "@/lib/utils"
+import { cn, xProfileURL } from "@/lib/utils"
 
 export type SignatureCardProps = {
   signature: Doc<"signatures">
+  className?: string
 }
 
-/** Underlined field styling for the letter format */
-const LetterField: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <span className="text-foreground">{children}</span>
-)
-
-export const SignatureItem: React.FC<SignatureCardProps> = ({ signature }) => (
-  <Item className="bg-background" variant="outline">
+export const SignatureItem: React.FC<SignatureCardProps> = ({ signature, className }) => (
+  <Item
+    className={cn("bg-background", signature.pinned && "border-accent", className)}
+    variant="outline"
+  >
     <ItemContent>
       {/* Letter format */}
       <ItemDescription className="leading-relaxed text-base line-clamp-none">
-        I, <LetterField>{signature.name}</LetterField>, <LetterField>{signature.title}</LetterField>{" "}
-        at <LetterField>{signature.company}</LetterField>, sign this letter
+        I, <SignatureField>{signature.name}</SignatureField>,{" "}
+        <SignatureField>{signature.title}</SignatureField> at{" "}
+        <SignatureField>{signature.company}</SignatureField>, sign this letter
         {signature.because && (
           <>
             {" "}
-            because <LetterField>{signature.because}</LetterField>
+            because <SignatureField>{signature.because}</SignatureField>
           </>
         )}
         .
@@ -36,7 +36,7 @@ export const SignatureItem: React.FC<SignatureCardProps> = ({ signature }) => (
           <>
             {" "}
             In the first 100 days of a free Iran, I commit to{" "}
-            <LetterField>{signature.commitment}</LetterField>.
+            <SignatureField>{signature.commitment}</SignatureField>.
           </>
         )}
       </ItemDescription>
@@ -75,4 +75,8 @@ export const SignatureItemSkeleton: React.FC = () => (
       <Skeleton className="h-4 w-12" />
     </ItemFooter>
   </Item>
+)
+
+const SignatureField: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <span className="text-foreground">{children}</span>
 )

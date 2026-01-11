@@ -54,13 +54,7 @@ const components: MDXComponents = {
       {children}
     </h6>
   ),
-  blockquote: ({ children, ...props }) => (
-    <blockquote
-      {...props}
-    >
-      {children}
-    </blockquote>
-  ),
+  blockquote: ({ children, ...props }) => <blockquote {...props}>{children}</blockquote>,
   p: ({ children, className, ...props }) => (
     <p className={cn("font-sans line-height-[1.618] my-4", className)} {...props}>
       {children}

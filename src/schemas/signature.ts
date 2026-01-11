@@ -19,17 +19,17 @@ export const createSignature = {
     commitment: 160,
     xUsername: 24,
   },
-  defaultValues:
-    process.env.NODE_ENV === "development"
-      ? {
-          name: "Cyrus Nouroozi",
-          title: "CEO",
-          company: "The Synthesis Company of California Ltd.",
-          xUsername: "cyrusnewday",
-          because: "it's now or never",
-          commitment: "",
-        }
-      : { name: "", title: "", company: "", xUsername: "", because: "", commitment: "" },
+  defaultValues: {}
+    // process.env.NODE_ENV === "development"
+    //   ? {
+    //       name: "Cyrus Nouroozi",
+    //       title: "CEO",
+    //       company: "The Synthesis Company of California Ltd.",
+    //       xUsername: "cyrusnewday",
+    //       because: "it's now or never",
+    //       commitment: "",
+    //     }
+    //   : { name: "", title: "", company: "", xUsername: "", because: "", commitment: "" },
 }
 
 // =================================================================

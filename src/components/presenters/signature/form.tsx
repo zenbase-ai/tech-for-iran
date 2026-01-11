@@ -80,9 +80,9 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
   const { name, title, company, because, commitment } = form.watch()
 
   // Section visibility logic
-  const showWhy = name.length > 0 && title.length > 0 && company.length > 0
-  const showCommitment = showWhy && (because.length > 0 || skippedBecause)
-  const showXUsername = showCommitment && (commitment.length > 0 || skippedCommitment)
+  const showWhy = name?.length > 0 && title?.length > 0 && company?.length > 0
+  const showCommitment = showWhy && (because?.length > 0 || skippedBecause)
+  const showXUsername = showCommitment && (commitment?.length > 0 || skippedCommitment)
 
   // =================================================================
   // Handlers
@@ -107,7 +107,7 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
     <VStack as="form" className={cn("gap-4", className)} onSubmit={form.handleSubmit(handleSign)}>
       <input type="hidden" {...form.register("referredBy")} />
 
-      <Item className="flex-col" variant="outline">
+      <Item className="flex-col items-start" variant="outline">
         <ItemContent className="text-base text-muted-foreground leading-relaxed">
           <HStack className="gap-y-0.5" items="baseline" wrap>
             I,&nbsp;

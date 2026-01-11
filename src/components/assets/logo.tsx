@@ -7,5 +7,10 @@ export type Logo = Omit<ImageProps, "alt" | "src"> & {
 }
 
 export const Logo: React.FC<Logo> = ({ className, alt = "Smoke the Ayatollah", ...props }) => (
-  <Image alt={alt} className={cn("aspect-square", className)} src={LogoImage} {...props} />
+  <Image
+    alt={alt}
+    className={cn("aspect-square dark:invert", className)}
+    src={LogoImage}
+    {...props}
+  />
 )

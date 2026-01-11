@@ -25,7 +25,6 @@ export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...
   const pinned = results.filter((s) => s.pinned)
   const regular = results.filter((s) => !s.pinned)
 
-  const isLoadingInitial = isLoading && results.length === 0
   const canLoadMore = status === "CanLoadMore"
 
   const { ref: sentinelRef } = useInfiniteScroll({
@@ -37,7 +36,7 @@ export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...
 
   return (
     <Box {...props}>
-      {isLoadingInitial && (
+      {(isLoading || results.length === 0) && (
         <Grid className={gridcn}>
           <Repeat count={12}>
             <SignatureItemSkeleton />

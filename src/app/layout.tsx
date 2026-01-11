@@ -18,7 +18,7 @@ const url = "https://techforiran.com"
 
 export const metadata: Metadata = {
   title: {
-    default: title,
+    default: "Tech for Iran",
     template: `%s | ${title}`,
   },
   description,
@@ -105,10 +105,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
             <InitReferrer />
           </Suspense>
 
-          <Nav
-            className="fixed left-4 lg:left-8 xl:left-16 top-4 lg:top-8 xl:top-16 z-42"
-            initial={{ opacity: 0, y: -16 }}
-          />
+          <Nav />
 
           <Box className="w-full p-4 lg:p-8 xl:p-16">{children}</Box>
         </Providers>

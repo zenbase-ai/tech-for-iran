@@ -16,7 +16,7 @@ const description =
   "Founders, investors, and operators pledging to do business with a free Iran. Day one. This is not hope. This is a commitment."
 const url = "https://techforiran.com"
 
-export const metadata: Metadata = {
+export const metadata = {
   title: {
     default: "Tech for Iran",
     template: `%s | ${title}`,
@@ -48,12 +48,18 @@ export const metadata: Metadata = {
     siteName: title,
     title: "Tech for Iran — When Iran opens, we're in.",
     description,
+    images: [
+      { url: "/opengraph.gif", width: 1200, height: 630 },
+      { url: "/opengraph.png", width: 1200, height: 630 },
+    ],
+    videos: [{ url: "/opengraph.mp4", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Tech for Iran — When Iran opens, we're in.",
     description,
     creator: "@cyrusnewday",
+    images: ["/opengraph.gif", "/opengraph.png"],
   },
   robots: {
     index: true,
@@ -66,7 +72,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-}
+} as const satisfies Metadata
 
 export const viewport: Viewport = {
   colorScheme: "light dark",

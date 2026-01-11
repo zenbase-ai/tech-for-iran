@@ -78,5 +78,5 @@ export const SignatureItemSkeleton: React.FC = () => (
 )
 
 const SignatureField: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <span className="text-foreground">{children}</span>
+  <span className="text-foreground font-medium">{children}</span>
 )

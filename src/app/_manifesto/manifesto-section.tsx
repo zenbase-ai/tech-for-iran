@@ -1,8 +1,9 @@
 "use client"
 
+import { Prose } from "@/components/layout/prose"
 import { VStack } from "@/components/layout/stack"
 import { cn } from "@/lib/utils"
-import { ManifestoContent } from "./manifesto-content"
+import ManifestoContent from "./manifesto.md"
 
 export type ManifestoSectionProps = {
   className?: string
@@ -34,9 +35,9 @@ export const ManifestoSection: React.FC<ManifestoSectionProps> = ({ className })
       </header>
 
       {/* Manifesto Body */}
-      <article className="font-serif text-base md:text-lg leading-relaxed md:leading-loose space-y-6 md:space-y-8 text-foreground/90">
+      <Prose>
         <ManifestoContent />
-      </article>
+      </Prose>
     </VStack>
   </VStack>
 )

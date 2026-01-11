@@ -1,8 +1,9 @@
+import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
 import { authQuery } from "@/convex/_helpers/server"
-import { signatoryCount, signatoryReferrals } from "@/convex/aggregates"
+import { signatureCount, signatureReferrals } from "@/convex/aggregates"
 
 // Regex pattern for validating phone hash (64 hex chars)
 const PHONE_HASH_REGEX = /^[a-f0-9]{64}$/i
@@ -12,74 +13,74 @@ const PHONE_HASH_REGEX = /^[a-f0-9]{64}$/i
 // =================================================================
 
 /**
- * Get the current authenticated user's signatory record.
+ * Get the current authenticated user's signature record.
  *
- * @returns The signatory document if the user has signed, null otherwise
+ * @returns The signature document if the user has signed, null otherwise
  */
 export const mine = authQuery({
   args: {},
-  handler: async (ctx): Promise<Doc<"signatories"> | null> => {
-    const signatory = await ctx.db
-      .query("signatories")
+  handler: async (ctx): Promise<Doc<"signatures"> | null> => {
+    const signature = await ctx.db
+      .query("signatures")
       .withIndex("by_userId", (q) => q.eq("userId", ctx.userId))
       .first()
 
-    return signatory
+    return signature
   },
 })
 
 /**
- * Get a signatory by their phone hash.
+ * Get a signature by their phone hash.
  *
  * This is a public query (no auth required) used to:
- * - Pre-populate form fields for returning signatories
+ * - Pre-populate form fields for returning signatures
  * - Show personalized messaging (e.g., "Welcome back, [name]!")
  * - Indicate to the UI that this will be an update rather than a new signup
  *
  * @param phoneHash - SHA256 hash of the phone number (64 hex chars)
- * @returns The signatory document if found, null otherwise
+ * @returns The signature document if found, null otherwise
  */
 export const getByPhoneHash = query({
   args: {
     phoneHash: v.string(),
   },
-  handler: async (ctx, { phoneHash }): Promise<Doc<"signatories"> | null> => {
+  handler: async (ctx, { phoneHash }): Promise<Doc<"signatures"> | null> => {
     // Validate phone hash format
     if (!PHONE_HASH_REGEX.test(phoneHash)) {
       return null
     }
 
-    const signatory = await ctx.db
-      .query("signatories")
+    const signature = await ctx.db
+      .query("signatures")
       .withIndex("by_phoneHash", (q) => q.eq("phoneHash", phoneHash))
       .first()
 
-    return signatory
+    return signature
   },
 })
 
 /**
- * Get the count of signatories referred by a specific signatory.
+ * Get the count of signatures referred by a specific signature.
  *
- * Uses the signatoryReferrals aggregate for efficient counting.
+ * Uses the signatureReferrals aggregate for efficient counting.
  *
- * @param signatoryId - The ID of the signatory whose referrals to count
- * @returns The number of signatories with this signatoryId in their referredBy field
+ * @param signatureId - The ID of the signature whose referrals to count
+ * @returns The number of signatures with this signatureId in their referredBy field
  */
 export const referralCount = query({
   args: {
-    signatoryId: v.id("signatories"),
+    signatureId: v.id("signatures"),
   },
-  handler: async (ctx, { signatoryId }): Promise<number> => {
-    // Verify the signatory exists
-    const signatory = await ctx.db.get(signatoryId)
-    if (!signatory) {
+  handler: async (ctx, { signatureId }): Promise<number> => {
+    // Verify the signature exists
+    const signature = await ctx.db.get(signatureId)
+    if (!signature) {
       return 0
     }
 
     // Use the aggregate for efficient counting
-    const count = await signatoryReferrals.count(ctx, {
-      namespace: signatoryId,
+    const count = await signatureReferrals.count(ctx, {
+      namespace: signatureId,
     })
 
     return count
@@ -87,36 +88,36 @@ export const referralCount = query({
 })
 
 /**
- * Get a signatory by ID.
+ * Get a signature by ID.
  *
- * This is a public query used on share pages to display signatory details.
+ * This is a public query used on share pages to display signature details.
  *
- * @param signatoryId - The ID of the signatory to retrieve
- * @returns The signatory document if found, null otherwise
+ * @param signatureId - The ID of the signature to retrieve
+ * @returns The signature document if found, null otherwise
  */
 export const get = query({
   args: {
-    signatoryId: v.id("signatories"),
+    signatureId: v.id("signatures"),
   },
-  handler: async (ctx, { signatoryId }): Promise<Doc<"signatories"> | null> => {
-    return await ctx.db.get(signatoryId)
+  handler: async (ctx, { signatureId }): Promise<Doc<"signatures"> | null> => {
+    return await ctx.db.get(signatureId)
   },
 })
 
 /**
- * Get the total count of signatories.
+ * Get the total count of signatures.
  *
- * Uses the signatoryCount aggregate for O(1) reads rather than
+ * Uses the signatureCount aggregate for O(1) reads rather than
  * counting documents on each request. This is used on:
  * - Success state: "Join X founders ready for a free Iran"
  * - Wall of Commitments header
  *
- * @returns The total number of signatories who have signed the letter
+ * @returns The total number of signatures who have signed the letter
  */
 export const count = query({
   args: {},
   handler: async (ctx): Promise<number> => {
-    return await signatoryCount.count(ctx, {})
+    return await signatureCount.count(ctx, {})
   },
 })
 
@@ -129,44 +130,40 @@ export const sortOptions = ["upvotes", "recent"] as const
 export type SortOption = (typeof sortOptions)[number]
 
 /**
- * Get all pinned signatories for the Wall of Commitments.
+ * Get all pinned signatures for the Wall of Commitments.
  *
- * Pinned signatories are displayed at the top of the wall, separate from
+ * Pinned signatures are displayed at the top of the wall, separate from
  * the paginated list. Expected to be a small number (<50).
  *
- * @returns All pinned signatories sorted by upvote count descending
+ * @returns All pinned signatures sorted by upvote count descending
  */
 export const pinned = query({
   args: {},
-  handler: async (ctx): Promise<Doc<"signatories">[]> => {
-    return await ctx.db
-      .query("signatories")
+  handler: async (ctx): Promise<Doc<"signatures">[]> =>
+    await ctx.db
+      .query("signatures")
       .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", true))
       .order("desc")
-      .collect()
-  },
+      .collect(),
 })
 
 /**
- * Paginated list of non-pinned signatories for the Wall of Commitments.
+ * Paginated list of non-pinned signatures for the Wall of Commitments.
  *
  * @param sort - Sort order: 'upvotes' (by upvoteCount desc) or 'recent' (by _creationTime desc)
  * @param paginationOpts - Pagination options from usePaginatedQuery
- * @returns Paginated list of non-pinned signatories
+ * @returns Paginated list of non-pinned signatures
  */
 export const list = query({
   args: {
     sort: v.union(v.literal("upvotes"), v.literal("recent")),
-    paginationOpts: v.object({
-      numItems: v.number(),
-      cursor: v.union(v.string(), v.null()),
-    }),
+    paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, { sort, paginationOpts }) => {
     const index = sort === "upvotes" ? "by_pinned_upvoteCount" : "by_pinned"
 
     return await ctx.db
-      .query("signatories")
+      .query("signatures")
       .withIndex(index, (q) => q.eq("pinned", false))
       .order("desc")
       .paginate(paginationOpts)

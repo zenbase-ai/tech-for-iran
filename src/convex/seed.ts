@@ -1,5 +1,7 @@
 import type { Id } from "./_generated/dataModel"
-import { internalMutation } from "./_generated/server"
+import { internalMutation as rawInternalMutation } from "./_generated/server"
+import { internalMutation } from "./_helpers/server"
+import { signatureCount, signatureReferrals, upvoteCount } from "./aggregates"
 
 // =================================================================
 // Seed Data
@@ -7,6 +9,7 @@ import { internalMutation } from "./_generated/server"
 
 const SIGNATURES = [
   {
+    xUsername: "daborator",
     name: "Dara Khosrowshahi",
     title: "CEO",
     company: "Uber",
@@ -16,6 +19,7 @@ const SIGNATURES = [
     pinned: true,
   },
   {
+    xUsername: "omikimon",
     name: "Omid Kordestani",
     title: "Executive Chairman",
     company: "Twitter",
@@ -25,6 +29,7 @@ const SIGNATURES = [
     pinned: true,
   },
   {
+    xUsername: "faborator",
     name: "Farzad Nazem",
     title: "Former CTO",
     company: "Yahoo",
@@ -33,6 +38,7 @@ const SIGNATURES = [
     pinned: true,
   },
   {
+    xUsername: "AnoushehAnsari",
     name: "Anousheh Ansari",
     title: "CEO",
     company: "XPRIZE Foundation",
@@ -41,6 +47,7 @@ const SIGNATURES = [
     pinned: true,
   },
   {
+    xUsername: "paborator",
     name: "Pierre Omidyar",
     title: "Founder",
     company: "eBay",
@@ -49,6 +56,7 @@ const SIGNATURES = [
     pinned: true,
   },
   {
+    xUsername: "sheraborator",
     name: "Shervin Pishevar",
     title: "Co-Founder",
     company: "Hyperloop One",
@@ -57,6 +65,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "apartovi",
     name: "Ali Partovi",
     title: "CEO",
     company: "Neo",
@@ -66,6 +75,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "hadip",
     name: "Hadi Partovi",
     title: "CEO",
     company: "Code.org",
@@ -74,6 +84,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "mirzakhani_fdn",
     name: "Maryam Mirzakhani Foundation",
     title: "Director",
     company: "Stanford Mathematics",
@@ -81,6 +92,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "saeedamidi",
     name: "Saeed Amidi",
     title: "Founder",
     company: "Plug and Play",
@@ -90,6 +102,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "navidalipour",
     name: "Navid Alipour",
     title: "Managing Partner",
     company: "Analytics Ventures",
@@ -98,6 +111,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "shirindehghani",
     name: "Shirin Dehghani",
     title: "CEO",
     company: "Idex Biometrics",
@@ -107,6 +121,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "rezamalekzadeh",
     name: "Reza Malekzadeh",
     title: "Partner",
     company: "Partech Ventures",
@@ -115,6 +130,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "saranaseri",
     name: "Sara Naseri",
     title: "CEO",
     company: "Qurasense",
@@ -123,6 +139,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "babakparviz",
     name: "Babak Parviz",
     title: "VP",
     company: "Amazon",
@@ -131,6 +148,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "saborator",
     name: "Salar Kamangar",
     title: "Former CEO",
     company: "YouTube",
@@ -139,6 +157,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "araborator",
     name: "Arash Ferdowsi",
     title: "Co-Founder",
     company: "Dropbox",
@@ -147,6 +166,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "hosainrahman",
     name: "Hosain Rahman",
     title: "Former CEO",
     company: "Jawbone",
@@ -155,6 +175,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "pardaborator",
     name: "Pardis Sabeti",
     title: "Professor",
     company: "Harvard / Broad Institute",
@@ -164,6 +185,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "daboratorian",
     name: "Darian Shirazi",
     title: "Founder",
     company: "Gradient Ventures",
@@ -171,6 +193,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "naborator",
     name: "Nima Ghamsari",
     title: "CEO",
     company: "Blend",
@@ -179,6 +202,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "tinasharkey",
     name: "Tina Sharkey",
     title: "Co-Founder",
     company: "Brandless",
@@ -187,6 +211,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "amirefrati",
     name: "Amir Efrati",
     title: "Co-Founder",
     company: "The Information",
@@ -196,6 +221,7 @@ const SIGNATURES = [
     pinned: false,
   },
   {
+    xUsername: "kaborator",
     name: "Kambiz Foroohar",
     title: "Senior Editor",
     company: "Bloomberg",
@@ -228,24 +254,10 @@ export const seed = internalMutation({
     const signatureIds: Id<"signatures">[] = []
 
     for (const signature of SIGNATURES) {
-      // Create a fake user for each signature
-      const userId = await ctx.db.insert("users", {})
-
-      // Generate a fake phone hash (just for testing)
-      const phoneHash = await generateFakePhoneHash(signature.name)
-
-      // Create the signature
+      // Create the signature (upvoteCount will be updated after creating upvotes)
       const signatureId = await ctx.db.insert("signatures", {
-        userId,
-        name: signature.name,
-        title: signature.title,
-        company: signature.company,
-        phoneHash,
-        because: signature.because,
-        commitment: signature.commitment,
-        pinned: signature.pinned,
-        upvoteCount: Math.floor(Math.random() * 100), // Random upvotes for variety
-        referredBy: undefined,
+        upvoteCount: 0,
+        ...signature,
       })
 
       signatureIds.push(signatureId)
@@ -261,18 +273,34 @@ export const seed = internalMutation({
       }
     }
 
-    console.log(`Seeded ${signatureIds.length} signatures.`)
-    return { seeded: true, count: signatureIds.length }
+    // Create random upvotes for each signature
+    let totalUpvotes = 0
+    for (const signatureId of signatureIds) {
+      const numUpvotes = Math.floor(Math.random() * 20) + 1 // 1-20 upvotes per signature
+      for (let i = 0; i < numUpvotes; i++) {
+        await ctx.db.insert("upvotes", {
+          signatureId,
+          anonId: `seed-anon-${signatureId}-${i}`,
+        })
+      }
+      // Update the denormalized upvoteCount on the signature
+      await ctx.db.patch(signatureId, { upvoteCount: numUpvotes })
+      totalUpvotes += numUpvotes
+    }
+
+    console.log(`Seeded ${signatureIds.length} signatures and ${totalUpvotes} upvotes.`)
+    return { seeded: true, count: signatureIds.length, upvotes: totalUpvotes }
   },
 })
 
 /**
- * Clears all seed data (signatures and their users).
+ * Clears all seed data (signatures and upvotes).
  * Useful for resetting the database during development.
+ * Uses raw mutation (no triggers) to avoid aggregate sync issues.
  *
  * Run with: npx convex run seed:clear
  */
-export const clear = internalMutation({
+export const clear = rawInternalMutation({
   args: {},
   handler: async (ctx) => {
     // Delete all upvotes first (foreign key constraint)
@@ -281,30 +309,18 @@ export const clear = internalMutation({
       await ctx.db.delete(upvote._id)
     }
 
-    // Delete all signatures and their associated users
+    // Delete all signatures
     const signatures = await ctx.db.query("signatures").collect()
     for (const signature of signatures) {
-      await ctx.db.delete(signature.userId)
       await ctx.db.delete(signature._id)
     }
+
+    // Clear the aggregates (since we bypassed triggers)
+    await signatureCount.clear(ctx)
+    await signatureReferrals.clearAll(ctx) // Namespaced aggregate needs clearAll
+    await upvoteCount.clear(ctx)
 
     console.log(`Cleared ${signatures.length} signatures and ${upvotes.length} upvotes.`)
     return { cleared: true, signatures: signatures.length, upvotes: upvotes.length }
   },
 })
-
-// =================================================================
-// Helpers
-// =================================================================
-
-/**
- * Generates a fake SHA256-like hash from a string.
- * This is NOT cryptographically secure - just for test data.
- */
-async function generateFakePhoneHash(seed: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(seed + Date.now().toString() + Math.random().toString())
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-}

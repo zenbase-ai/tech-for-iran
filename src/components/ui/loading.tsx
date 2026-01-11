@@ -20,7 +20,7 @@ export const Loading: React.FC<LoadingProps> = ({ message, delay = 0, className 
       animate={isMounted ? { opacity: 1 } : { opacity: 0 }}
       className={cn("flex flex-col items-center justify-center py-1", className)}
     >
-      <Logo animate className="text-muted" />
+      <Logo className="size-32" />
 
       {!!message && (
         <TextShimmer as="h2" className="text-lg font-serif italic">

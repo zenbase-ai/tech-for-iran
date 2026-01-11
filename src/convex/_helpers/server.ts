@@ -1,6 +1,11 @@
 import { getAuthUserId } from "@convex-dev/auth/server"
 import type { Auth } from "convex/server"
-import { customAction, customMutation, customQuery } from "convex-helpers/server/customFunctions"
+import {
+  customAction,
+  customCtx,
+  customMutation,
+  customQuery,
+} from "convex-helpers/server/customFunctions"
 import {
   type ActionCtx,
   type MutationCtx,
@@ -9,6 +14,7 @@ import {
   mutation as rawMutation,
   query as rawQuery,
 } from "@/convex/_generated/server"
+import { triggers } from "../triggers"
 import { UnauthorizedError } from "./errors"
 
 export const update = <T extends Record<string, unknown>>(data: T): T & { updatedAt: number } => ({
@@ -16,8 +22,8 @@ export const update = <T extends Record<string, unknown>>(data: T): T & { update
   updatedAt: Date.now(),
 })
 
-export const mutation = rawMutation
-export const internalMutation = rawInternalMutation
+export const mutation = customMutation(rawMutation, customCtx(triggers.wrapDB))
+export const internalMutation = customMutation(rawInternalMutation, customCtx(triggers.wrapDB))
 
 export const requireAuth = async (auth: Auth) => {
   const userId = await getAuthUserId({ auth })
@@ -42,8 +48,9 @@ export const authMutation = customMutation(rawMutation, {
   args: {},
   input: async (ctx: MutationCtx, args) => {
     const { userId } = await requireAuth(ctx.auth)
+    const wrappedDb = triggers.wrapDB(ctx).db
     return {
-      ctx: { ...ctx, userId },
+      ctx: { ...ctx, db: wrappedDb, userId },
       args,
     }
   },

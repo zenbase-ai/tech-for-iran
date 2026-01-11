@@ -17,9 +17,9 @@ export const GlowEffect: React.FC<GlowEffectProps> = ({
   className,
   style,
   colors = [
-    "oklch(0.83291 0.14388 83.366)",
-    "oklch(0.62822 0.14389 142.999)",
-    "oklch(0.53678 0.2199 28.694)",
+    "oklch(0.83291 0.14388 83.366)", // yellow
+    "oklch(0.62822 0.14389 142.999)", // green
+    "oklch(0.53678 0.2199 28.694)", // red
   ],
   mode = "breathe",
   blur = "strongest",

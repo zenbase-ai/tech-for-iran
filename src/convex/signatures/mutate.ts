@@ -1,97 +1,91 @@
 import { v } from "convex/values"
 import type { Id } from "@/convex/_generated/dataModel"
 import { errorMessage } from "@/convex/_helpers/errors"
-import { authMutation } from "@/convex/_helpers/server"
-import { SignatureCreate } from "@/schemas/signature"
+import { mutation } from "@/convex/_helpers/server"
+import { CreateSignature } from "@/schemas/signature"
 
 // =================================================================
 // Return Types
 // =================================================================
 
 type CreateResult =
-  | { signatureId: Id<"signatures">; isUpdate: boolean }
-  | { signatureId: null; error: string }
+  | { data: { signatureId: Id<"signatures"> }; success: string }
+  | { data: { signatureId: Id<"signatures"> }; info: string }
+  | { data: null; error: string }
 
 // =================================================================
 // Mutations
 // =================================================================
 
 /**
- * Create or update a signature record after phone verification.
+ * Create a signature record for the given X username.
  *
- * If the phoneHash already exists, updates the existing signature and
- * associates it with the current user. Otherwise, creates a new signature.
+ * If the xUsername has already signed, returns an info message.
+ * Otherwise, creates a new signature.
  *
  * @param name - Full name (1-100 chars)
  * @param title - Job title (1-100 chars)
  * @param company - Company name (1-100 chars)
- * @param phoneHash - SHA256 hash of verified phone number (64 hex chars)
+ * @param xUsername - X (Twitter) username for deduplication (max 24 chars)
  * @param because - Optional "Why I'm signing" text (max 280 chars)
  * @param commitment - Optional "100 days" commitment text (max 2000 chars)
  * @param referredBy - Optional signature ID who referred them
  *
- * @returns { signatureId, isUpdate: false } for new signatures
- * @returns { signatureId, isUpdate: true } for returning signatures
- * @returns { signatureId: null, error } for validation failures
+ * @returns { data: { signatureId }, success } for new signatures
+ * @returns { data: { signatureId }, info } if already signed
+ * @returns { data: null, error } for validation failures
  */
-export const create = authMutation({
+export const create = mutation({
   args: {
     name: v.string(),
     title: v.string(),
     company: v.string(),
-    phoneHash: v.string(),
-    because: v.optional(v.string()),
-    commitment: v.optional(v.string()),
-    referredBy: v.optional(v.id("signatures")),
+    xUsername: v.string(),
+    because: v.string(),
+    commitment: v.string(),
+    referredBy: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<CreateResult> => {
     // Validate input with shared schema
-    const { data, success, error } = SignatureCreate.safeParse(args)
+    const { data, success, error } = CreateSignature.safeParse(args)
     if (!success) {
-      return { signatureId: null, error: errorMessage(error) }
+      return { data: null, error: errorMessage(error) }
     }
 
-    const { name, title, company, phoneHash, because, commitment } = data
+    const { name, title, company, xUsername, because, commitment } = data
 
-    // Check if signature already exists with this phone hash
+    // Normalize X username to lowercase for deduplication
+    const normalizedUsername = xUsername.toLowerCase()
+
+    // Check if signature already exists for this X username
     const existing = await ctx.db
       .query("signatures")
-      .withIndex("by_phoneHash", (q) => q.eq("phoneHash", phoneHash))
+      .withIndex("by_xUsername", (q) => q.eq("xUsername", normalizedUsername))
       .first()
 
     if (existing) {
-      // Update existing signature and associate with current user
-      // Preserve original referredBy, pinned, and upvoteCount
-      await ctx.db.patch(existing._id, {
-        userId: ctx.userId,
-        name,
-        title,
-        company,
-        // Only update optional fields if provided
-        ...(because !== undefined && { because }),
-        ...(commitment !== undefined && { commitment }),
-      })
-
-      return { signatureId: existing._id, isUpdate: true }
+      return {
+        data: { signatureId: existing._id },
+        info: "You've already signed this petition!",
+      }
     }
 
     // New signature - validate referredBy if provided
     let validReferredBy: Id<"signatures"> | undefined
-    if (args.referredBy) {
-      const referrer = await ctx.db.get(args.referredBy)
+    if (data.referredBy) {
+      const referrer = await ctx.db.get(data.referredBy as Id<"signatures">)
       if (referrer) {
-        validReferredBy = args.referredBy
+        validReferredBy = data.referredBy as Id<"signatures">
       }
       // Silently ignore invalid referredBy
     }
 
     // Create new signature record
     const signatureId = await ctx.db.insert("signatures", {
-      userId: ctx.userId,
+      xUsername: normalizedUsername,
       name,
       title,
       company,
-      phoneHash,
       because: because || undefined,
       commitment: commitment || undefined,
       pinned: false,
@@ -99,6 +93,6 @@ export const create = authMutation({
       referredBy: validReferredBy,
     })
 
-    return { signatureId, isUpdate: false }
+    return { data: { signatureId }, success: "You've signed the letter!" }
   },
 })

@@ -25,20 +25,20 @@ src/convex/
 ## Domain Model
 
 ### Tables
-- `signatories`: People who signed the letter (name, title, company, phone_hash, why_signed, commitment_text, pinned, upvote_count, referred_by, tags)
-- `upvotes`: Upvote records (signatory_id, voter_phone_hash) with unique constraint on pair
+- `signatures`: People who signed the letter (name, title, company, xUsername, because, commitment, pinned, upvoteCount, referredBy)
+- `upvotes`: Upvote records (signatureId, voterId) with unique constraint on pair
 
 ### Key Concepts
-- **phone_hash**: SHA256 hash of phone number, used for deduplication and voter identification
-- **pinned**: Featured signatories that always appear first
-- **referred_by**: Signatory ID of who referred them (viral tracking)
-- **tags**: JSON field for future LLM-parsed structured data (capital_amount, jobs_count, category)
+- **xUsername**: X (Twitter) username, used for deduplication (one signature per X account)
+- **voterId**: Anonymous cookie-based ID (anon_<uuid>) for upvoting
+- **pinned**: Featured signatures that always appear first
+- **referredBy**: Signature ID of who referred them (viral tracking)
 
 ## Function Wrapper Selection
 
 ### Public Queries (No Auth Required)
 ```typescript
-// List signatories for the wall - no auth needed
+// List signatures for the wall - no auth needed
 export const list = query({
   args: {
     sort: v.union(v.literal("upvotes"), v.literal("recent")),
@@ -49,75 +49,72 @@ export const list = query({
   }
 })
 
-// Get single signatory by ID - no auth needed
+// Get single signature by ID - no auth needed
 export const get = query({
-  args: { signatoryId: v.id("signatories") },
+  args: { signatureId: v.id("signatures") },
   handler: async (ctx, args) => {
-    return ctx.db.get(args.signatoryId)
+    return ctx.db.get(args.signatureId)
+  }
+})
+
+// Count total signatures
+export const count = query({
+  args: {},
+  handler: async (ctx) => {
+    return await totalSignatures.count(ctx, {})
   }
 })
 ```
 
-### Phone-Verified Mutations
+### Public Mutations (No Auth Required)
 ```typescript
-// Sign the letter - requires phone verification
-export const sign = mutation({
+// Create signature - no auth, uses xUsername for deduplication
+export const create = mutation({
   args: {
     name: v.string(),
     title: v.string(),
     company: v.string(),
-    phoneHash: v.string(),
-    whySigned: v.optional(v.string()),
-    commitmentText: v.optional(v.string()),
-    referredBy: v.optional(v.id("signatories")),
+    xUsername: v.string(),
+    because: v.string(),
+    commitment: v.string(),
+    referredBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Check for duplicate phone_hash
+    // Check for duplicate xUsername
     const existing = await ctx.db
-      .query("signatories")
-      .withIndex("by_phone_hash", (q) => q.eq("phoneHash", args.phoneHash))
+      .query("signatures")
+      .withIndex("by_xUsername", (q) => q.eq("xUsername", args.xUsername))
       .first()
 
     if (existing) {
-      return { signatoryId: null, error: "This phone number has already signed the letter." }
+      return { signatureId: null, error: "This X username has already signed." }
     }
 
-    const signatoryId = await ctx.db.insert("signatories", {
+    const signatureId = await ctx.db.insert("signatures", {
       ...args,
       pinned: false,
       upvoteCount: 0,
-      createdAt: Date.now(),
     })
 
-    return { signatoryId, success: "You've signed the letter!" }
+    return { signatureId, success: "You've signed the letter!" }
   }
 })
 ```
 
-### Signatory-Only Actions (Must Have Signed)
+### Anonymous Upvoting
 ```typescript
-// Upvote - only signatories can upvote
+// Upvote - anyone can upvote using anonymous voterId
 export const upvote = mutation({
   args: {
-    signatoryId: v.id("signatories"),
-    voterPhoneHash: v.string(),
+    signatureId: v.id("signatures"),
+    voterId: v.string(), // Cookie-based anon_<uuid>
   },
   handler: async (ctx, args) => {
-    // Verify voter has signed
-    const voter = await ctx.db
-      .query("signatories")
-      .withIndex("by_phone_hash", (q) => q.eq("phoneHash", args.voterPhoneHash))
-      .first()
-
-    if (!voter) {
-      return { error: "Sign the letter to upvote commitments." }
-    }
-
     // Check for duplicate upvote
     const existing = await ctx.db
       .query("upvotes")
-      .withIndex("by_signatory_voter", (q) =>
-        q.eq("signatoryId", args.signatoryId).eq("voterPhoneHash", args.voterPhoneHash)
+      .withIndex("by_signatureId_voterId", (q) =>
+        q.eq("signatureId", args.signatureId).eq("voterId", args.voterId)
       )
       .first()
 
@@ -127,14 +124,16 @@ export const upvote = mutation({
 
     // Insert upvote and increment count
     await ctx.db.insert("upvotes", {
-      signatoryId: args.signatoryId,
-      voterPhoneHash: args.voterPhoneHash,
-      createdAt: Date.now(),
+      signatureId: args.signatureId,
+      voterId: args.voterId,
     })
 
-    await ctx.db.patch(args.signatoryId, {
-      upvoteCount: (await ctx.db.get(args.signatoryId))!.upvoteCount + 1,
-    })
+    const signature = await ctx.db.get(args.signatureId)
+    if (signature) {
+      await ctx.db.patch(args.signatureId, {
+        upvoteCount: signature.upvoteCount + 1,
+      })
+    }
 
     return { success: "Upvoted!" }
   }
@@ -144,9 +143,9 @@ export const upvote = mutation({
 ### Internal Functions
 ```typescript
 export const seedPinned = internalMutation({
-  args: { signatories: v.array(v.object({ ... })) },
+  args: { signatures: v.array(v.object({ ... })) },
   handler: async (ctx, args) => {
-    // Seed featured signatories - called from backend only
+    // Seed featured signatures - called from backend only
   }
 })
 ```
@@ -154,16 +153,16 @@ export const seedPinned = internalMutation({
 ## Return Type Pattern (Discriminated Unions)
 
 ```typescript
-type SignResult =
-  | { signatoryId: Id<"signatories">; success: string }
-  | { signatoryId: null; error: string }
+type CreateResult =
+  | { signatureId: Id<"signatures">; success: string }
+  | { signatureId: null; error: string }
 
-export const sign = mutation({
-  handler: async (ctx, args): Promise<SignResult> => {
-    if (duplicatePhoneHash) {
-      return { signatoryId: null, error: "This phone number has already signed." }
+export const create = mutation({
+  handler: async (ctx, args): Promise<CreateResult> => {
+    if (duplicateXUsername) {
+      return { signatureId: null, error: "This X username has already signed." }
     }
-    return { signatoryId, success: "You've signed the letter!" }
+    return { signatureId, success: "You've signed the letter!" }
   }
 })
 ```
@@ -173,29 +172,23 @@ export const sign = mutation({
 ```typescript
 import * as z from "zod"
 import { errorMessage } from "@/convex/_helpers/errors"
+import { CreateSignature } from "@/schemas/signature"
 
-const SignSchema = z.object({
-  name: z.string().min(1).max(100),
-  title: z.string().min(1).max(100),
-  company: z.string().min(1).max(100),
-  whySigned: z.string().max(280).optional(),
-  commitmentText: z.string().max(2000).optional(),
-})
-
-export const sign = mutation({
+export const create = mutation({
   args: {
     name: v.string(),
     title: v.string(),
     company: v.string(),
-    phoneHash: v.string(),
-    whySigned: v.optional(v.string()),
-    commitmentText: v.optional(v.string()),
-    referredBy: v.optional(v.id("signatories")),
+    xUsername: v.string(),
+    because: v.string(),
+    commitment: v.string(),
+    referredBy: v.optional(v.string()),
   },
-  handler: async (ctx, args): Promise<SignResult> => {
-    const { data, success, error } = SignSchema.safeParse(args)
+  handler: async (ctx, args): Promise<CreateResult> => {
+    // Server-side validation with shared schema
+    const { data, success, error } = CreateSignature.safeParse(args)
     if (!success) {
-      return { signatoryId: null, error: errorMessage(error) }
+      return { signatureId: null, error: errorMessage(error) }
     }
     // Use validated data
   }
@@ -209,8 +202,8 @@ import { NotFoundError, ConflictError, BadRequestError } from "@/convex/_helpers
 import { errorMessage } from "@/convex/_helpers/errors"
 
 // Throw custom errors
-const signatory = await ctx.db.get(signatoryId)
-if (!signatory) throw new NotFoundError("signatories/query:get")
+const signature = await ctx.db.get(signatureId)
+if (!signature) throw new NotFoundError("signatures/query:get")
 
 // Extract error messages
 try {
@@ -233,14 +226,14 @@ export const list = query({
   handler: async (ctx, args) => {
     // Always show pinned first
     const pinned = await ctx.db
-      .query("signatories")
+      .query("signatures")
       .withIndex("by_pinned", (q) => q.eq("pinned", true))
       .collect()
 
     // Then paginate the rest
-    const index = args.sort === "upvotes" ? "by_upvote_count" : "by_created_at"
+    const index = args.sort === "upvotes" ? "by_upvoteCount" : "by_createdAt"
     const results = await ctx.db
-      .query("signatories")
+      .query("signatures")
       .withIndex(index)
       .order("desc")
       .paginate(args.paginationOpts)
@@ -256,11 +249,11 @@ export const list = query({
 ### Referral Count
 ```typescript
 export const getReferralCount = query({
-  args: { signatoryId: v.id("signatories") },
+  args: { signatureId: v.id("signatures") },
   handler: async (ctx, args) => {
     const referrals = await ctx.db
-      .query("signatories")
-      .withIndex("by_referred_by", (q) => q.eq("referredBy", args.signatoryId))
+      .query("signatures")
+      .withIndex("by_referredBy", (q) => q.eq("referredBy", args.signatureId))
       .collect()
     return referrals.length
   }
@@ -278,31 +271,31 @@ Define counters in `aggregates.ts`:
 ```typescript
 import { TableAggregate } from "@convex-dev/aggregate"
 
-// Count total signatories
-export const totalSignatories = new TableAggregate<{
+// Count total signatures
+export const totalSignatures = new TableAggregate<{
   Key: [number]
   DataModel: DataModel
-  TableName: "signatories"
-}>(components.totalSignatories, {
+  TableName: "signatures"
+}>(components.totalSignatures, {
   sortKey: (doc) => [doc._creationTime],
 })
 
-// Count upvotes per signatory
-export const signatoryUpvotes = new TableAggregate<{
-  Key: [Id<"signatories">, number]
+// Count upvotes per signature
+export const signatureUpvotes = new TableAggregate<{
+  Key: [Id<"signatures">, number]
   DataModel: DataModel
   TableName: "upvotes"
-}>(components.signatoryUpvotes, {
-  sortKey: (doc) => [doc.signatoryId, doc._creationTime],
+}>(components.signatureUpvotes, {
+  sortKey: (doc) => [doc.signatureId, doc._creationTime],
 })
 ```
 
 Use in queries:
 ```typescript
-const totalCount = await totalSignatories.count(ctx, {})
+const totalCount = await totalSignatures.count(ctx, {})
 
-const upvoteCount = await signatoryUpvotes.count(ctx, {
-  bounds: { prefix: [signatoryId] }
+const upvoteCount = await signatureUpvotes.count(ctx, {
+  bounds: { prefix: [signatureId] }
 })
 ```
 
@@ -313,18 +306,18 @@ Auto-update aggregates in `triggers.ts`:
 ```typescript
 const triggers = new Triggers<DataModel>()
 
-// Track signatory count
-triggers.register("signatories", totalSignatories.trigger())
+// Track signature count
+triggers.register("signatures", totalSignatures.trigger())
 
 // Track upvotes
-triggers.register("upvotes", signatoryUpvotes.trigger())
+triggers.register("upvotes", signatureUpvotes.trigger())
 
-// Cascade delete upvotes when signatory deleted
-triggers.register("signatories", async (ctx, change) => {
+// Cascade delete upvotes when signature deleted
+triggers.register("signatures", async (ctx, change) => {
   if (change.operation === "delete") {
     const upvotes = await ctx.db
       .query("upvotes")
-      .withIndex("by_signatory_id", (q) => q.eq("signatoryId", change.id))
+      .withIndex("by_signatureId", (q) => q.eq("signatureId", change.id))
       .collect()
 
     await pmap(upvotes, async ({ _id }) => ctx.db.delete(_id))
@@ -335,7 +328,7 @@ triggers.register("signatories", async (ctx, change) => {
 ## HTTP Webhooks
 
 ```typescript
-// Clerk phone verification webhook
+// Clerk user verification webhook
 http.route({
   path: "/webhooks/clerk",
   method: "POST",
@@ -346,8 +339,8 @@ http.route({
       return new Response(null, { status: 201 }) // Always ack
     }
 
-    // Handle phone verification event
-    await ctx.runMutation(internal.signatories.mutate.handleVerification, data)
+    // Handle user event
+    await ctx.runMutation(internal.signatures.mutate.handleUserEvent, data)
     return new Response(null, { status: 201 })
   }),
 })
@@ -358,8 +351,8 @@ http.route({
 ```typescript
 import { ratelimits } from "@/convex/ratelimits"
 
-// Limit signing attempts per phone
-const { ok, retryAfter } = await ratelimits.check(ctx, ...signRateLimit(phoneHash))
+// Limit upvote attempts per voter
+const { ok, retryAfter } = await ratelimits.check(ctx, ...upvoteRateLimit(voterId))
 if (!ok) {
   return { error: `Too many attempts, try again in ${Math.ceil(retryAfter / 1000)}s` }
 }
@@ -373,8 +366,8 @@ Register all components in `convex.config.ts`:
 import aggregate from "@convex-dev/aggregate/convex.config"
 
 const app = defineApp()
-app.use(aggregate, { name: "totalSignatories" })
-app.use(aggregate, { name: "signatoryUpvotes" })
+app.use(aggregate, { name: "totalSignatures" })
+app.use(aggregate, { name: "signatureUpvotes" })
 export default app
 ```
 
@@ -384,9 +377,9 @@ export default app
 export const migrations = new Migrations<DataModel>(components.migrations)
 
 export const repairAggregates = migrations.define({
-  table: "signatories",
+  table: "signatures",
   migrateOne: async (ctx, doc) => {
-    await totalSignatories.insertIfDoesNotExist(ctx, doc)
+    await totalSignatures.insertIfDoesNotExist(ctx, doc)
   },
 })
 ```
@@ -395,45 +388,40 @@ export const repairAggregates = migrations.define({
 
 ```typescript
 export default defineSchema({
-  signatories: defineTable({
+  signatures: defineTable({
     name: v.string(),
     title: v.string(),
     company: v.string(),
-    phoneHash: v.string(),
-    whySigned: v.optional(v.string()),
-    commitmentText: v.optional(v.string()),
+    xUsername: v.string(),
+    because: v.string(),
+    commitment: v.string(),
     pinned: v.boolean(),
     upvoteCount: v.number(),
-    referredBy: v.optional(v.id("signatories")),
-    createdAt: v.number(),
-    tags: v.optional(v.any()), // JSON for LLM-parsed data
+    referredBy: v.optional(v.string()),
   })
-    .index("by_phone_hash", ["phoneHash"])
+    .index("by_xUsername", ["xUsername"])
     .index("by_pinned", ["pinned"])
-    .index("by_upvote_count", ["upvoteCount"])
-    .index("by_created_at", ["createdAt"])
-    .index("by_referred_by", ["referredBy"]),
+    .index("by_pinned_upvoteCount", ["pinned", "upvoteCount"])
+    .index("by_referredBy", ["referredBy"]),
 
   upvotes: defineTable({
-    signatoryId: v.id("signatories"),
-    voterPhoneHash: v.string(),
-    createdAt: v.number(),
+    signatureId: v.id("signatures"),
+    voterId: v.string(),
   })
-    .index("by_signatory_id", ["signatoryId"])
-    .index("by_signatory_voter", ["signatoryId", "voterPhoneHash"]),
+    .index("by_signatureId_voterId", ["signatureId", "voterId"])
+    .index("by_voterId_signatureId", ["voterId", "signatureId"]),
 })
 ```
 
 ## Checklist
 
 - [ ] Use discriminated union return types
-- [ ] Validate with Zod `safeParse()`
-- [ ] Check phone_hash for deduplication on sign
-- [ ] Verify voter is a signatory before upvote
+- [ ] Validate with Zod `safeParse()` using shared schema
+- [ ] Check xUsername for deduplication on create
 - [ ] Check for duplicate upvotes before inserting
-- [ ] Always show pinned signatories first in lists
+- [ ] Always show pinned signatures first in lists
 - [ ] Track referredBy for viral attribution
 - [ ] Use appropriate indexes for queries
 - [ ] Register aggregates in `convex.config.ts`
 - [ ] Add triggers for automatic counting
-- [ ] Rate limit sensitive operations (signing, upvoting)
+- [ ] Rate limit sensitive operations (upvoting)

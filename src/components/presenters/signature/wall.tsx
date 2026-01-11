@@ -3,18 +3,19 @@
 import { usePaginatedQuery } from "convex/react"
 import { Box, type BoxProps } from "@/components/layout/box"
 import { Grid } from "@/components/layout/grid"
-import { SignatureCard, SignatureCardSkeleton } from "@/components/presenters/signature/card"
+import { SignatureItem, SignatureItemSkeleton } from "@/components/presenters/signature/item"
 import { Repeat } from "@/components/ui/repeat"
 import { api } from "@/convex/_generated/api"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
+import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 20
 
-export type SignatureWallProps = BoxProps
+export type SignatureWallProps = BoxProps & {
+  gridClassName?: string
+}
 
-const gridClassName = "w-full mx-auto gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-
-export const SignatureWall: React.FC<SignatureWallProps> = ({ ...props }) => {
+export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...props }) => {
   const { results, status, loadMore, isLoading } = usePaginatedQuery(
     api.signatures.query.list,
     { sort: "upvotes" },
@@ -32,28 +33,30 @@ export const SignatureWall: React.FC<SignatureWallProps> = ({ ...props }) => {
     loadMore: () => canLoadMore && loadMore(PAGE_SIZE),
   })
 
+  const gridcn = cn("w-full gap-6", gridClassName)
+
   return (
     <Box {...props}>
       {isLoadingInitial && (
-        <Grid className={gridClassName}>
+        <Grid className={gridcn}>
           <Repeat count={12}>
-            <SignatureCardSkeleton />
+            <SignatureItemSkeleton />
           </Repeat>
         </Grid>
       )}
 
       {pinned.length > 0 && (
-        <Grid className={gridClassName}>
+        <Grid className={gridcn}>
           {pinned.map((signature) => (
-            <SignatureCard key={signature._id} signature={signature} />
+            <SignatureItem key={signature._id} signature={signature} />
           ))}
         </Grid>
       )}
 
       {regular.length > 0 && (
-        <Grid className={gridClassName}>
+        <Grid className={gridcn}>
           {regular.map((signature) => (
-            <SignatureCard key={signature._id} signature={signature} />
+            <SignatureItem key={signature._id} signature={signature} />
           ))}
         </Grid>
       )}

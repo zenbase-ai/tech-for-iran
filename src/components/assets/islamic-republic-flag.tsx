@@ -1,6 +1,6 @@
-export type IslamicRepublicProps = React.SVGProps<SVGSVGElement>
+export type IslamicRepublicFlagProps = React.SVGProps<SVGSVGElement>
 
-export const IslamicRepublic: React.FC<IslamicRepublicProps> = (props) => (
+export const IslamicRepublicFlag: React.FC<IslamicRepublicFlagProps> = (props) => (
   <svg
     viewBox="0 0 630 360"
     xmlns="http://www.w3.org/2000/svg"

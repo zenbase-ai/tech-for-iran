@@ -4,11 +4,11 @@ import type { MDXComponents } from "mdx/types"
 import { cn, linkProps } from "@/lib/utils"
 
 const headingVariants = cva(
-  "mt-[3rem] mb-[1rem] letter-spacing-[-0.022em] text-box-trim-both first-child:mt-0 scroll-margin-20",
+  "mt-[2rem] mb-[1.5rem] letter-spacing-[-0.022em] text-box-trim-both first-child:mt-0 scroll-margin-20",
   {
     variants: {
       variant: {
-        serif: "font-serif italic leading-[0.95]",
+        serif: "font-serif italic leading-[0.95] pb-2 border-b-1 border-border",
         sans: "font-sans leading-[1.2] pb-2 border-b-1 border-border",
       },
       size: {
@@ -54,15 +54,15 @@ const components: MDXComponents = {
       {children}
     </h6>
   ),
-  blockquote: ({ children, ...props }) => <blockquote {...props}>{children}</blockquote>,
-  p: ({ children, className, ...props }) => (
-    <p
-      className={cn(
-        "font-sans line-height-[1.618] mt-6 mb-6 first-child:mt-0 last-child:mb-0",
-        className
-      )}
+  blockquote: ({ children, ...props }) => (
+    <blockquote
       {...props}
     >
+      {children}
+    </blockquote>
+  ),
+  p: ({ children, className, ...props }) => (
+    <p className={cn("font-sans line-height-[1.618] my-4", className)} {...props}>
       {children}
     </p>
   ),

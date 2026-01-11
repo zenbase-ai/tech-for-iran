@@ -8,42 +8,40 @@ import type { DataModel, Id } from "@/convex/_generated/dataModel"
  * Used to display "1,247 founders have signed the letter" on the success state
  * and wall header. Uses null key since we just need a total count.
  */
-export const signatoryCount = new TableAggregate<{
+export const signatureCount = new TableAggregate<{
   Key: null
   DataModel: DataModel
-  TableName: "signatories"
-}>(components.signatoryCount, {
+  TableName: "signatures"
+}>(components.signatureCount, {
   sortKey: () => null,
 })
 
 /**
- * Aggregate for counting upvotes per signatory.
+ * Aggregate for counting referrals per signature.
  *
- * Namespaced by signatoryId so we can efficiently count upvotes for each
- * signatory and keep their upvoteCount field in sync via triggers.
+ * Namespaced by referredBy so we can efficiently count how many people
+ * each signature has referred (for "Kaz has inspired 47 others" stat).
  */
-export const signatoryUpvotes = new TableAggregate<{
-  Namespace: Id<"signatories">
+export const signatureReferrals = new TableAggregate<{
+  Namespace: Id<"signatures">
+  Key: null
+  DataModel: DataModel
+  TableName: "signatures"
+}>(components.signatureReferrals, {
+  namespace: (doc) => doc.referredBy ?? ("" as Id<"signatures">),
+  sortKey: () => null,
+})
+
+/**
+ * Aggregate for counting total upvotes.
+ *
+ * Used to display total vote count in the navigation bar.
+ * Uses null key since we just need a total count.
+ */
+export const upvoteCount = new TableAggregate<{
   Key: null
   DataModel: DataModel
   TableName: "upvotes"
-}>(components.signatoryUpvotes, {
-  namespace: (doc) => doc.signatoryId,
-  sortKey: () => null,
-})
-
-/**
- * Aggregate for counting referrals per signatory.
- *
- * Namespaced by referredBy so we can efficiently count how many people
- * each signatory has referred (for "Kaz has inspired 47 others" stat).
- */
-export const signatoryReferrals = new TableAggregate<{
-  Namespace: Id<"signatories">
-  Key: null
-  DataModel: DataModel
-  TableName: "signatories"
-}>(components.signatoryReferrals, {
-  namespace: (doc) => doc.referredBy ?? ("" as Id<"signatories">),
+}>(components.upvoteCount, {
   sortKey: () => null,
 })

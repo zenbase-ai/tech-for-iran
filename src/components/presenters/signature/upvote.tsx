@@ -1,71 +1,50 @@
 "use client"
 
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { useEffectEvent } from "react"
-import { LuArrowUp } from "react-icons/lu"
-import { toast } from "sonner"
+import { LuThumbsUp } from "react-icons/lu"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { NumberTicker } from "@/components/ui/number-ticker"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
-import { useAuthQuery } from "@/hooks/use-auth-query"
+import { getAnonId } from "@/lib/cookies"
 import { cn } from "@/lib/utils"
 
 export type UpvoteButtonProps = {
   signatureId: Id<"signatures">
-  count: number
   className?: string
 }
 
-export const UpvoteButton: React.FC<UpvoteButtonProps> = ({ signatureId, count, className }) => {
-  const canUpvote = useAuthQuery(api.upvotes.query.canUpvote, {}) ?? false
-  const hasUpvoted = useAuthQuery(api.upvotes.query.hasUpvoted, { signatureId }) ?? false
+export const UpvoteButton: React.FC<UpvoteButtonProps> = ({ signatureId, className }) => {
+  const signature = useQuery(api.signatures.query.get, { signatureId })
 
-  const addUpvote = useMutation(api.upvotes.mutate.add)
-  const removeUpvote = useMutation(api.upvotes.mutate.remove)
+  const anonId = getAnonId()
+  const hasUpvoted =
+    useQuery(api.upvotes.query.hasUpvoted, anonId ? { signatureId, anonId } : "skip") ?? false
 
-  const handleClick = useEffectEvent(async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const toggle = useMutation(api.upvotes.mutate.toggle)
 
-    if (!canUpvote) {
+  const handleClick = useEffectEvent(async () => {
+    if (!anonId) {
       return
     }
 
-    const mutation = hasUpvoted ? removeUpvote : addUpvote
-    const result = await mutation({ signatureId })
-    if (!result.success) {
-      toast.error(result.error)
-    }
+    await toggle({ signatureId, anonId })
   })
 
-  const button = (
+  return (
     <Button
       className={cn(
         "gap-1",
-        !canUpvote && "cursor-not-allowed opacity-50",
-        hasUpvoted && "text-primary",
+        hasUpvoted && "bg-accent hover:bg-accent/80 text-background",
         className
       )}
+      disabled={!anonId}
       onClick={handleClick}
-      size="xs"
-      variant="ghost"
+      variant="outline"
     >
-      <LuArrowUp
-        className={cn("size-3 transition-colors", hasUpvoted && "fill-current stroke-current")}
-      />
-      <span className="tabular-nums">{count.toLocaleString()}</span>
+      <LuThumbsUp strokeWidth={3} />
+      <NumberTicker value={signature?.upvoteCount ?? 0} />
     </Button>
   )
-
-  if (!canUpvote) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
-        <TooltipContent>Sign the letter to upvote</TooltipContent>
-      </Tooltip>
-    )
-  }
-
-  return button
 }

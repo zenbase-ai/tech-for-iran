@@ -4,11 +4,12 @@ import * as z from "zod"
 // Configuration
 // =================================================================
 
-export const signature = {
+export const createSignature = {
   min: {
     name: 1,
     title: 1,
     company: 1,
+    xUsername: 1,
   },
   max: {
     name: 80,
@@ -16,82 +17,80 @@ export const signature = {
     company: 80,
     because: 160, // Matches Twitter for easy sharing
     commitment: 160,
+    xUsername: 24,
   },
-  defaultValues: {
-    name: "",
-    title: "",
-    company: "",
-    because: "",
-    commitment: "",
-  },
-  testValues: {
-    name: "Cyrus Nouroozi",
-    title: "CEO",
-    company: "The Synthesis Company of California Ltd.",
-    because: "I believe in a free and democratic Iran where every person can thrive",
-    commitment: "",
-  },
+  defaultValues:
+    process.env.NODE_ENV === "development"
+      ? {
+          name: "Cyrus Nouroozi",
+          title: "CEO",
+          company: "The Synthesis Company of California Ltd.",
+          xUsername: "cyrusnewday",
+          because: "it's now or never",
+          commitment: "",
+        }
+      : { name: "", title: "", company: "", xUsername: "", because: "", commitment: "" },
 }
 
 // =================================================================
-// Core Signature Schema (Form Validation)
+// Signature Schema
 // =================================================================
 
 /**
- * Schema for signature form data.
+ * Schema for signature form data and mutation validation.
  * Used by the sign letter form with zodResolver.
+ * Deduplication is based on X username.
  */
-export const Signature = z.object({
+export const CreateSignature = z.object({
   name: z
     .string()
-    .min(signature.min.name, "Name is required")
-    .max(signature.max.name, `Name must be ${signature.max.name} characters or less`),
+    .trim()
+    .min(createSignature.min.name, "Name is required")
+    .max(createSignature.max.name, `Name must be ${createSignature.max.name} characters or less`),
   title: z
     .string()
-    .min(signature.min.title, "Title is required")
-    .max(signature.max.title, `Title must be ${signature.max.title} characters or less`),
+    .trim()
+    .min(createSignature.min.title, "Title is required")
+    .max(
+      createSignature.max.title,
+      `Title must be ${createSignature.max.title} characters or less`
+    ),
   company: z
     .string()
-    .min(signature.min.company, "Company is required")
-    .max(signature.max.company, `Company must be ${signature.max.company} characters or less`),
+    .trim()
+    .min(createSignature.min.company, "Company is required")
+    .max(
+      createSignature.max.company,
+      `Company must be ${createSignature.max.company} characters or less`
+    ),
+  xUsername: z
+    .string()
+    .trim()
+    .transform((v) => (v.startsWith("@") ? v.slice(1) : v)) // Strip @ if provided
+    .pipe(
+      z
+        .string()
+        .min(createSignature.min.xUsername, "X username is required")
+        .max(
+          createSignature.max.xUsername,
+          `Username must be ${createSignature.max.xUsername} characters or less`
+        )
+        .regex(/^[a-zA-Z0-9_]+$/, "Invalid X username format")
+    ),
   because: z
     .string()
-    .max(signature.max.because, `Must be ${signature.max.because} characters or less`),
+    .trim()
+    .max(createSignature.max.because, `Must be ${createSignature.max.because} characters or less`)
+    .transform((v) => (v.endsWith(".") ? v.slice(0, -1) : v)),
   commitment: z
     .string()
-    .max(signature.max.commitment, `Must be ${signature.max.commitment} characters or less`),
-})
-
-export type Signature = z.infer<typeof Signature>
-
-// =================================================================
-// Create Signature Schema (Mutation Validation)
-// =================================================================
-
-/**
- * Extended schema for creating a signature via Convex mutation.
- * Includes phoneHash (from Clerk verification) and referredBy.
- * Transforms empty strings to undefined for optional fields.
- */
-export const SignatureCreate = z.object({
-  name: z.string().min(signature.min.name, "Name is required").max(signature.max.name),
-  title: z.string().min(signature.min.title, "Title is required").max(signature.max.title),
-  company: z.string().min(signature.min.company, "Company is required").max(signature.max.company),
-  phoneHash: z
-    .string()
-    .length(64, "Phone hash must be exactly 64 characters")
-    .regex(/^[a-f0-9]+$/i, "Phone hash must be a valid hex string"),
-  because: z
-    .string()
-    .max(signature.max.because)
-    .optional()
-    .transform((val) => (val === "" ? undefined : val)),
-  commitment: z
-    .string()
-    .max(signature.max.commitment)
-    .optional()
-    .transform((val) => (val === "" ? undefined : val)),
+    .trim()
+    .max(
+      createSignature.max.commitment,
+      `Must be ${createSignature.max.commitment} characters or less`
+    )
+    .transform((v) => (v.endsWith(".") ? v.slice(0, -1) : v)),
   referredBy: z.string().optional(),
 })
 
-export type SignatureCreate = z.infer<typeof SignatureCreate>
+export type CreateSignature = z.infer<typeof CreateSignature>

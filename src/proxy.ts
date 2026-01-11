@@ -1,4 +1,7 @@
 import { clerkMiddleware } from "@clerk/nextjs/server"
+import KSUID from "ksuid"
+import { NextResponse } from "next/server"
+import { ANON_ID_COOKIE, COOKIE_EXPIRY_DAYS } from "./lib/cookies"
 
 export const config = {
   matcher: [
@@ -9,4 +12,18 @@ export const config = {
   ],
 }
 
-export default clerkMiddleware()
+export default clerkMiddleware(async (_auth, request) => {
+  const response = NextResponse.next()
+
+  if (!request.cookies.has(ANON_ID_COOKIE)) {
+    const ksuid = await KSUID.random()
+    const anonId = `anon_${ksuid.string}`
+    response.cookies.set(ANON_ID_COOKIE, anonId, {
+      maxAge: COOKIE_EXPIRY_DAYS * 24 * 60 * 60,
+      path: "/",
+      sameSite: "lax",
+    })
+  }
+
+  return response
+})

@@ -15,10 +15,10 @@ app.use(rateLimiter)
 app.use(resend)
 app.use(workflow)
 
-// Aggregates for signatory stats
+// Aggregates for signature stats
 // See src/convex/aggregates.ts for usage
-app.use(aggregate, { name: "signatoryCount" }) // Total signatory count
-app.use(aggregate, { name: "signatoryUpvotes" }) // Upvotes per signatory
-app.use(aggregate, { name: "signatoryReferrals" }) // Referrals per signatory
+app.use(aggregate, { name: "signatureCount" }) // Total signature count
+app.use(aggregate, { name: "signatureReferrals" }) // Referrals per signature
+app.use(aggregate, { name: "upvoteCount" }) // Total upvote count
 
 export default app

@@ -2,62 +2,11 @@ import { paginationOptsValidator } from "convex/server"
 import { v } from "convex/values"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
-import { authQuery } from "@/convex/_helpers/server"
 import { signatureCount, signatureReferrals } from "@/convex/aggregates"
-
-// Regex pattern for validating phone hash (64 hex chars)
-const PHONE_HASH_REGEX = /^[a-f0-9]{64}$/i
 
 // =================================================================
 // Queries
 // =================================================================
-
-/**
- * Get the current authenticated user's signature record.
- *
- * @returns The signature document if the user has signed, null otherwise
- */
-export const mine = authQuery({
-  args: {},
-  handler: async (ctx): Promise<Doc<"signatures"> | null> => {
-    const signature = await ctx.db
-      .query("signatures")
-      .withIndex("by_userId", (q) => q.eq("userId", ctx.userId))
-      .first()
-
-    return signature
-  },
-})
-
-/**
- * Get a signature by their phone hash.
- *
- * This is a public query (no auth required) used to:
- * - Pre-populate form fields for returning signatures
- * - Show personalized messaging (e.g., "Welcome back, [name]!")
- * - Indicate to the UI that this will be an update rather than a new signup
- *
- * @param phoneHash - SHA256 hash of the phone number (64 hex chars)
- * @returns The signature document if found, null otherwise
- */
-export const getByPhoneHash = query({
-  args: {
-    phoneHash: v.string(),
-  },
-  handler: async (ctx, { phoneHash }): Promise<Doc<"signatures"> | null> => {
-    // Validate phone hash format
-    if (!PHONE_HASH_REGEX.test(phoneHash)) {
-      return null
-    }
-
-    const signature = await ctx.db
-      .query("signatures")
-      .withIndex("by_phoneHash", (q) => q.eq("phoneHash", phoneHash))
-      .first()
-
-    return signature
-  },
-})
 
 /**
  * Get the count of signatures referred by a specific signature.
@@ -105,6 +54,26 @@ export const get = query({
 })
 
 /**
+ * Get a signature by X username.
+ *
+ * Used to look up an existing signature when the user has their xUsername
+ * stored in a cookie.
+ *
+ * @param xUsername - The X (Twitter) username to look up (case-insensitive)
+ * @returns The signature document if found, null otherwise
+ */
+export const getByXUsername = query({
+  args: {
+    xUsername: v.string(),
+  },
+  handler: async (ctx, { xUsername }): Promise<Doc<"signatures"> | null> =>
+    await ctx.db
+      .query("signatures")
+      .withIndex("by_xUsername", (q) => q.eq("xUsername", xUsername.toLowerCase()))
+      .first(),
+})
+
+/**
  * Get the total count of signatures.
  *
  * Uses the signatureCount aggregate for O(1) reads rather than
@@ -116,9 +85,7 @@ export const get = query({
  */
 export const count = query({
   args: {},
-  handler: async (ctx): Promise<number> => {
-    return await signatureCount.count(ctx, {})
-  },
+  handler: async (ctx): Promise<number> => await signatureCount.count(ctx, {}),
 })
 
 // =================================================================

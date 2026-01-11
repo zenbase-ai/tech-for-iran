@@ -6,29 +6,27 @@ export default defineSchema({
   ...authTables,
 
   /**
-   * Signatories table - stores everyone who has signed the letter.
+   * Signatures table - stores everyone who has signed the letter.
    *
-   * Each signatory has identity info (name, title, company), optional content
+   * Each signature has identity info (name, title, company, xUsername), optional content
    * (whySigned, commitment), and metadata for display/sorting (pinned, upvoteCount).
-   * Phone numbers are stored as SHA256 hashes for deduplication without storing PII.
+   * Deduplication is handled via xUsername (one signature per X handle).
    */
-  signatories: defineTable({
+  signatures: defineTable({
     // Identity fields
-    userId: v.id("users"), // Linked to Clerk user for authentication
+    xUsername: v.string(), // X (Twitter) username without @ for deduplication (max 24 chars)
     name: v.string(), // Full name (1-100 chars)
     title: v.string(), // Job title, e.g., "CEO", "Partner", "Founder" (1-100 chars)
     company: v.string(), // Company or organization name (1-100 chars)
-    phoneHash: v.string(), // SHA256 hash of phone number for deduplication
 
     // Content fields (optional)
-    whySigned: v.optional(v.string()), // "Why I'm signing" text (max 280 chars)
+    because: v.optional(v.string()), // "Why I'm signing" text (max 280 chars)
     commitment: v.optional(v.string()), // "100 days" commitment text (max 2000 chars)
-    xUsername: v.optional(v.string()), // X (Twitter) username without @ (max 15 chars)
 
     // Metadata fields
     pinned: v.boolean(), // Featured signatories (defaults to false)
     upvoteCount: v.number(), // Denormalized count for fast reads (defaults to 0)
-    referredBy: v.optional(v.id("signatories")), // Who referred this person
+    referredBy: v.optional(v.id("signatures")), // Who referred this person
 
     // Future: LLM-parsed tags (capital amount, currency, jobs count, category)
     tags: v.optional(
@@ -40,23 +38,21 @@ export default defineSchema({
       })
     ),
   })
-    .index("by_userId", ["userId"]) // Look up signatory by Clerk user ID
-    .index("by_phoneHash", ["phoneHash"]) // Check for duplicate phone numbers
+    .index("by_xUsername", ["xUsername"]) // Look up signature by X username (deduplication)
     .index("by_pinned_upvoteCount", ["pinned", "upvoteCount"]) // Sort by pinned first, then upvotes
-    .index("by_pinned_creationTime", ["pinned", "_creationTime"]) // Sort by pinned first, then recent
-    .index("by_referredBy", ["referredBy"]), // Count referrals for a signatory
+    .index("by_pinned", ["pinned"]) // Sort by pinned first, then recent
+    .index("by_referredBy", ["referredBy"]), // Count referrals for a signature
 
   /**
    * Upvotes table - tracks who has upvoted whom on the Wall of Commitments.
    *
-   * Only signatories can upvote, and each person can only upvote once per signatory.
-   * The upvoteCount on signatories is kept in sync via triggers.
+   * Anyone can upvote using an anonymous ID (cookie-based).
+   * The upvoteCount on signatures is updated via mutations.
    */
   upvotes: defineTable({
-    signatoryId: v.id("signatories"), // Who is being upvoted
-    voterId: v.id("users"), // Who is upvoting (must be a signatory)
+    signatureId: v.id("signatures"), // Who is being upvoted
+    anonId: v.string(), // Anonymous ID from cookie (anon_<uuid>)
   })
-    .index("by_signatoryId", ["signatoryId"]) // Get all upvotes for a signatory
-    .index("by_signatoryId_voterId", ["signatoryId", "voterId"]) // Enforce one upvote per person per signatory
-    .index("by_voterId", ["voterId"]), // Get all upvotes cast by a user
+    .index("by_signatureId_anonId", ["signatureId", "anonId"]) // Enforce one upvote per anon per signature
+    .index("by_anonId_signatureId", ["anonId", "signatureId"]), // Get all upvotes cast by an anon
 })

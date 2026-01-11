@@ -7,7 +7,6 @@ import { useEffect, useEffectEvent, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { FaXTwitter } from "react-icons/fa6"
 import { HStack, VStack } from "@/components/layout/stack"
-import { SectionTitle } from "@/components/layout/text"
 import { Button } from "@/components/ui/button"
 import { HoverButton } from "@/components/ui/hover-button"
 import { InlineField } from "@/components/ui/inline-field"
@@ -108,7 +107,6 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
     <VStack as="form" className={cn("gap-4", className)} onSubmit={form.handleSubmit(handleSign)}>
       <input type="hidden" {...form.register("referredBy")} />
 
-      <SectionTitle>Join us!</SectionTitle>
       <Item className="flex-col" variant="outline">
         <ItemContent className="text-base text-muted-foreground leading-relaxed">
           <HStack className="gap-y-0.5" items="baseline" wrap>

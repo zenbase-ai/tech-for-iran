@@ -49,7 +49,7 @@ This is a single long-scroll page with two sections: the manifesto (read) and th
 │                                                                             │
 │    Many of us were born in Iran, or are children of those who fled.        │
 │    We've seen what Iranians create when barriers fall — in Silicon         │
-│    Valley, in Toronto, in London, in Berlin, in Tel Aviv.                  │
+│    Valley, in Toronto, in London, in Berlin, in Paris.                  │
 │                                                                             │
 │    Iran has 90 million people. A median age of 32. One of the highest      │
 │    rates of engineering graduates on Earth. A civilization that has        │
@@ -147,29 +147,10 @@ The form reveals itself step by step. Each step slides/fades in after the previo
 │─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│
 │    (this section fades in after they type commitment OR click skip)         │
 │                                                                             │
-│    Verify you're human                                                      │
+│                           [ Sign the Letter ]                               │
 │                                                                             │
-│    ┌────────────────────────────────────────────────────────────────────┐   │
-│    │  +1  │  (555) 123-4567                                             │   │
-│    └────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│    We'll text you a 6-digit code to verify.                                 │
-│    Your number is never displayed or shared.                                │
-│                                                                             │
-│                              [ Send Code ]                                  │
-│                                                                             │
-│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│
-│    (this section replaces phone input after they click Send Code)           │
-│                                                                             │
-│    Enter the code we sent to (555) 123-4567                                 │
-│                                                                             │
-│           ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐                               │
-│           │   │ │   │ │   │ │   │ │   │ │   │                               │
-│           └───┘ └───┘ └───┘ └───┘ └───┘ └───┘                               │
-│                                                                             │
-│                      Didn't get it? Resend (42s)                            │
-│                                                                             │
-│                           [ Verify & Sign ]                                 │
+│    By clicking, you'll be prompted to sign in or create an account          │
+│    to verify your identity.                                                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -179,8 +160,8 @@ The form reveals itself step by step. Each step slides/fades in after the previo
 - The form should feel like a *ceremony*, not a chore. Each reveal is a small moment.
 - The "I, [name], sign this letter" framing makes it feel like signing an actual document.
 - The placeholder examples in the "100 days" field help people understand what's expected without being prescriptive.
-- Phone verification is the trust gate. We use Clerk for the SMS flow but the UI is completely custom (no Clerk components visible).
-- After successful verification, the form submits and they see the success state.
+- Authentication via Clerk ensures each person can only sign once.
+- After authentication, the form submits and they see the success state.
 
 ---
 
@@ -364,9 +345,7 @@ For MVP, just implement "Most upvoted" and "Most recent" sorting. Filtering is f
 ### Upvoting
 
 - Click the ▲ to upvote.
-- One upvote per person per card.
-- **Only people who have signed the letter can upvote.** This keeps it high-quality and prevents spam.
-- Show a tooltip or modal "Sign the letter to upvote" for non-signatories.
+- One upvote per person per card (tracked via anonymous voter ID in cookie).
 - No downvotes.
 - Upvote count updates optimistically (instant UI feedback, then sync with server).
 
@@ -473,29 +452,27 @@ The actual page content (for when someone clicks through, not just sees the prev
 
 Here's the conceptual data model. Implement in whatever database makes sense.
 
-### Signatory
+### Signature
 
 ```
-signatory {
-  id: string (UUID or short slug like "knejatian")
+signature {
+  id: string (UUID)
 
   // Identity
+  user_id: string (Clerk user ID for authentication and deduplication)
   name: string
   title: string
   company: string
-  phone_hash: string (SHA256 of phone number, for deduping)
 
   // Content
-  why_signed: string | null (max 280 chars)
-  commitment_text: string | null
+  because: string | null (max 280 chars, "Why I'm signing")
+  commitment: string | null
+  x_username: string | null (X/Twitter username without @)
 
   // Metadata
   pinned: boolean (default false)
   upvote_count: integer (denormalized for fast reads)
-  referred_by: string | null (signatory_id of who referred them)
-
-  // Timestamps
-  created_at: timestamp
+  referred_by: string | null (signature_id of who referred them)
 
   // Future: LLM-parsed tags (leave as nullable JSON field for now)
   tags: json | null
@@ -509,31 +486,22 @@ signatory {
 ```
 upvote {
   id: string
-  signatory_id: string (who is being upvoted)
-  voter_phone_hash: string (who is upvoting — must be a signatory)
-  created_at: timestamp
+  signature_id: string (who is being upvoted)
+  voter_id: string (anonymous cookie-based ID like anon_<uuid>)
 
-  // Unique constraint on (signatory_id, voter_phone_hash)
+  // Unique constraint on (signature_id, voter_id)
 }
 ```
 
 ---
 
-## Clerk Integration (Phone Verification)
+## Clerk Integration (Authentication)
 
-We use Clerk for phone verification, but with **completely custom UI**. No Clerk components.
+We use Clerk for user authentication. Users sign in with email/phone via Clerk's standard flows.
 
-**Flow:**
+**Deduplication:** Each Clerk user can only sign once (enforced via unique `user_id` index).
 
-1. User enters phone number in our custom input.
-2. We call Clerk's API to send a verification code.
-3. User enters the 6-digit code in our custom input.
-4. We call Clerk's API to verify the code.
-5. On success, we get a user identifier. We hash the phone number (SHA256) and use that as `phone_hash`.
-
-**Important:** The phone number is never stored in plaintext. Only the hash, which is used for:
-- Deduplication (prevent same person signing twice)
-- Identifying who can upvote (check if voter's phone_hash exists in signatories table)
+**Upvoting:** Anyone can upvote using an anonymous `voter_id` stored in a cookie (format: `anon_<uuid>`).
 
 ---
 
@@ -564,15 +532,11 @@ We use Clerk for phone verification, but with **completely custom UI**. No Clerk
 
 ## Edge Cases & Error States
 
-### Duplicate Phone Number
+### Duplicate Signature
 
-If someone tries to sign with a phone number that's already been used:
+If a user tries to sign when they've already signed:
 
-> "This phone number has already signed the letter. If this is you and you need to update your information, contact us at [email]."
-
-### Verification Code Expired/Invalid
-
-> "That code didn't work. Please try again or request a new code."
+> "You have already signed the letter. If you need to update your information, contact us at [email]."
 
 ### Empty Commitment Wall
 
@@ -585,12 +549,11 @@ If somehow there are no signatories yet (shouldn't happen after seeding):
 
 > "Couldn't load commitments. [Try again]"
 
-### Non-signatory tries to upvote
+### Duplicate Upvote
 
-Show tooltip or small modal:
+If someone tries to upvote the same commitment twice:
 
-> "Sign the letter to upvote commitments."
-> [ Sign now → ]
+> "You've already upvoted this commitment."
 
 ---
 
@@ -639,8 +602,8 @@ Need: Name, title, company, commitment_text, why_signed (optional) for each.
 
 Build a two-page site:
 
-1. **Home (/)**: Manifesto + progressive sign flow with phone verification via Clerk (custom UI)
-2. **Commitments (/commitments)**: Upvotable wall of commitment cards (sign-to-upvote)
+1. **Home (/)**: Manifesto + progressive sign flow with Clerk authentication
+2. **Commitments (/commitments)**: Upvotable wall of commitment cards
 
 Plus:
 

@@ -5,37 +5,28 @@ Create presenter components in `src/components/presenters/` that display domain 
 ## What Presenters Are
 
 Presenters are **smart display components** that:
-- Fetch their own data via `useQuery` hooks (or `useAuthQuery` for signed users)
+- Fetch their own data via `useQuery` hooks
 - Handle loading states with `<Skeleton>`
 - Handle empty/null states gracefully
 - Compose UI primitives and other presenters
-- Are organized by domain (signatory, commitment, stats, upvote)
+- Are organized by domain (signature, upvote, etc.)
 
 ## Directory Structure
 
 ```
 src/components/presenters/
-├── signatory/         # Signatory-related presenters
-│   ├── card.tsx
-│   ├── avatar.tsx
-│   └── referral-count.tsx
-├── commitment/        # Commitment wall presenters
-│   ├── card.tsx
-│   ├── wall.tsx
-│   └── empty.tsx
-├── stats/             # Aggregate stats presenters
-│   ├── total-signatories.tsx
-│   ├── pledged-capital.tsx
-│   └── jobs-committed.tsx
-└── upvote/            # Upvote-related presenters
-    ├── button.tsx
-    └── count.tsx
+├── manifesto.mdx          # MDX content for manifesto section
+└── signature/             # Signature-related presenters
+    ├── form.tsx           # Sign letter form with progressive disclosure
+    ├── item.tsx           # Single signature display (letter format)
+    ├── upvote.tsx         # Upvote button with count
+    └── wall.tsx           # Paginated grid of signatures
 ```
 
 ## Naming Conventions
 
 - **File**: `[entity].tsx` or `[entity]-[variant].tsx` (kebab-case)
-- **Component**: `[Entity][Variant]` (PascalCase) - e.g., `SignatoryCard`, `CommitmentWall`, `UpvoteButton`
+- **Component**: `[Entity][Variant]` (PascalCase) - e.g., `SignatureItem`, `SignatureWall`, `UpvoteButton`
 - **Props Type**: `[ComponentName]Props` - always exported
 
 ## Component Template
@@ -78,35 +69,76 @@ export const EntityPresenter: React.FC<EntityPresenterProps> = ({
 }
 ```
 
+## Sub-Component Pattern
+
+Define private sub-components within the same file using explicit type definitions:
+
+```typescript
+// Private sub-component for letter field styling
+const LetterField: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <span className="border-b font-medium text-foreground">{children}</span>
+)
+
+// Main component uses it
+export const SignatureItem: React.FC<SignatureCardProps> = ({ signature }) => (
+  <Item variant="outline">
+    <ItemContent>
+      I, <LetterField>{signature.name}</LetterField>, ...
+    </ItemContent>
+  </Item>
+)
+```
+
+## Skeleton Pattern
+
+Always provide a skeleton component alongside presenters:
+
+```typescript
+export const SignatureItem: React.FC<SignatureCardProps> = ({ signature }) => (
+  // ... main component
+)
+
+export const SignatureItemSkeleton: React.FC = () => (
+  <Item className="h-full" variant="outline">
+    <ItemContent className="pt-6 flex-1 space-y-2">
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-4/5" />
+      <Skeleton className="h-4 w-3/5" />
+    </ItemContent>
+    <ItemFooter className="justify-between">
+      <Skeleton className="h-6 w-16" />
+      <Skeleton className="h-4 w-12" />
+    </ItemFooter>
+  </Item>
+)
+```
+
 ## Props Patterns
 
-### Extending Base Props
+### Using Doc Type Directly
 ```typescript
-import { type BadgeProps } from "@/components/ui/badge"
-import { type StackProps } from "@/components/layout/stack"
-
-// Extend layout/UI component props
-export type MyPresenterProps = StackProps & {
-  entityId: Id<"entities">
+export type SignatureCardProps = {
+  signature: Doc<"signatures">
 }
 
-// Or omit certain props
-export type MyBadgeProps = Omit<BadgeProps, "children" | "variant"> & {
-  value: number
+export const SignatureItem: React.FC<SignatureCardProps> = ({ signature }) => {
+  // Full access to all Doc fields
 }
 ```
 
-### Pick Pattern for Entity Data
+### Extending Layout Props
 ```typescript
-// Use Pick to specify exactly which fields are needed
-export type SignatoryCardProps = {
-  signatory: Pick<Doc<"signatories">, "name" | "title" | "company" | "commitmentText" | "upvoteCount">
+import { type BoxProps } from "@/components/layout/box"
+
+export type SignatureWallProps = BoxProps & {
+  gridClassName?: string
 }
 
-// For optional fields from DB
-export type CommitmentCardProps = {
-  signatory: { _id?: Id<"signatories"> } & Omit<Doc<"signatories">, "_id" | "_creationTime">
-}
+export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...props }) => (
+  <Box {...props}>
+    {/* ... */}
+  </Box>
+)
 ```
 
 ## Loading State Pattern
@@ -114,7 +146,7 @@ export type CommitmentCardProps = {
 Always show `<Skeleton>` while data is loading:
 
 ```typescript
-const data = useQuery(api.signatories.get, { signatoryId })
+const data = useQuery(api.signatures.query.get, { signatureId })
 
 if (data == null) {
   return <Skeleton className={cn("w-full h-8", className)} />
@@ -126,32 +158,196 @@ if (data == null) {
 Use `"skip"` to conditionally skip queries:
 
 ```typescript
-const referralCount = useQuery(
-  api.signatories.getReferralCount,
-  signatoryId ? { signatoryId } : "skip"
+const voterId = getVoterId()
+const hasUpvoted = useQuery(
+  api.upvotes.query.hasUpvoted,
+  voterId ? { signatureId, voterId } : "skip"
+) ?? false
+```
+
+## Examples
+
+### Signature Item (Letter Format)
+```typescript
+// signature/item.tsx
+"use client"
+
+import { HStack } from "@/components/layout/stack"
+import { UpvoteButton } from "@/components/presenters/signature/upvote"
+import { Button } from "@/components/ui/button"
+import { Item, ItemContent, ItemDescription, ItemFooter } from "@/components/ui/item"
+import { RelativeTime } from "@/components/ui/relative-time"
+import type { Doc } from "@/convex/_generated/dataModel"
+import { xProfileURL } from "@/lib/utils"
+
+export type SignatureCardProps = {
+  signature: Doc<"signatures">
+}
+
+const LetterField: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <span className="border-b font-medium text-foreground">{children}</span>
+)
+
+export const SignatureItem: React.FC<SignatureCardProps> = ({ signature }) => (
+  <Item className="bg-background" variant="outline">
+    <ItemContent>
+      <ItemDescription className="leading-relaxed text-base line-clamp-none">
+        I, <LetterField>{signature.name}</LetterField>, <LetterField>{signature.title}</LetterField>{" "}
+        at <LetterField>{signature.company}</LetterField>, sign this letter
+        {signature.because && (
+          <>
+            {" "}
+            because <LetterField>{signature.because}</LetterField>
+          </>
+        )}
+        .
+        {signature.commitment && (
+          <>
+            {" "}
+            In the first 100 days of a free Iran, I commit to{" "}
+            <LetterField>{signature.commitment}</LetterField>.
+          </>
+        )}
+      </ItemDescription>
+    </ItemContent>
+
+    <ItemFooter className="justify-between">
+      <HStack className="gap-3 text-muted-foreground text-sm" items="center">
+        <Button asChild variant="outline">
+          <a href={xProfileURL(signature.xUsername)} rel="noopener noreferrer" target="_blank">
+            @{signature.xUsername}
+          </a>
+        </Button>
+        <RelativeTime date={signature._creationTime} />
+      </HStack>
+      <UpvoteButton signatureId={signature._id} />
+    </ItemFooter>
+  </Item>
 )
 ```
 
-## Composition
-
-Presenters compose other presenters and UI primitives:
-
+### Upvote Button
 ```typescript
-import { SignatoryAvatar } from "@/components/presenters/signatory/avatar"
-import { UpvoteButton } from "@/components/presenters/upvote/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+// signature/upvote.tsx
+"use client"
 
-export const CommitmentCard: React.FC<CommitmentCardProps> = ({ signatory }) => (
-  <Card>
-    <CardContent>
-      <SignatoryAvatar signatory={signatory} />
-      <p className="text-lg">{signatory.commitmentText}</p>
-    </CardContent>
-    <CardFooter>
-      <UpvoteButton signatoryId={signatory._id} />
-    </CardFooter>
-  </Card>
-)
+import { useMutation, useQuery } from "convex/react"
+import { useEffectEvent } from "react"
+import { LuThumbsUp } from "react-icons/lu"
+import { Button } from "@/components/ui/button"
+import { NumberTicker } from "@/components/ui/number-ticker"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
+import { cn } from "@/lib/utils"
+import { getAnonId } from "@/lib/cookies"
+
+export type UpvoteButtonProps = {
+  signatureId: Id<"signatures">
+  className?: string
+}
+
+export const UpvoteButton: React.FC<UpvoteButtonProps> = ({ signatureId, className }) => {
+  const signature = useQuery(api.signatures.query.get, { signatureId })
+
+  const voterId = getVoterId()
+  const hasUpvoted =
+    useQuery(api.upvotes.query.hasUpvoted, voterId ? { signatureId, voterId } : "skip") ?? false
+
+  const toggle = useMutation(api.upvotes.mutate.toggle)
+
+  const handleClick = useEffectEvent(async () => {
+    if (!voterId) return
+    await toggle({ signatureId, voterId })
+  })
+
+  return (
+    <Button
+      className={cn("gap-1", hasUpvoted && "text-primary", className)}
+      disabled={!voterId}
+      onClick={handleClick}
+      size="sm"
+      variant="ghost"
+    >
+      <LuThumbsUp
+        className={cn("transition-colors", hasUpvoted && "fill-current stroke-current")}
+      />
+      <NumberTicker value={signature?.upvoteCount ?? 0} />
+    </Button>
+  )
+}
+```
+
+### Signature Wall with Infinite Scroll
+```typescript
+// signature/wall.tsx
+"use client"
+
+import { usePaginatedQuery } from "convex/react"
+import { Box, type BoxProps } from "@/components/layout/box"
+import { Grid } from "@/components/layout/grid"
+import { SignatureItem, SignatureItemSkeleton } from "@/components/presenters/signature/item"
+import { Repeat } from "@/components/ui/repeat"
+import { api } from "@/convex/_generated/api"
+import useInfiniteScroll from "@/hooks/use-infinite-scroll"
+import { cn } from "@/lib/utils"
+
+const PAGE_SIZE = 20
+
+export type SignatureWallProps = BoxProps & {
+  gridClassName?: string
+}
+
+export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...props }) => {
+  const { results, status, loadMore, isLoading } = usePaginatedQuery(
+    api.signatures.query.list,
+    { sort: "upvotes" },
+    { initialNumItems: PAGE_SIZE }
+  )
+
+  const pinned = results.filter((s) => s.pinned)
+  const regular = results.filter((s) => !s.pinned)
+
+  const isLoadingInitial = isLoading && results.length === 0
+  const canLoadMore = status === "CanLoadMore"
+
+  const { ref: sentinelRef } = useInfiniteScroll({
+    threshold: 0.5,
+    loadMore: () => canLoadMore && loadMore(PAGE_SIZE),
+  })
+
+  const gridcn = cn("w-full gap-6", gridClassName)
+
+  return (
+    <Box {...props}>
+      {isLoadingInitial && (
+        <Grid className={gridcn}>
+          <Repeat count={12}>
+            <SignatureItemSkeleton />
+          </Repeat>
+        </Grid>
+      )}
+
+      {pinned.length > 0 && (
+        <Grid className={gridcn}>
+          {pinned.map((signature) => (
+            <SignatureItem key={signature._id} signature={signature} />
+          ))}
+        </Grid>
+      )}
+
+      {regular.length > 0 && (
+        <Grid className={gridcn}>
+          {regular.map((signature) => (
+            <SignatureItem key={signature._id} signature={signature} />
+          ))}
+        </Grid>
+      )}
+
+      {/* Sentinel element for infinite scroll */}
+      <div className="h-1" ref={sentinelRef} />
+    </Box>
+  )
+}
 ```
 
 ## When to Use Presenters vs UI Components
@@ -159,7 +355,7 @@ export const CommitmentCard: React.FC<CommitmentCardProps> = ({ signatory }) => 
 | Presenters (`/presenters/`)           | UI Components (`/ui/`)           |
 |---------------------------------------|----------------------------------|
 | Fetch their own data                  | Receive all data via props       |
-| Domain-specific (Signatory, Upvote)   | Generic (Button, Badge, Card)    |
+| Domain-specific (Signature, Upvote)   | Generic (Button, Badge, Item)    |
 | May have loading/empty states         | Always render with given props   |
 | Import from `@/convex/`               | No Convex imports                |
 
@@ -169,279 +365,35 @@ export const CommitmentCard: React.FC<CommitmentCardProps> = ({ signatory }) => 
 // Data fetching
 import { api } from "@/convex/_generated/api"
 import type { Doc, Id } from "@/convex/_generated/dataModel"
-import { useQuery } from "convex/react"
-import { useAuthQuery } from "@/hooks/use-auth-query" // For signed-user-only queries
+import { useQuery, useMutation, usePaginatedQuery } from "convex/react"
 
 // UI primitives
 import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { NumberTicker } from "@/components/ui/number-ticker"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Item, ItemContent, ItemDescription, ItemFooter } from "@/components/ui/item"
+import { RelativeTime } from "@/components/ui/relative-time"
+import { Repeat } from "@/components/ui/repeat"
 
 // Layout
 import { HStack, VStack, Stack } from "@/components/layout/stack"
-import { Box } from "@/components/layout/box"
+import { Box, type BoxProps } from "@/components/layout/box"
+import { Grid } from "@/components/layout/grid"
 
 // Utilities
 import { cn } from "@/lib/utils"
+import { useEffectEvent } from "react"
 ```
 
-## Examples
+## Checklist
 
-### Simple Presenter (no data fetching)
-```typescript
-// signatory/avatar.tsx
-export type SignatoryAvatarProps = {
-  signatory: { name: string }
-  className?: string
-}
-
-export const SignatoryAvatar: React.FC<SignatoryAvatarProps> = ({ signatory, className }) => (
-  <Avatar className={cn("size-9", className)}>
-    <AvatarFallback>{initials(signatory.name)}</AvatarFallback>
-  </Avatar>
-)
-
-const initials = (name: string) =>
-  name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
-```
-
-### Signatory Card Presenter
-```typescript
-// signatory/card.tsx
-"use client"
-
-export type SignatoryCardProps = {
-  signatory: Pick<
-    Doc<"signatories">,
-    "_id" | "name" | "title" | "company" | "commitmentText" | "whySigned" | "pinned" | "upvoteCount" | "_creationTime"
-  >
-  className?: string
-}
-
-export const SignatoryCard: React.FC<SignatoryCardProps> = ({ signatory, className }) => {
-  const timeAgo = useTimeAgo(signatory._creationTime)
-
-  return (
-    <Card className={cn("relative", className)}>
-      {signatory.pinned && (
-        <Badge variant="secondary" className="absolute top-2 right-2">
-          Pinned
-        </Badge>
-      )}
-      <CardHeader>
-        <h3 className="font-semibold">{signatory.name}</h3>
-        <p className="text-muted-foreground text-sm">
-          {signatory.title}, {signatory.company}
-        </p>
-      </CardHeader>
-      <CardContent>
-        {signatory.commitmentText ? (
-          <blockquote className="border-l-2 pl-4 italic">
-            "{signatory.commitmentText}"
-          </blockquote>
-        ) : (
-          <p className="text-muted-foreground">Signed the letter.</p>
-        )}
-      </CardContent>
-      <CardFooter className="justify-between">
-        <UpvoteButton signatoryId={signatory._id} count={signatory.upvoteCount} />
-        <span className="text-muted-foreground text-sm">{timeAgo}</span>
-      </CardFooter>
-    </Card>
-  )
-}
-```
-
-### Upvote Button Presenter (with sign-to-upvote logic)
-```typescript
-// upvote/button.tsx
-"use client"
-
-export type UpvoteButtonProps = {
-  signatoryId: Id<"signatories">
-  count: number
-  className?: string
-}
-
-export const UpvoteButton: React.FC<UpvoteButtonProps> = ({
-  signatoryId,
-  count,
-  className,
-}) => {
-  const currentUser = useAuthQuery(api.signatories.current, {})
-  const hasUpvoted = useAuthQuery(
-    api.upvotes.hasUpvoted,
-    currentUser ? { signatoryId } : "skip"
-  )
-  const upvote = useAsyncFn(useMutation(api.upvotes.create))
-
-  const handleUpvote = useEffectEvent(async () => {
-    if (!currentUser) {
-      // Show sign-to-upvote tooltip/modal
-      toast.info("Sign the letter to upvote commitments")
-      return
-    }
-    await upvote.execute({ signatoryId })
-  })
-
-  return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className={cn("gap-1", hasUpvoted && "text-primary", className)}
-      onClick={handleUpvote}
-      disabled={upvote.pending || hasUpvoted}
-    >
-      <ArrowUpIcon className="size-4" />
-      <NumberTicker value={count} />
-    </Button>
-  )
-}
-```
-
-### Referral Count Presenter
-```typescript
-// signatory/referral-count.tsx
-"use client"
-
-export type ReferralCountProps = {
-  signatoryId: Id<"signatories">
-  signatoryName: string
-  className?: string
-}
-
-export const ReferralCount: React.FC<ReferralCountProps> = ({
-  signatoryId,
-  signatoryName,
-  className,
-}) => {
-  const count = useQuery(api.signatories.getReferralCount, { signatoryId })
-
-  if (count == null) {
-    return <Skeleton className={cn("h-6 w-48", className)} />
-  }
-
-  if (count === 0) {
-    return null
-  }
-
-  const firstName = signatoryName.split(" ")[0]
-
-  return (
-    <p className={cn("text-muted-foreground", className)}>
-      {firstName} has inspired <NumberTicker value={count} /> {count === 1 ? "other" : "others"} to sign the letter.
-    </p>
-  )
-}
-```
-
-### Commitment Wall Presenter
-```typescript
-// commitment/wall.tsx
-"use client"
-
-export type CommitmentWallProps = {
-  sort?: "upvotes" | "recent"
-  className?: string
-}
-
-export const CommitmentWall: React.FC<CommitmentWallProps> = ({
-  sort = "upvotes",
-  className,
-}) => {
-  const { results, status, loadMore } = usePaginatedQuery(
-    api.signatories.list,
-    { sort },
-    { initialNumItems: 20 }
-  )
-
-  if (results == null) {
-    return (
-      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", className)}>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 w-full" />
-        ))}
-      </div>
-    )
-  }
-
-  if (results.length === 0) {
-    return <CommitmentWallEmpty />
-  }
-
-  return (
-    <div className={className}>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {results.map(signatory => (
-          <SignatoryCard key={signatory._id} signatory={signatory} />
-        ))}
-      </div>
-      {status === "CanLoadMore" && (
-        <Button variant="outline" onClick={() => loadMore(10)} className="mt-6 mx-auto block">
-          Load more
-        </Button>
-      )}
-    </div>
-  )
-}
-```
-
-### Aggregate Stats Presenter
-```typescript
-// stats/total-signatories.tsx
-"use client"
-
-export type TotalSignatoriesProps = {
-  className?: string
-}
-
-export const TotalSignatories: React.FC<TotalSignatoriesProps> = ({ className }) => {
-  const count = useQuery(api.stats.totalSignatories, {})
-
-  if (count == null) {
-    return <Skeleton className={cn("h-8 w-20", className)} />
-  }
-
-  return (
-    <span className={className}>
-      <NumberTicker value={count} /> founders
-    </span>
-  )
-}
-```
-
-### Stats Header (composition example)
-```typescript
-// stats/header.tsx
-"use client"
-
-export type StatsHeaderProps = {
-  className?: string
-}
-
-export const StatsHeader: React.FC<StatsHeaderProps> = ({ className }) => {
-  const stats = useQuery(api.stats.aggregate, {})
-
-  if (stats == null) {
-    return <Skeleton className={cn("h-6 w-96", className)} />
-  }
-
-  return (
-    <p className={cn("text-muted-foreground", className)}>
-      <NumberTicker value={stats.signatoryCount} /> founders have pledged{" "}
-      {stats.pledgedCapital && (
-        <>
-          <NumberTicker value={stats.pledgedCapital} prefix="$" /> and{" "}
-        </>
-      )}
-      {stats.jobsCommitted && (
-        <>
-          <NumberTicker value={stats.jobsCommitted} /> jobs
-        </>
-      )}
-      .
-    </p>
-  )
-}
-```
+- [ ] Component fetches its own data with `useQuery` or `usePaginatedQuery`
+- [ ] Loading state renders `<Skeleton>` component
+- [ ] Skeleton component exported alongside main component
+- [ ] Props type exported with `Props` suffix
+- [ ] Uses `"skip"` for conditional queries
+- [ ] Uses `useEffectEvent` for mutation handlers
+- [ ] Sub-components have explicit `React.FC<Props>` types
+- [ ] Uses `Doc<"tableName">` for full entity props
+- [ ] Infinite scroll uses sentinel element pattern
+- [ ] Pinned items rendered separately from regular items

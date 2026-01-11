@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx"
 import { randomInt, zip } from "es-toolkit"
 import type { Route as NextRoute } from "next"
+import type { LinkProps } from "next/link"
 import pMap from "p-map"
 import plur from "plur"
 import { twMerge } from "tailwind-merge"
@@ -19,6 +20,15 @@ export type CSS = React.CSSProperties & {
 }
 
 export const css = (styles: CSS) => styles as React.CSSProperties
+
+// =================================================================
+// =========================== Links ===============================
+// =================================================================
+
+export const isInternalLink = (href: string) => href.startsWith("/") || href.startsWith("#")
+
+export const linkProps = <R extends string>(href: LinkProps<R>["href"]) =>
+  isInternalLink(href.toString()) ? { href } : { href, target: "_blank" }
 
 // =================================================================
 // ========================== Errors ===============================
@@ -159,3 +169,8 @@ const formatDateTimeOptions: Intl.DateTimeFormatOptions = {
 
 export const formatDateTime = (date: Date | number, options: Intl.DateTimeFormatOptions = {}) =>
   new Intl.DateTimeFormat("en-US", { ...formatDateTimeOptions, ...options }).format(date)
+
+/**
+ * Generates an X (Twitter) profile URL for a given username.
+ */
+export const xProfileURL = (username: string) => `https://x.com/${username}`

@@ -55,6 +55,7 @@ export const ThemeToggler: React.FC<ThemeTogglerProps> = ({
       onClick={onClick}
       ref={ref}
       size="icon"
+      suppressHydrationWarning
       variant={variant}
       {...props}
     >

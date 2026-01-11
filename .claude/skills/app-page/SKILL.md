@@ -5,15 +5,9 @@ Use this skill when creating new pages, routes, or layouts in the Next.js App Ro
 ## Site Structure
 
 ```
-/                   → Manifesto + Sign Flow (home)
-/commitments        → Wall of Commitments (browsable grid)
-/s/[signatory_id]   → Individual signatory share page (dynamic OG image)
+/                       → Home: Manifesto + Sign Flow + Signature Wall
+/sig/[signatureId]      → Share page (redirects to home with referral)
 ```
-
-## Route Groups
-
-**`(clerk)`** - Clerk authentication pages (sign-in, sign-up) - used for admin access only
-**Public routes** - Most routes are public; phone verification happens inline in the sign flow
 
 ## File Naming Conventions
 
@@ -23,80 +17,119 @@ Use this skill when creating new pages, routes, or layouts in the Next.js App Ro
 | `page.client.tsx` | Client component (imported by server page) |
 | `layout.tsx` | Server layout |
 | `layout.client.tsx` | Client layout |
-| `_filename.tsx` | Private/co-located component (route-specific) |
-| `_types.ts` | Type definitions for route params |
 
-## Server vs Client Component Pattern
+## Server Component Pattern
 
 ```typescript
 // page.tsx (Server Component)
-"use memo"  // React Compiler optimization
+import type { Metadata } from "next"
+import { SomePresenter } from "@/components/presenters/some/presenter"
 
-export const metadata = { title: "Page Title" }
-
-export default function MyPage() {
-  "use memo"
-  return <MyPageClient />
+export const metadata: Metadata = {
+  title: "Tech for Iran",
+  description: "An open letter from founders, investors, and operators.",
 }
 
-// page.client.tsx (Client Component)
-"use client"
+export default function HomePage() {
+  "use memo"  // React Compiler optimization
 
-export function MyPageClient() {
-  const form = useForm(...)
-  // Client-side hooks and interactivity
+  return (
+    <Stack as="main">
+      {/* Server components and presenters */}
+      <SomePresenter />
+    </Stack>
+  )
 }
 ```
 
-## Dynamic Routes
+## Dynamic Routes with Server-Side Data
 
 ```typescript
-// s/[signatory_id]/_types.ts
-export type SignatoryPageParams = {
-  signatory_id: string  // UUID or slug like "knejatian"
-}
-
-// s/[signatory_id]/page.tsx
-export type SignatoryPageProps = {
-  params: Promise<SignatoryPageParams>
-}
-
-// s/[signatory_id]/page.client.tsx
-const { signatory_id } = useParams<SignatoryPageParams>()
-```
-
-## Private Components
-
-Prefix with `_` for route-specific components:
-- `_manifesto.tsx`, `_sign-flow.tsx`, `_success.tsx`
-- `_card.tsx`, `_filters.tsx`, `_stats.tsx`
-- Never exported to other routes
-- Always mark with `"use client"` if using hooks
-
-## Data Fetching
-
-**Server-side (page.tsx):**
-```typescript
+// sig/[signatureId]/page.tsx
 import { fetchQuery } from "convex/nextjs"
+import type { Metadata } from "next"
+import { notFound, redirect } from "next/navigation"
+import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
+import { truncate, url } from "@/lib/utils"
 
-export const generateMetadata = async (props: SignatoryPageProps): Promise<Metadata> => {
-  const { signatory_id } = await props.params
-  const signatory = await fetchQuery(api.fns.signatories.get, { id: signatory_id })
-  return {
-    title: `${signatory.name} - Tech for Iran`,
-    openGraph: {
-      images: [`/api/og/${signatory_id}`],  // Dynamic OG image
-    },
+export type SignaturePageParams = {
+  signatureId: Id<"signatures">
+}
+
+export type SignaturePageProps = {
+  params: Promise<SignaturePageParams>
+}
+
+export async function generateMetadata({ params }: SignaturePageProps): Promise<Metadata> {
+  const { signatureId } = await params
+
+  try {
+    const signature = await fetchQuery(api.signatures.query.get, { signatureId })
+
+    if (!signature) {
+      return {
+        title: "Signature Not Found | Tech for Iran",
+        description: "This signature could not be found.",
+      }
+    }
+
+    const title = `${signature.name} signed Tech for Iran`
+    const description = signature.commitment
+      ? truncate(signature.commitment, { length: 160 })
+      : `${signature.name} pledged to do business with a free Iran.`
+
+    const shareURL = url(`/sig/${signatureId}`)
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        url: shareURL,
+        type: "website",
+        siteName: "Tech for Iran",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+    }
+  } catch {
+    return {
+      title: "Signature Not Found | Tech for Iran",
+      description: "This signature could not be found.",
+    }
   }
 }
+
+export default async function SignaturePage({ params }: SignaturePageProps) {
+  const { signatureId } = await params
+
+  const signature = await fetchQuery(api.signatures.query.get, { signatureId })
+
+  if (!signature) {
+    return notFound()
+  }
+
+  // Redirect to home with referral tracking
+  const successMessage = `${signature.name} encourages you to sign!`
+  return redirect(`/?referredBy=${signatureId}&success=${encodeURIComponent(successMessage)}`)
+}
 ```
 
-**Client-side (page.client.tsx):**
-```typescript
-import { useQuery } from "convex/react"
+## Server-Side Data Fetching
 
-const signatory = useQuery(api.fns.signatories.get, { id: signatory_id })
-const commitments = useQuery(api.fns.commitments.list, { sort, limit: 20 })
+Use `fetchQuery` from `convex/nextjs` for server components:
+
+```typescript
+import { fetchQuery } from "convex/nextjs"
+import { api } from "@/convex/_generated/api"
+
+// In generateMetadata or page component
+const signature = await fetchQuery(api.signatures.query.get, { signatureId })
 ```
 
 ## Example Directory Structure
@@ -104,114 +137,121 @@ const commitments = useQuery(api.fns.commitments.list, { sort, limit: 20 })
 ```
 src/app/
 ├── layout.tsx                    # Root layout with providers
-├── page.tsx                      # Home: Manifesto + Sign Flow
-├── page.client.tsx
-├── _manifesto.tsx                # Manifesto section
-├── _sign-flow/                   # Sign flow (progressive disclosure)
-│   ├── index.tsx
-│   ├── _identity.tsx             # Name, title, company step
-│   ├── _why.tsx                  # "Why I'm signing" step (optional)
-│   ├── _commitment.tsx           # "100 days" commitment step (optional)
-│   ├── _verify.tsx               # Phone verification step
-│   └── _success.tsx              # Post-sign success + share
-├── commitments/
-│   ├── page.tsx                  # Wall of Commitments
-│   ├── page.client.tsx
-│   ├── _card.tsx                 # Commitment card component
-│   ├── _filters.tsx              # Sort/filter controls
-│   └── _stats.tsx                # Aggregate stats header
-├── s/
-│   └── [signatory_id]/
-│       ├── page.tsx              # Individual share page
-│       ├── page.client.tsx
-│       ├── _types.ts
-│       └── _referral-cta.tsx     # "Add your name" CTA
-├── api/
-│   └── og/
-│       └── [signatory_id]/
-│           └── route.tsx         # Dynamic OG image generation
-└── (clerk)/
-    ├── sign-in/[[...sign-in]]/page.tsx
-    └── sign-up/[[...sign-up]]/page.tsx
+├── page.tsx                      # Home: Manifesto + Sign Flow + Wall
+├── globals.css                   # Global styles (Tailwind)
+└── sig/
+    └── [signatureId]/
+        ├── page.tsx              # Share page with redirect
+        └── not-found.tsx         # 404 handling (optional)
 ```
 
-## Component Props Pattern
+## Home Page Example
 
 ```typescript
-export type CommitmentCardProps = {
-  signatory: Doc<"signatories">
-  onUpvote?: () => void
-  className?: string
+// page.tsx
+import type { Metadata } from "next"
+import { Logo } from "@/components/assets/logo"
+import { RisingLion } from "@/components/assets/rising-lion"
+import { Prose } from "@/components/layout/prose"
+import { HStack, Stack, VStack } from "@/components/layout/stack"
+import { PageDescription, PageTitle } from "@/components/layout/text"
+import Manifesto from "@/components/presenters/manifesto.mdx"
+import { SignatureForm } from "@/components/presenters/signature/form"
+import { SignatureWall } from "@/components/presenters/signature/wall"
+import { cn } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Tech for Iran",
+  description: "An open letter from founders, investors, and operators.",
 }
 
-export const CommitmentCard: React.FC<CommitmentCardProps> = ({
-  signatory,
-  onUpvote,
-  className,
-}) => {
-  // ...
-}
-```
+export default function HomePage() {
+  "use memo"
 
-## Phone Verification Flow
+  return (
+    <Stack as="main" className={cn("flex-col md:flex-row", "gap-12 lg:gap-16 xl:gap-24")}>
+      <VStack className="gap-8 flex-1 lg:flex-2/5 xl:flex-1/3 max-w-xl mt-14 lg:mt-16 xl:mt-20">
+        <RisingLion className="w-full" />
 
-Phone verification uses Clerk API but with **completely custom UI**:
+        <HStack className="gap-4 lg:gap-6" justify="between">
+          <VStack className="gap-2">
+            <PageTitle>Tech for Iran</PageTitle>
+            <PageDescription>
+              An open letter from founders, investors, and operators.
+            </PageDescription>
+          </VStack>
+          <Logo className="size-20" />
+        </HStack>
 
-```typescript
-// _verify.tsx
-"use client"
+        <Prose>
+          <Manifesto />
+        </Prose>
 
-export const VerifyStep: React.FC<VerifyStepProps> = ({ phoneNumber, onVerified }) => {
-  const [code, setCode] = useState("")
+        <SignatureForm />
+      </VStack>
 
-  const sendCode = useEffectEvent(async () => {
-    // Call Clerk API to send verification code
-    await clerk.sendVerificationCode({ phoneNumber })
-  })
-
-  const verifyCode = useEffectEvent(async () => {
-    // Call Clerk API to verify code
-    const result = await clerk.verifyCode({ phoneNumber, code })
-    if (result.success) {
-      onVerified(hashPhoneNumber(phoneNumber))
-    }
-  })
-
-  // Render custom OTP input, never Clerk components
+      <SignatureWall
+        className="flex-1 lg:flex-3/5 xl:flex-2/3"
+        gridClassName="grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3"
+      />
+    </Stack>
+  )
 }
 ```
 
-## Referral Tracking
+## Referral Tracking Pattern
 
-Track referrals via URL parameter stored in cookie/localStorage:
+Share pages redirect with referral info in URL params:
 
 ```typescript
-// s/[signatory_id]/page.client.tsx
-"use client"
+// In share page (sig/[signatureId]/page.tsx)
+const successMessage = `${signature.name} encourages you to sign!`
+return redirect(`/?referredBy=${signatureId}&success=${encodeURIComponent(successMessage)}`)
 
-import { useEffect } from "react"
-import { useLocalStorage } from "usehooks-ts"
+// Client-side referral handling in @/lib/referral.ts
+// getReferredBy() reads from URL params or cookie
+// setReferredBy() stores in cookie
+// clearReferredBy() removes after successful sign
+```
 
-export function SignatoryPageClient({ signatory_id }: { signatory_id: string }) {
-  const [referredBy, setReferredBy] = useLocalStorage<string | null>("referred_by", null)
+## MDX Content
 
-  useEffect(() => {
-    // Store referrer when visiting share page
-    setReferredBy(signatory_id)
-  }, [signatory_id, setReferredBy])
+Import MDX files directly as components:
 
-  // ...
-}
+```typescript
+import Manifesto from "@/components/presenters/manifesto.mdx"
+
+<Prose>
+  <Manifesto />
+</Prose>
+```
+
+## Layout Components
+
+Use layout components from `@/components/layout/`:
+
+```typescript
+import { Stack, HStack, VStack } from "@/components/layout/stack"
+import { Prose } from "@/components/layout/prose"
+import { PageTitle, PageDescription } from "@/components/layout/text"
+
+<Stack as="main" className="gap-12">
+  <VStack className="gap-8">
+    <PageTitle>Title</PageTitle>
+    <PageDescription>Description text.</PageDescription>
+  </VStack>
+</Stack>
 ```
 
 ## Checklist
 
 - [ ] Server component uses `"use memo"` directive
-- [ ] Client component has `"use client"` at top
-- [ ] Dynamic routes have `_types.ts` file
-- [ ] Private components prefixed with `_`
-- [ ] Parallel data fetching with `Promise.all()`
-- [ ] Props type named `ComponentNameProps`
-- [ ] Share pages generate dynamic OG images
-- [ ] Phone verification uses custom UI (no Clerk components)
-- [ ] Referral tracking stored client-side before sign flow
+- [ ] `Metadata` exported for SEO
+- [ ] Dynamic routes have typed params (`SignaturePageParams`)
+- [ ] Props type includes `params: Promise<Params>`
+- [ ] Use `fetchQuery` for server-side Convex queries
+- [ ] Handle `notFound()` for missing data
+- [ ] Share pages redirect with referral tracking
+- [ ] Use `url()` helper for absolute URLs
+- [ ] MDX content wrapped in `<Prose>`
+- [ ] Responsive layout with `Stack` + `flex-col md:flex-row`

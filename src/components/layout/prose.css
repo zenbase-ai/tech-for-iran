@@ -7,6 +7,12 @@
   h6 + p {
     margin-top: 0;
   }
+  p:first-child {
+    margin-top: 0;
+  }
+  p:last-child {
+    margin-bottom: 0;
+  }
   p:has(+ ol),
   p:has(+ ul) {
     margin-bottom: 0;
@@ -15,11 +21,9 @@
     line-height: 1.618;
   }
   blockquote {
-    margin-top: calc(var(--spacing) * 6);
-    margin-bottom: calc(var(--spacing) * 6);
     border-left: 2px solid var(--color-border);
-    padding-left: calc(var(--spacing) * 6);
-    font-style: italic;
+    margin-bottom: calc(var(--spacing) * 4);
+    padding-left: calc(var(--spacing) * 4);
   }
   table {
     margin-top: calc(var(--spacing) * 6);

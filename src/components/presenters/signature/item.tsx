@@ -1,10 +1,13 @@
 "use client"
 
+import { HStack } from "@/components/layout/stack"
 import { UpvoteButton } from "@/components/presenters/signature/upvote"
+import { Button } from "@/components/ui/button"
 import { Item, ItemContent, ItemDescription, ItemFooter } from "@/components/ui/item"
 import { RelativeTime } from "@/components/ui/relative-time"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Doc } from "@/convex/_generated/dataModel"
+import { xProfileURL } from "@/lib/utils"
 
 export type SignatureCardProps = {
   signature: Doc<"signatures">
@@ -12,10 +15,10 @@ export type SignatureCardProps = {
 
 /** Underlined field styling for the letter format */
 const LetterField: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <span className="border-b font-medium text-foreground">{children}</span>
+  <span className="text-foreground">{children}</span>
 )
 
-export const SignatureCard: React.FC<SignatureCardProps> = ({ signature }) => (
+export const SignatureItem: React.FC<SignatureCardProps> = ({ signature }) => (
   <Item className="bg-background" variant="outline">
     <ItemContent>
       {/* Letter format */}
@@ -40,13 +43,19 @@ export const SignatureCard: React.FC<SignatureCardProps> = ({ signature }) => (
     </ItemContent>
 
     <ItemFooter className="justify-between">
-      {/* Upvote button */}
-      <UpvoteButton count={signature.upvoteCount} signatureId={signature._id} />
+      <HStack className="gap-3 text-muted-foreground text-sm" items="center">
+        {/* X username link */}
+        <Button asChild variant="outline">
+          <a href={xProfileURL(signature.xUsername)} rel="noopener noreferrer" target="_blank">
+            @{signature.xUsername}
+          </a>
+        </Button>
 
-      {/* Relative timestamp */}
-      <span className="text-sm text-muted-foreground">
+        {/* Relative timestamp */}
         <RelativeTime date={signature._creationTime} />
-      </span>
+      </HStack>
+      {/* Upvote button */}
+      <UpvoteButton signatureId={signature._id} />
     </ItemFooter>
   </Item>
 )
@@ -54,7 +63,7 @@ export const SignatureCard: React.FC<SignatureCardProps> = ({ signature }) => (
 /**
  * SignatureCardSkeleton - Loading skeleton for signature cards.
  */
-export const SignatureCardSkeleton: React.FC = () => (
+export const SignatureItemSkeleton: React.FC = () => (
   <Item className="h-full" variant="outline">
     <ItemContent className="pt-6 flex-1 space-y-2">
       <Skeleton className="h-4 w-full" />

@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next"
 
 export default (): MetadataRoute.Manifest => ({
-  name: "Crackedbook",
-  short_name: "Crackedbook",
+  name: "Tech for Iran",
+  short_name: "Tech for Iran",
   icons: [
     {
       src: "/web-app-manifest-192x192.png",

@@ -17,9 +17,7 @@ export async function generateMetadata({ params }: SignaturePageProps): Promise<
   const { signatureId } = await params
 
   try {
-    const signature = await fetchQuery(api.signatures.query.get, {
-      signatureId,
-    })
+    const signature = await fetchQuery(api.signatures.query.get, { signatureId })
 
     if (!signature) {
       return {
@@ -61,10 +59,7 @@ export async function generateMetadata({ params }: SignaturePageProps): Promise<
 
 export default async function SignaturePage({ params }: SignaturePageProps) {
   const { signatureId } = await params
-
-  const signature = await fetchQuery(api.signatures.query.get, {
-    signatureId,
-  })
+  const signature = await fetchQuery(api.signatures.query.get, { signatureId })
 
   if (!signature) {
     return notFound()

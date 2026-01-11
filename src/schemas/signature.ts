@@ -85,6 +85,7 @@ export const CreateSignature = z.object({
     .optional(),
   commitment: z
     .string()
+    .trim()
     .max(
       createSignature.max.commitment,
       `Must be ${createSignature.max.commitment} characters or less`

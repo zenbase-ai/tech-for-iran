@@ -21,6 +21,7 @@ import { Item, ItemContent, ItemFooter } from "@/components/ui/item"
 import { LetterInput } from "@/components/ui/letter-input"
 import { api } from "@/convex/_generated/api"
 import useAsyncFn from "@/hooks/use-async-fn"
+import useFireworks from "@/hooks/use-fireworks"
 import { cn } from "@/lib/utils"
 import { CreateSignature, createSignature } from "@/schemas/signature"
 import { useSignatureContext } from "./context"
@@ -35,6 +36,7 @@ export type SignatureFormProps = {
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: this is mega
 export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
+  const fireworks = useFireworks()
   // Context
   const { setXUsername, referredBy } = useSignatureContext()
 
@@ -79,6 +81,7 @@ export const SignatureForm: React.FC<SignatureFormProps> = ({ className }) => {
 
   const handleSign = useEffectEvent(async (data: CreateSignature) => {
     setXUsername(data.xUsername)
+    fireworks()
     await create.execute(data)
   })
 

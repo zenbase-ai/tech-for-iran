@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import useConfetti from "@/hooks/use-confetti"
 import { cn } from "@/lib/utils"
 import { useSignatureContext } from "./context"
 
@@ -16,20 +17,22 @@ export type UpvoteButtonProps = {
 }
 
 export const UpvoteButton: React.FC<UpvoteButtonProps> = ({ signatureId, className }) => {
-  const signature = useQuery(api.signatures.query.get, { signatureId })
+  const upvoteCount = useQuery(api.signatures.query.get, { signatureId })?.upvoteCount ?? 0
+  const upvoteToggle = useMutation(api.upvotes.mutate.toggle)
 
   const { anonId } = useSignatureContext()
   const hasUpvoted =
     useQuery(api.upvotes.query.hasUpvoted, anonId ? { signatureId, anonId } : "skip") ?? false
 
-  const toggle = useMutation(api.upvotes.mutate.toggle)
+  const confetti = useConfetti()
 
-  const handleClick = useEffectEvent(async () => {
+  const onClick = useEffectEvent(async () => {
     if (!anonId) {
       return
     }
 
-    await toggle({ signatureId, anonId })
+    confetti.trigger()
+    await upvoteToggle({ signatureId, anonId })
   })
 
   return (
@@ -40,11 +43,12 @@ export const UpvoteButton: React.FC<UpvoteButtonProps> = ({ signatureId, classNa
         className
       )}
       disabled={!anonId}
-      onClick={handleClick}
+      onClick={onClick}
+      ref={confetti.ref as React.RefObject<HTMLButtonElement>}
       variant="outline"
     >
       <LuThumbsUp strokeWidth={3} />
-      <NumberTicker value={signature?.upvoteCount ?? 0} />
+      <NumberTicker value={upvoteCount} />
     </Button>
   )
 }

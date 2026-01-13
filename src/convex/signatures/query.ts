@@ -93,20 +93,31 @@ export const count = query({
 // =================================================================
 
 /**
- * Paginated list of non-pinned signatures for the Wall of Commitments.
+ * Paginated list of expert signatures for the Wall of Commitments.
  *
- * @param sort - Sort order: 'upvotes' (by upvoteCount desc) or 'recent' (by _creationTime desc)
+ * Only returns signatures where expert=true. Can be filtered by categories.
+ *
+ * @param categories - Optional array of categories to filter by. Empty array = all experts.
  * @param paginationOpts - Pagination options from usePaginatedQuery
- * @returns Paginated list of non-pinned signatures
+ * @returns Paginated list of expert signatures, sorted by pinned desc then upvoteCount desc
  */
 export const list = query({
   args: {
+    categories: v.optional(v.array(v.string())),
     paginationOpts: paginationOptsValidator,
   },
-  handler: async (ctx, { paginationOpts }) =>
+  handler: async (ctx, { categories, paginationOpts }) =>
     await ctx.db
       .query("signatures")
       .withIndex("by_pinned_upvoteCount")
       .order("desc")
+      .filter((q) =>
+        categories && categories.length > 0
+          ? q.and(
+              q.eq(q.field("expert"), true),
+              q.or(...categories.map((c) => q.eq(q.field("category"), c)))
+            )
+          : q.eq(q.field("expert"), true)
+      )
       .paginate(paginationOpts),
 })

@@ -1,6 +1,26 @@
 import * as z from "zod"
 
 // =================================================================
+// Categories
+// =================================================================
+
+/**
+ * Signature categories for filtering experts by domain.
+ */
+export const SignatureCategory = z.enum(["tech", "policymakers", "academics"])
+export type SignatureCategory = z.infer<typeof SignatureCategory>
+
+/** All available categories for toggle group options */
+export const signatureCategories = SignatureCategory.options
+
+/** Display labels for categories */
+export const signatureCategoryLabels: Record<SignatureCategory, string> = {
+  tech: "Tech",
+  policymakers: "Policymakers",
+  academics: "Academics",
+}
+
+// =================================================================
 // Configuration
 // =================================================================
 

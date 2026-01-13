@@ -93,24 +93,6 @@ export const count = query({
 // =================================================================
 
 /**
- * Get all pinned signatures for the Wall of Commitments.
- *
- * Pinned signatures are displayed at the top of the wall, separate from
- * the paginated list. Expected to be a small number (<50).
- *
- * @returns All pinned signatures sorted by upvote count descending
- */
-export const pinned = query({
-  args: {},
-  handler: async (ctx): Promise<Doc<"signatures">[]> =>
-    await ctx.db
-      .query("signatures")
-      .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", true))
-      .order("desc")
-      .collect(),
-})
-
-/**
  * Paginated list of non-pinned signatures for the Wall of Commitments.
  *
  * @param sort - Sort order: 'upvotes' (by upvoteCount desc) or 'recent' (by _creationTime desc)

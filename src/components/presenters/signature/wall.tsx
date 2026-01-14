@@ -12,11 +12,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { api } from "@/convex/_generated/api"
 import useInfiniteScroll from "@/hooks/use-infinite-scroll"
 import { cn } from "@/lib/utils"
-import {
-  type SignatureCategory,
-  signatureCategories,
-  signatureCategoryLabels,
-} from "@/schemas/signature"
+import { SignatureCategory, signatureCategoryLabels } from "@/schemas/signature"
 import { UpvoteButton } from "./upvote"
 
 const PAGE_SIZE = 20
@@ -26,7 +22,10 @@ export type SignatureWallProps = BoxProps & {
 }
 
 export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...props }) => {
-  const [category, setCategory] = useQueryState("category", parseAsStringEnum(signatureCategories))
+  const [category, setCategory] = useQueryState(
+    "category",
+    parseAsStringEnum(SignatureCategory.options)
+  )
 
   const list = usePaginatedQuery(
     api.signatures.query.list,
@@ -48,7 +47,7 @@ export const SignatureWall: React.FC<SignatureWallProps> = ({ gridClassName, ...
         value={category ?? undefined}
         variant="outline"
       >
-        {signatureCategories.map((category) => (
+        {SignatureCategory.options.map((category) => (
           <ToggleGroupItem key={category} value={category}>
             {signatureCategoryLabels[category]}
           </ToggleGroupItem>

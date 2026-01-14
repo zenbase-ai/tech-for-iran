@@ -137,23 +137,21 @@ src/
 
 ## Customization
 
-### Your Manifesto
+### Pledge
 
-Edit `src/components/presenters/manifesto.mdx` — this is the heart of your movement:
-
-```mdx
-# For a free Iran.
-
-We are Iranian founders, engineers, investors, leaders and scientists in tech.
-
-We stand with the people of Iran and call for the end of the Islamic regime.
-
-**Add your name.**
-```
+- `src/components/presenters/manifesto.mdx`.
+- `src/app/page.tsx` for the landing page layout and content
+- `src/app/layout.tsx` for SEO
 
 ### Categories
 
-Update the category options in `src/convex/schema.ts`:
+1. Update the categories in `src/schemas/signature.ts`:
+
+```typescript
+export const SignatureCategory = z.enum(["tech", "policymakers", "academics"])
+```
+
+2. Update the category options in `src/convex/schema.ts`:
 
 ```typescript
 category: v.optional(v.union(

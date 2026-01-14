@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 
 const title = "Tech for Iran"
 const description =
-  "Founders, investors, and operators pledging to do business with a free Iran. Day one. This is not hope. This is a commitment."
+  "Founders, investors, and operators pledging to do business with a free Iran. Day one."
 const url = "https://techforiran.com"
 
 export const metadata = {

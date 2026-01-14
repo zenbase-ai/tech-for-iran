@@ -1,4 +1,3 @@
-import type { Metadata } from "next"
 import { RisingLion } from "@/components/assets/rising-lion"
 import { Prose } from "@/components/layout/prose"
 import { Stack, VStack } from "@/components/layout/stack"
@@ -7,11 +6,6 @@ import { SignatureProvider } from "@/components/presenters/signature/context"
 import { SignatureSection } from "@/components/presenters/signature/section"
 import { SignatureWall } from "@/components/presenters/signature/wall"
 import { cn } from "@/lib/utils"
-
-export const metadata: Metadata = {
-  title: "Tech for Iran",
-  description: "An open letter from founders, investors, and operators.",
-}
 
 export default function HomePage() {
   "use memo"

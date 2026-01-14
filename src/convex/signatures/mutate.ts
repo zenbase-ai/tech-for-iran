@@ -81,6 +81,7 @@ export const create = mutation({
     }
 
     // Create new signature record
+    // New signatures default to expert=false (not shown publicly until manually approved)
     const signatureId = await ctx.db.insert("signatures", {
       xUsername: normalizedUsername,
       name,
@@ -91,6 +92,7 @@ export const create = mutation({
       pinned: false,
       upvoteCount: 0,
       referredBy: validReferredBy,
+      expert: false,
     })
 
     return { data: { signatureId }, success: "You've signed the letter!" }

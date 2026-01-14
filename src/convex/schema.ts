@@ -25,20 +25,29 @@ export default defineSchema({
     upvoteCount: v.number(), // Denormalized count for fast reads (defaults to 0)
     referredBy: v.optional(v.id("signatures")), // Who referred this person
 
-    // Future: LLM-parsed tags (capital amount, currency, jobs count, category)
+    // Categorization fields
+    category: v.optional(v.string()), // Domain category: "tech" | "policymakers" | "academics"
+    expert: v.boolean(), // Manually curated flag - only expert=true shown publicly
+
+    // Future: LLM-parsed tags (capital amount, currency, jobs count)
     tags: v.optional(
       v.object({
         capitalAmount: v.optional(v.number()),
         capitalCurrency: v.optional(v.string()),
         jobsCount: v.optional(v.number()),
-        category: v.optional(v.string()),
       })
     ),
   })
     .index("by_xUsername", ["xUsername"]) // Look up signature by X username (deduplication)
     .index("by_pinned_upvoteCount", ["pinned", "upvoteCount"]) // Sort by pinned first, then upvotes
-    .index("by_pinned", ["pinned"]) // Sort by pinned first, then recent
-    .index("by_referredBy", ["referredBy"]), // Count referrals for a signature
+    .index("by_expert_pinned_upvoteCount", ["expert", "pinned", "upvoteCount"]) // Sort by expert first, then pinned, then upvotes
+    .index("by_referredBy", ["referredBy"]) // Count referrals for a signature
+    .index("by_category_expert_pinned_upvoteCount", [
+      "category",
+      "expert",
+      "pinned",
+      "upvoteCount",
+    ]), // Filter by category and expert status
 
   /**
    * Upvotes table - tracks who has upvoted whom on the Wall of Commitments.

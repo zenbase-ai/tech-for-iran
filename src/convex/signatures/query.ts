@@ -3,6 +3,7 @@ import { v } from "convex/values"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
 import { signatureCount, signatureReferrals } from "@/convex/aggregates"
+import { SignatureCategory } from "@/schemas/signature"
 
 // =================================================================
 // Queries
@@ -93,38 +94,30 @@ export const count = query({
 // =================================================================
 
 /**
- * Get all pinned signatures for the Wall of Commitments.
+ * Paginated list of expert signatures for the Wall of Commitments.
  *
- * Pinned signatures are displayed at the top of the wall, separate from
- * the paginated list. Expected to be a small number (<50).
+ * Only returns signatures where expert=true. Can be filtered by categories.
  *
- * @returns All pinned signatures sorted by upvote count descending
- */
-export const pinned = query({
-  args: {},
-  handler: async (ctx): Promise<Doc<"signatures">[]> =>
-    await ctx.db
-      .query("signatures")
-      .withIndex("by_pinned_upvoteCount", (q) => q.eq("pinned", true))
-      .order("desc")
-      .collect(),
-})
-
-/**
- * Paginated list of non-pinned signatures for the Wall of Commitments.
- *
- * @param sort - Sort order: 'upvotes' (by upvoteCount desc) or 'recent' (by _creationTime desc)
+ * @param categories - Optional array of categories to filter by. Empty array = all experts.
  * @param paginationOpts - Pagination options from usePaginatedQuery
- * @returns Paginated list of non-pinned signatures
+ * @returns Paginated list of expert signatures, sorted by pinned desc then upvoteCount desc
  */
 export const list = query({
   args: {
+    category: v.optional(v.string()),
     paginationOpts: paginationOptsValidator,
   },
-  handler: async (ctx, { paginationOpts }) =>
-    await ctx.db
-      .query("signatures")
-      .withIndex("by_pinned_upvoteCount")
-      .order("desc")
-      .paginate(paginationOpts),
+  handler: async (ctx, { category, paginationOpts }) => {
+    const query = SignatureCategory.safeParse(category).success
+      ? ctx.db
+          .query("signatures")
+          .withIndex("by_category_expert_pinned_upvoteCount", (q) =>
+            q.eq("category", category).eq("expert", true)
+          )
+      : ctx.db
+          .query("signatures")
+          .withIndex("by_expert_pinned_upvoteCount", (q) => q.eq("expert", true))
+
+    return await query.order("desc").paginate(paginationOpts)
+  },
 })

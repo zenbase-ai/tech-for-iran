@@ -1,4 +1,5 @@
-import type { Id } from "./_generated/dataModel"
+import { sum } from "es-toolkit"
+import { pmap } from "@/lib/utils"
 import { internalMutation as rawInternalMutation } from "./_generated/server"
 import { internalMutation } from "./_helpers/server"
 import { signatureCount, signatureReferrals, upvoteCount } from "./aggregates"
@@ -17,6 +18,8 @@ const SIGNATURES = [
     commitment:
       "hiring 50 Iranian engineers and investing $10M in Iranian-founded startups over the next 100 days",
     pinned: true,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "omikimon",
@@ -27,6 +30,8 @@ const SIGNATURES = [
     commitment:
       "mentoring 25 Iranian founders and opening our accelerator program to Iranian applicants",
     pinned: true,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "faborator",
@@ -36,6 +41,8 @@ const SIGNATURES = [
     because: "technology can be a force for freedom",
     commitment: "committing $5M to fund infrastructure projects that connect Iranians to the world",
     pinned: true,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "AnoushehAnsari",
@@ -45,6 +52,8 @@ const SIGNATURES = [
     because: "I've seen what Iranians can achieve when given the opportunity",
     commitment: "launching a $1M prize for Iranian innovators solving humanitarian challenges",
     pinned: true,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "paborator",
@@ -54,6 +63,8 @@ const SIGNATURES = [
     commitment:
       "our foundation will allocate $20M toward digital freedom tools and civic tech for Iran",
     pinned: true,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "sheraborator",
@@ -63,6 +74,8 @@ const SIGNATURES = [
     because: "innovation knows no borders",
     commitment: "investing in 10 Iranian-founded startups this year",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "apartovi",
@@ -73,6 +86,8 @@ const SIGNATURES = [
     commitment:
       "offering 100 full scholarships to Iranian students for our computer science programs",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "hadip",
@@ -82,6 +97,8 @@ const SIGNATURES = [
     because: "every child deserves to learn to code, regardless of where they're born",
     commitment: "translating all Code.org curriculum to Farsi and training 500 Iranian teachers",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "mirzakhani_fdn",
@@ -90,6 +107,8 @@ const SIGNATURES = [
     company: "Stanford Mathematics",
     commitment: "establishing 20 graduate fellowships for Iranian women in STEM",
     pinned: false,
+    expert: true,
+    category: "academics",
   },
   {
     xUsername: "saeedamidi",
@@ -100,6 +119,8 @@ const SIGNATURES = [
     commitment:
       "opening our accelerator to 50 Iranian startups with full support and no equity taken",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "navidalipour",
@@ -109,6 +130,8 @@ const SIGNATURES = [
     because: "data science can solve Iran's biggest challenges",
     commitment: "pro-bono consulting for 10 Iranian healthcare and climate startups",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "shirindehghani",
@@ -119,6 +142,8 @@ const SIGNATURES = [
     commitment:
       "donating biometric security technology to protect Iranian activists and journalists",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "rezamalekzadeh",
@@ -128,6 +153,8 @@ const SIGNATURES = [
     because: "European VCs must step up for Iranian founders",
     commitment: "dedicating €2M of our fund specifically for Iranian-founded companies",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "saranaseri",
@@ -137,6 +164,8 @@ const SIGNATURES = [
     because: "healthcare innovation should reach everyone",
     commitment: "licensing our diagnostic technology royalty-free for Iranian hospitals",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "babakparviz",
@@ -146,6 +175,8 @@ const SIGNATURES = [
     because: "I still remember the dreams we had as students in Tehran",
     commitment: "establishing an engineering fellowship program for 30 Iranian graduates",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "saborator",
@@ -155,6 +186,8 @@ const SIGNATURES = [
     because: "free expression is everything",
     commitment: "funding digital literacy programs reaching 100,000 young Iranians",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "araborator",
@@ -164,6 +197,8 @@ const SIGNATURES = [
     because: "access to information is a human right",
     commitment: "providing free Dropbox accounts to Iranian universities and research institutions",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "hosainrahman",
@@ -173,6 +208,8 @@ const SIGNATURES = [
     because: "hardware startups need more support",
     commitment: "opening a hardware lab in Dubai accessible to Iranian entrepreneurs",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "pardaborator",
@@ -183,6 +220,8 @@ const SIGNATURES = [
     commitment:
       "training 50 Iranian researchers in computational biology through virtual fellowships",
     pinned: false,
+    expert: true,
+    category: "academics",
   },
   {
     xUsername: "daboratorian",
@@ -191,6 +230,8 @@ const SIGNATURES = [
     company: "Gradient Ventures",
     commitment: "investing $3M in AI startups with Iranian founders or co-founders",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "naborator",
@@ -200,6 +241,8 @@ const SIGNATURES = [
     because: "fintech can unlock economic opportunity",
     commitment: "building financial infrastructure tools for the Iranian diaspora",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "tinasharkey",
@@ -209,6 +252,8 @@ const SIGNATURES = [
     because: "commerce should be accessible to all",
     commitment: "mentoring 20 Iranian e-commerce founders",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "amirefrati",
@@ -219,6 +264,8 @@ const SIGNATURES = [
     commitment:
       "providing free subscriptions to Iranian journalists and launching a fellowship program",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
   {
     xUsername: "kaborator",
@@ -228,6 +275,8 @@ const SIGNATURES = [
     because: "economic freedom starts with information",
     commitment: "publishing a monthly series highlighting Iranian business innovation",
     pinned: false,
+    expert: true,
+    category: "tech",
   },
 ]
 
@@ -251,17 +300,10 @@ export const seed = internalMutation({
       return { seeded: false, count: 0 }
     }
 
-    const signatureIds: Id<"signatures">[] = []
-
-    for (const signature of SIGNATURES) {
-      // Create the signature (upvoteCount will be updated after creating upvotes)
-      const signatureId = await ctx.db.insert("signatures", {
-        upvoteCount: 0,
-        ...signature,
-      })
-
-      signatureIds.push(signatureId)
-    }
+    const signatureIds = await pmap(
+      SIGNATURES,
+      async (signature) => await ctx.db.insert("signatures", { upvoteCount: 0, ...signature })
+    )
 
     // Add some referral relationships (later signatures referred by earlier ones)
     for (let i = 6; i < signatureIds.length; i++) {
@@ -274,22 +316,24 @@ export const seed = internalMutation({
     }
 
     // Create random upvotes for each signature
-    let totalUpvotes = 0
-    for (const signatureId of signatureIds) {
-      const numUpvotes = Math.floor(Math.random() * 20) + 1 // 1-20 upvotes per signature
-      for (let i = 0; i < numUpvotes; i++) {
-        await ctx.db.insert("upvotes", {
-          signatureId,
-          anonId: `seed-anon-${signatureId}-${i}`,
-        })
-      }
-      // Update the denormalized upvoteCount on the signature
-      await ctx.db.patch(signatureId, { upvoteCount: numUpvotes })
-      totalUpvotes += numUpvotes
-    }
+    const upvotes = sum(
+      await pmap(signatureIds, async (signatureId) => {
+        const numUpvotes = Math.floor(Math.random() * 20) + 1 // 1-20 upvotes per signature
+        for (let i = 0; i < numUpvotes; i++) {
+          await ctx.db.insert("upvotes", {
+            signatureId,
+            anonId: `seed-anon-${signatureId}-${i}`,
+          })
+        }
+        // Update the denormalized upvoteCount on the signature
+        await ctx.db.patch(signatureId, { upvoteCount: numUpvotes })
+        return numUpvotes
+      })
+    )
 
-    console.log(`Seeded ${signatureIds.length} signatures and ${totalUpvotes} upvotes.`)
-    return { seeded: true, count: signatureIds.length, upvotes: totalUpvotes }
+    const count = signatureIds.length
+    console.log(`Seeded ${count} signatures and ${upvotes} upvotes.`)
+    return { seeded: true, count, upvotes }
   },
 })
 

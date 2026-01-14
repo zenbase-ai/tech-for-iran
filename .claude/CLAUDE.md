@@ -10,8 +10,7 @@ This is a LinkedIn Squad Engagement Automation tool - a Next.js application that
 
 **Key Tech Stack:**
 - Next.js 16+ (App Router, React 19, React Compiler enabled)
-- Bun 1.3.2
-- Clerk (Authentication and user management)
+- Bun 1.3.5
 - Convex (Real-time database with type-safe queries/mutations/actions)
 - Convex Auth (Clerk JWT integration for authenticated Convex functions)
 - Unipile API (LinkedIn integration for reactions/actions)
@@ -157,7 +156,7 @@ This section documents the common coding patterns used throughout the codebase. 
   ```
 
 **UpdatedAt Timestamp Pattern:**
-- All mutations use `update()` helper which automatically adds `updatedAt: Date.now()`
+- Mutations for models that have an `updatedAt` field use `update()` helper which automatically adds `updatedAt: Date.now()`
 - Defined in `src/convex/helpers/server.ts`:
   ```typescript
   export const update = <T extends Record<string, unknown>>(

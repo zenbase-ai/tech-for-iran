@@ -3,6 +3,7 @@ import { v } from "convex/values"
 import type { Doc } from "@/convex/_generated/dataModel"
 import { query } from "@/convex/_generated/server"
 import { signatureCount, signatureReferrals } from "@/convex/aggregates"
+import { SignatureCategory } from "@/schemas/signature"
 
 // =================================================================
 // Queries
@@ -103,21 +104,20 @@ export const count = query({
  */
 export const list = query({
   args: {
-    categories: v.optional(v.array(v.string())),
+    category: v.optional(v.string()),
     paginationOpts: paginationOptsValidator,
   },
-  handler: async (ctx, { categories, paginationOpts }) =>
-    await ctx.db
-      .query("signatures")
-      .withIndex("by_pinned_upvoteCount")
-      .order("desc")
-      .filter((q) =>
-        categories && categories.length > 0
-          ? q.and(
-              q.eq(q.field("expert"), true),
-              q.or(...categories.map((c) => q.eq(q.field("category"), c)))
-            )
-          : q.eq(q.field("expert"), true)
-      )
-      .paginate(paginationOpts),
+  handler: async (ctx, { category, paginationOpts }) => {
+    const query = SignatureCategory.safeParse(category).success
+      ? ctx.db
+          .query("signatures")
+          .withIndex("by_category_expert_pinned_upvoteCount", (q) =>
+            q.eq("category", category).eq("expert", true)
+          )
+      : ctx.db
+          .query("signatures")
+          .withIndex("by_expert_pinned_upvoteCount", (q) => q.eq("expert", true))
+
+    return await query.order("desc").paginate(paginationOpts)
+  },
 })

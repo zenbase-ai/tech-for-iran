@@ -40,9 +40,14 @@ export default defineSchema({
   })
     .index("by_xUsername", ["xUsername"]) // Look up signature by X username (deduplication)
     .index("by_pinned_upvoteCount", ["pinned", "upvoteCount"]) // Sort by pinned first, then upvotes
-    .index("by_pinned", ["pinned"]) // Sort by pinned first, then recent
+    .index("by_expert_pinned_upvoteCount", ["expert", "pinned", "upvoteCount"]) // Sort by expert first, then pinned, then upvotes
     .index("by_referredBy", ["referredBy"]) // Count referrals for a signature
-    .index("by_category_expert_pinned_upvoteCount", ["category", "expert", "pinned", "upvoteCount"]), // Filter by category and expert status
+    .index("by_category_expert_pinned_upvoteCount", [
+      "category",
+      "expert",
+      "pinned",
+      "upvoteCount",
+    ]), // Filter by category and expert status
 
   /**
    * Upvotes table - tracks who has upvoted whom on the Wall of Commitments.

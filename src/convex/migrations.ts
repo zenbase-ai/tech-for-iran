@@ -12,11 +12,11 @@ export const run = migrations.runner()
  * - Sets category='tech' for all existing signatures (they signed "Tech for Iran")
  * - Sets expert=false for all existing signatures (requires manual curation to show publicly)
  *
- * Run with: npx convex run migrations:run '{fn: "migrations:setSignatureCategoryAndExpert"}'
+ * Run with: bun convex run migrations:run '{fn: "migrations:setSignatureCategoryAndExpert"}'
  */
 export const setSignatureCategoryAndExpert = migrations.define({
   table: "signatures",
-  migrateOne: async (_ctx, doc) => {
+  migrateOne: (_ctx, doc) => {
     if (doc.category === undefined || doc.expert === undefined) {
       return {
         category: doc.category ?? "tech",

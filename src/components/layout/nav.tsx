@@ -5,12 +5,11 @@ import { motion } from "motion/react"
 import { LuPenLine, LuThumbsUp } from "react-icons/lu"
 import { Logo } from "@/components/assets/logo"
 import { HStack } from "@/components/layout/stack"
-import { Button } from "@/components/ui/button"
 import { GlowEffect } from "@/components/ui/glow-effect"
 import { NumberTicker } from "@/components/ui/number-ticker"
 import { ThemeToggler } from "@/components/ui/theme-toggler"
 import { api } from "@/convex/_generated/api"
-import { cn, xProfileURL } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
 
 export const Nav: React.FC = () => {
@@ -39,11 +38,6 @@ export const Nav: React.FC = () => {
           items="center"
         >
           <ThemeToggler variant="ghost" />
-          <Button asChild variant="ghost">
-            <a href={xProfileURL("cyrusnewday")} rel="noopener noreferrer" target="_blank">
-              Made by Cyrus
-            </a>
-          </Button>
           <Badge variant="ghost">
             <NumberTicker className="tabular-nums" value={signatureCount ?? 0} />
             <LuPenLine className="size-4" />

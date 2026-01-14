@@ -34,7 +34,7 @@ export default function HomePage() {
         </SignatureProvider>
       </Column>
 
-      <Column className="lg:flex-3/5 xl:flex-2/3 md:h-screen">
+      <Column className="lg:flex-3/5 xl:flex-2/3 h-screen">
         <SignatureProvider>
           <SignatureWall
             className="pt-4 lg:pt-8 xl:pt-16"

@@ -5,7 +5,6 @@ import { crimsonPro, geistMono, inter } from "@/components/assets/fonts"
 import { FlashToasts } from "@/components/effects/flash-toasts"
 import { InitPosthog } from "@/components/effects/init-posthog"
 import { InitReferrer } from "@/components/effects/init-referrer"
-import { Box } from "@/components/layout/box"
 import { Nav } from "@/components/layout/nav"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/sonner"
@@ -113,7 +112,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
 
           <Nav />
 
-          <Box className="w-full p-4 lg:p-8 xl:p-16">{children}</Box>
+          {children}
         </Providers>
       </body>
     </html>
